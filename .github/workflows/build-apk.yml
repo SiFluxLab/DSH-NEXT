@@ -133,7 +133,13 @@ jobs:
       # runtime/tawcroot/build.py pins NDK 28.2.13676358 for libtawcroot.so.
       - name: NDK for libtawcroot
         shell: bash
-        run: sdkmanager "ndk;28.2.13676358"
+        run: |
+          sdkmanager "ndk;28.2.13676358"
+          ndk="$ANDROID_HOME/ndk/28.2.13676358"
+          cat "$ndk/source.properties" | grep -i revision
+          # Runners preinstall an NDK and export ANDROID_NDK_HOME for it;
+          # runtime/tawcroot/build.py needs the pinned one.
+          echo "ANDROID_NDK_HOME=$ndk" >> "$GITHUB_ENV"
 
       - name: Signing key (optional)
         shell: bash
