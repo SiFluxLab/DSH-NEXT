@@ -62,6 +62,41 @@ object YinglongLaunch {
     }
 
     /**
+     * One cheap run through the loader (`/usr/bin/env -i /bin/true`) before the
+     * engine depends on it. Android's seccomp filter, a wrong library path or a
+     * loader the kernel refuses all show up here as a non-zero exit, instead of
+     * as an engine that never listens. Returns null when the loader works, else
+     * "selfTest:<exit>" (or the exception's class name).
+     */
+    fun selfTest(rootfs: File, abi: String, timeoutMillis: Long = 8000): String? {
+        val loaderName = ABI_LOADER[abi] ?: return UNSUPPORTED
+        val root = rootfs.canonicalFile
+        val loader = File(root, "$DIR/$loaderName")
+        val libraries = libraryDirectories(abi).joinToString(":") { File(root, it).path }
+        val cmd = listOf(loader.path, "--library-path", libraries, File(root, "usr/bin/env").path, "-i",
+            "ZT_ROOT=${root.path}", "ZT_LD=${loader.path}", "ZT_LIBPATH=$libraries", "/bin/true")
+        return try {
+            val p = ProcessBuilder(cmd).directory(File(root, "root"))
+                .redirectErrorStream(true).start()
+            val out = p.inputStream.bufferedReader().use { reader ->
+                val text = StringBuilder()
+                val reader2 = Thread {
+                    runCatching { reader.forEachLine { if (text.length < 2048) text.append(it).append('\n') } }
+                }.apply { isDaemon = true; start() }
+                if (!p.waitFor(timeoutMillis, java.util.concurrent.TimeUnit.MILLISECONDS)) {
+                    p.destroyForcibly()
+                    return "selfTest:timeout"
+                }
+                reader2.join(500)
+                text.toString()
+            }
+            if (p.exitValue() == 0) null else "selfTest:${p.exitValue()}${out.take(300).trim().let { if (it.isEmpty()) "" else " $it" }}"
+        } catch (e: Exception) {
+            e.javaClass.simpleName
+        }
+    }
+
+    /**
      * Consume the fully expanded PRoot argv (overlays, binds and guest env are
      * already composed by [DshProcess]) and turn it into a loader invocation.
      */

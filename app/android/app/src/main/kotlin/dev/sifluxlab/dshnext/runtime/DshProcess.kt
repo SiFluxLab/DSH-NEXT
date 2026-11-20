@@ -95,23 +95,28 @@ class DshProcess(
         val ztWanted = ztEngine && !safe
         val ztMissing = if (ztWanted) YinglongLaunch.unavailable(rootfs, manifest.abi) else null
         val ztReady = ztWanted && !ztFailed && ztMissing == null
+        // One cheap run through the loader first: a refused loader (seccomp), a missing
+        // library or a bad binding then costs a fallback instead of a dead engine.
+        val ztSelfTest = if (ztReady) YinglongLaunch.selfTest(rootfs, manifest.abi) else null
+        val ztOk = ztReady && ztSelfTest == null
         // tawcroot wins over Direct when both are on; like Direct it needs PRoot's fake hard links gone.
         val tawcWanted = !ztReady && tawcEngine && !safe
         val tawcMissing = if (tawcWanted) TawcrootLaunch.unavailable(context.applicationInfo.nativeLibraryDir, android.os.Build.VERSION.SDK_INT) else null
         val tawcReady = tawcWanted && !tawcFailed && tawcMissing == null
-        var selection = if (ztReady) DirectLaunch.Selection(false)
+        var selection = if (ztOk) DirectLaunch.Selection(false)
             else if (tawcReady) DirectLaunch.select(rootfs, requested = true, safe = false)
             else DirectLaunch.select(rootfs, directEngine, safe, directFailed)
         // Only PRoot's fake hard links stand in the way: tidy them once no runtime process is left.
         val tidy = selection.fallbackReason == DirectLaunch.INCOMPATIBLE
         val cleanup = reapStrays(allowObservationGap = true)
         if (tidy && cleanup.complete) selection = tidyLinks(binds)
-        zt = ztReady
+        zt = ztOk
         tawc = !zt && tawcReady && selection.direct
         direct = !zt && selection.direct && !tawcReady
         directFallbackReason = selection.fallbackReason ?: when {
             ztWanted && ztFailed -> YinglongLaunch.FAILED
             ztMissing != null -> ztMissing
+            ztSelfTest != null -> ztSelfTest
             tawcWanted && tawcFailed -> TawcrootLaunch.FAILED
             tawcMissing != null -> tawcMissing
             (directEngine || tawcEngine || ztEngine) && safe -> "safeRecovery"
@@ -231,6 +236,7 @@ class DshProcess(
         if (directFallbackReason == DirectLaunch.INCOMPATIBLE) listener.onLog("[dsh-app] direct fallback: proot hard-link backing files need compatible launch; user preference and data retained", "system")
         if (directFallbackReason == DirectLaunch.FAILED) listener.onLog("[dsh-app] direct fallback: direct launch failed before with this runtime; turn Direct on again to retry", "system")
         if (directFallbackReason == TawcrootLaunch.FAILED) listener.onLog("[dsh-app] tawcroot fallback: tawcroot failed to start before with this runtime; turn tawcroot on again to retry", "system")
+        if (ztSelfTest != null) listener.onLog("[dsh-app] yinglong self-test failed ($ztSelfTest); this start uses PRoot", "system")
         if (directFallbackReason == YinglongLaunch.FAILED) listener.onLog("[dsh-app] yinglong fallback: the Zero-Trap launch failed before with this runtime; running on PRoot until the runtime changes or 应龙 is turned on again", "system")
         listener.onLog("[dsh-app] launch method: ${if (zt) "yinglong" else if (tawc) "tawcroot" else if (direct) "direct-glibc" else "proot"}${if ((directEngine || tawcEngine || ztEngine) && safe) " (safe recovery)" else ""}", "system")
         listener.onLog("[dsh-app] launching ${builder.command().joinToString(" ") { redact(it) }}", "system")
