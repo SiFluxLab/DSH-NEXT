@@ -1,0 +1,14 @@
+{
+  "builtinPluginsTitle": "内置插件",
+  "builtinPluginsIntro": "关掉的插件会从界面里隐藏：模式、入口和深链都会停用。",
+  "builtinPluginsKeywords": "插件, 开关, 启用, 停用, 酒馆, 创意工坊, 伙伴小屋, 精简",
+  "builtinPluginsAllOn": "全部开启",
+  "builtinPluginsSomeOff": "有已关闭",
+  "builtinPluginsReset": "全部重新开启",
+  "builtinPluginKeepData": "关闭不会删除已有数据；重新开启后角色卡、对话、伙伴包都还在。",
+  "builtinPluginOffAction": "去设置里开启",
+  "builtinPluginOffMessage": "这个功能已经关闭。",
+  "builtinPluginTavernHint": "角色扮演：SillyTavern 兼容的角色卡、世界书与预设",
+  "builtinPluginWorkshopHint": "下载与投稿桌宠包、伙伴包（需要一个工坊服务端）",
+  "builtinPluginCompanionHint": "伙伴小屋：Live2D 舞台与长期角色"
+}

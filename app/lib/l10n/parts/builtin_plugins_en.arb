@@ -1,0 +1,14 @@
+{
+  "builtinPluginsTitle": "Built-in plugins",
+  "builtinPluginsIntro": "A plugin that is off disappears from the app: its mode, entries and links stop working.",
+  "builtinPluginsKeywords": "plugin, switch, enable, disable, tavern, workshop, companion, lite",
+  "builtinPluginsAllOn": "All on",
+  "builtinPluginsSomeOff": "Some off",
+  "builtinPluginsReset": "Turn everything back on",
+  "builtinPluginKeepData": "Turning one off deletes nothing; cards, chats and packs come back when it is on again.",
+  "builtinPluginOffAction": "Turn it on in settings",
+  "builtinPluginOffMessage": "This feature is switched off.",
+  "builtinPluginTavernHint": "Role play: SillyTavern-compatible cards, lorebooks and presets",
+  "builtinPluginWorkshopHint": "Download and publish pet and companion packs (needs a workshop server)",
+  "builtinPluginCompanionHint": "Companion room: a Live2D stage and a long-lived character"
+}

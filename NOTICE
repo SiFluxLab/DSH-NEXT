@@ -1,0 +1,39 @@
+DSH NEXT
+========
+
+This repository is a rebranded, plugin-modular fork of dsh-go
+(https://github.com/ccch1mneyyy/dsh-go), Copyright (c) 2026 ccch1mneyyy /
+DSH-TUI, licensed under the GNU Affero General Public License v3.0.
+
+DSH NEXT keeps the upstream licence: the whole of this source tree is
+distributed under AGPL-3.0 (see LICENSE), and every distributed build must
+keep offering its complete corresponding source to the people who use it.
+
+What changed in this fork
+-------------------------
+
+* Name, application id (dev.sifluxlab.dshnext), deep-link scheme (dshnext://),
+  launcher labels and documentation were rebranded to DSH NEXT.
+* 酒馆 (Tavern), 创意工坊 (Workshop) and 伙伴小屋 (Companion) became optional
+  built-in plugins: 设置 › 内置插件 switches each one on or off at runtime.
+* The upstream author's services are no longer contacted. Every host that used
+  to point at them (updates mirror, relay, forum, workshop, plugin market,
+  usage reporting, hosted shares) now points at the reserved placeholder
+  dshnext.invalid, which never resolves. Configure your own deployment there
+  (see docs/dsh-next.md) or leave the features off.
+* Brand artwork, mascots and the Live2D material are not part of this tree.
+  Assets owned by the upstream author were removed; see ASSETS.md upstream for
+  what was never covered by the AGPL.
+
+Upstream files that are intentionally unchanged
+-----------------------------------------------
+
+Internal identifiers that the engine patch set, the runtime layout and the
+plugin protocol depend on keep their upstream names (for example
+runtime/bridge/dsh-go-bridge, /opt/dsh-go inside the guest, the
+dsh-go-companion-full preset, and the dshGo service name). Renaming them would
+break the patched engine and every already-published plugin; they are not
+user-visible.
+
+Third-party components, fonts, icons and runtime pieces keep their own licences
+(THIRD_PARTY_NOTICES.md).

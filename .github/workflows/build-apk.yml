@@ -1,0 +1,194 @@
+# Builds DSH NEXT APKs on GitHub's own runners.
+#
+# One run produces, per ABI: the bundled Linux runtime (Ubuntu base + Node +
+# patched DSH engine, see runtime/build-runtime.sh), then the APK that carries
+# it. Run it from the Actions tab; a `v*` tag runs it too and attaches the APKs
+# to a release.
+#
+# Signing is optional: with the ANDROID_* secrets set the release APK is signed
+# with that key, without them Gradle falls back to the debug key (fine for
+# trying a build, never for distribution).
+name: Build APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      abis:
+        description: Which ABIs to build
+        type: choice
+        options: [arm64, x64, both]
+        default: both
+      build_name:
+        description: Version name (empty = app/pubspec.yaml)
+        type: string
+        default: ''
+      build_number:
+        description: versionCode (empty = build minute)
+        type: string
+        default: ''
+      release:
+        description: Attach the APKs to a GitHub release
+        type: boolean
+        default: false
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-apk-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  FLUTTER_VERSION: '3.47.7'
+  TZ: Asia/Shanghai
+
+jobs:
+  abis:
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.pick.outputs.matrix }}
+    steps:
+      - id: pick
+        shell: bash
+        run: |
+          case "${{ inputs.abis || 'both' }}" in
+            arm64) abis='["arm64"]' ;;
+            x64) abis='["x64"]' ;;
+            *) abis='["arm64","x64"]' ;;
+          esac
+          echo "matrix={\"abi\":$abis}" >> "$GITHUB_OUTPUT"
+
+  runtime:
+    needs: abis
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.abis.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore the download cache
+        uses: actions/cache@v4
+        with:
+          path: runtime/.cache
+          key: runtime-cache-${{ matrix.abi }}-${{ hashFiles('runtime/build-runtime.sh', 'runtime/patches/pins.json') }}
+      - name: Build the runtime (${{ matrix.abi }})
+        shell: bash
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xz-utils zstd curl
+          runtime/build-runtime.sh "${{ matrix.abi }}"
+      - name: Upload the runtime
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-${{ matrix.abi }}
+          path: runtime/out/${{ matrix.abi }}
+          if-no-files-found: error
+          retention-days: 14
+
+  apk:
+    needs: [abis, runtime]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.abis.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Place the runtime where Gradle looks for it
+        uses: actions/download-artifact@v4
+        with:
+          name: runtime-${{ matrix.abi }}
+          path: runtime/out/${{ matrix.abi }}
+
+      - name: Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Flutter ${{ env.FLUTTER_VERSION }}
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          cmdline-tools-version: 'latest'
+          packages: 'platform-tools'
+
+      - name: Accept the SDK licences
+        shell: bash
+        run: yes | sdkmanager --licenses > /dev/null || true
+
+      - name: Signing key (optional)
+        shell: bash
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [[ -z "$KEYSTORE_BASE64" ]]; then
+            echo "No ANDROID_KEYSTORE_BASE64: the APK will be debug-signed."
+            exit 0
+          fi
+          printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/dsh-next.jks"
+          cat > "$GITHUB_WORKSPACE/app/android/key.properties" <<EOF
+          storeFile=$RUNNER_TEMP/dsh-next.jks
+          storePassword=$KEYSTORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          EOF
+
+      - name: pub get
+        working-directory: app
+        run: flutter pub get
+
+      - name: Build (${{ matrix.abi }})
+        shell: bash
+        run: |
+          args=(-f "${{ matrix.abi }}" --no-companion)
+          [[ -n "${{ inputs.build_name }}" ]] && args+=(--build-name "${{ inputs.build_name }}")
+          [[ -n "${{ inputs.build_number }}" ]] && args+=(--build-number "${{ inputs.build_number }}")
+          tooling/build-apk.sh "${args[@]}"
+
+      - name: Rename the APK
+        shell: bash
+        run: |
+          cd app/build/app/outputs/flutter-apk
+          for f in app-*.apk; do
+            [[ -e "$f" ]] || continue
+            mv "$f" "dsh-next-${{ matrix.abi }}-${f}"
+          done
+          ls -l
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk-${{ matrix.abi }}
+          path: app/build/app/outputs/flutter-apk/dsh-next-*.apk
+          if-no-files-found: error
+          retention-days: 30
+
+  release:
+    needs: apk
+    if: startsWith(github.ref, 'refs/tags/v') || inputs.release == true
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: apk-*
+          merge-multiple: true
+          path: dist
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || format('build-{0}', github.run_number) }}
+          name: DSH NEXT ${{ github.ref_name }}
+          draft: true
+          files: dist/*.apk
