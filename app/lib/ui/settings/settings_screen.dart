@@ -20,6 +20,7 @@ import '../../state/sessions_state.dart';
 import '../../state/settings_state.dart';
 import '../../state/system_actions_state.dart';
 import '../../state/ui_mode_state.dart';
+import 'builtin_plugins_page.dart';
 import '../../state/update_state.dart';
 import '../account/account_page.dart';
 import '../account/account_widgets.dart';
@@ -256,6 +257,7 @@ class SettingsScreen extends ConsumerWidget {
             const NotificationSettingsTile(tint: SettingsHues.general),
             const VoiceSettingsTile(tint: SettingsHues.general),
             const PerformanceSettingsTile(tint: SettingsHues.general),
+            const BuiltinPluginsTile(tint: SettingsHues.general),
             SettingsTile(
               icon: AppIcons.keepAlive,
               tint: SettingsHues.general,
