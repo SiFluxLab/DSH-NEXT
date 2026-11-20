@@ -37,3 +37,10 @@ user-visible.
 
 Third-party components, fonts, icons and runtime pieces keep their own licences
 (THIRD_PARTY_NOTICES.md).
+
+Added in this fork: the 应龙 (YingLong) Zero-Trap runtime layer,
+`runtime/yinglong/` — a patched GNU C Library (LGPL-2.1-or-later) that translates
+paths inside the process instead of through PRoot. See
+`runtime/yinglong/NOTICE.md` for the source of the patch and the relinking
+obligations; the files are kept separable in the image at `/opt/yinglong/` so
+they can be replaced.

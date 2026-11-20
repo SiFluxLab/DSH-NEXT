@@ -187,12 +187,36 @@ class RuntimeController private constructor(private val app: Context) : DshProce
             // On by default where this build can run it, unless Direct was chosen. A start that
             // never gets DSH up falls back to PRoot for this runtime (K_TAWC_FAILED).
             saved = if (prefs.contains(K_TAWC_ENGINE)) prefs.getBoolean(K_TAWC_ENGINE, false)
-                else available && !prefs.getBoolean(K_DIRECT_ENGINE, false),
+                else available && !prefs.getBoolean(K_DIRECT_ENGINE, false) && ztEngineUnavailable() != null,
             available = available,
             failedRuntime = prefs.getString(K_TAWC_FAILED, null),
             runtime = runCatching { manifest.runtimeVersion }.getOrNull(),
         )
     }
+    /**
+     * 应龙 (Zero-Trap): on by default on the ABI whose patched glibc ships in the
+     * image. A start that never gets DSH up falls back to PRoot for that runtime
+     * ([K_ZT_FAILED]) — turning it back on clears the mark.
+     */
+    private fun ztEngine(): DirectLaunch.Preference {
+        val available = ztEngineUnavailable() == null
+        return DirectLaunch.Preference(
+            saved = if (prefs.contains(K_ZT_ENGINE)) prefs.getBoolean(K_ZT_ENGINE, false) else available,
+            available = available,
+            failedRuntime = prefs.getString(K_ZT_FAILED, null),
+            runtime = runCatching { manifest.runtimeVersion }.getOrNull(),
+        )
+    }
+    private fun ztEngineUnavailable(): String? =
+        YinglongLaunch.unavailable(installer.rootfs, runCatching { manifest.abi }.getOrNull() ?: "")
+
+    fun setZtEngine(enabled: Boolean) {
+        val edit = prefs.edit().putBoolean(K_ZT_ENGINE, enabled).remove(K_ZT_FAILED)
+        if (enabled) edit.putBoolean(K_DIRECT_ENGINE, false).putBoolean(K_TAWC_ENGINE, false)
+        edit.apply()
+        emitStatus()
+    }
+
     private fun tawcEngineUnavailable(): String? =
         TawcrootLaunch.unavailable(app.applicationInfo.nativeLibraryDir, android.os.Build.VERSION.SDK_INT)
 
@@ -629,8 +653,10 @@ class RuntimeController private constructor(private val app: Context) : DshProce
                 timeline.spawned()
                 val direct = directEngine()
                 val tawc = tawcEngine()
+                val zty = ztEngine()
                 p.start(env, if (storage) PhoneStorage.binds() else emptyList(), safe, phone, direct.requested, direct.failed, searchOverlay, authOverlay, speechOverlay,
-                    tawcEngine = tawc.saved == true, tawcFailed = tawc.failed) { actualDirect ->
+                    tawcEngine = tawc.saved == true, tawcFailed = tawc.failed,
+                    ztEngine = zty.saved == true, ztFailed = zty.failed) { actualDirect ->
                     // SafeMode.prepare writes its own briefing; leave the original home untouched.
                     if (!safe) GuestSetup.writeAgentsMd(
                         installer.rootfs, storage, phone && PhoneControl.switchedOn(app), pendingVisualReplies, actualDirect,
@@ -647,6 +673,18 @@ class RuntimeController private constructor(private val app: Context) : DshProce
                     if (gen != runGen) return@execute
                     process = null
                     PhoneControl.get(app).onEngineStopped()
+                    if (launched?.zt == true && stopGen < gen && !resetting) {
+                        // An 应龙 start that threw: fall back to PRoot for this runtime, as tawcroot does.
+                        val runtime = manifest.runtimeVersion
+                        if (prefs.getString(K_ZT_FAILED, null) != runtime) {
+                            prefs.edit().putString(K_ZT_FAILED, runtime).apply()
+                            log("[dsh-app] yinglong launch failed (${e.message ?: e.javaClass.simpleName}); starting again with compatible launch", "system")
+                            error = null
+                            setPhase(Phase.STARTING)
+                            restartNow("with compatible launch")
+                        }
+                        return@execute
+                    }
                     if (launched?.tawc == true && stopGen < gen && !resetting) {
                         // A tawcroot start that threw: the same fallback as onExit's, unless
                         // onExit (through awaitExit) already took it.
@@ -1128,6 +1166,14 @@ class RuntimeController private constructor(private val app: Context) : DshProce
             if (source.tawc && readyAt == null && !expected && stopGen < runGen) {
                 // tawcroot never got DSH up: PRoot from now on with this runtime, no failure card,
                 // no strike. A new runtime, or turning tawcroot on again, gives it another try.
+                prefs.edit().putString(K_ZT_FAILED, manifest.runtimeVersion).apply()
+                log("[dsh-app] yinglong launch failed (exit $code${source.startupError?.let { ": $it" } ?: ""}); starting again with compatible launch", "system")
+                error = null
+                setPhase(Phase.STARTING)
+                restartNow("with compatible launch")
+                return
+            }
+            if (source.tawc && stopGen < gen && !resetting) {
                 prefs.edit().putString(K_TAWC_FAILED, manifest.runtimeVersion).apply()
                 log("[dsh-app] tawcroot launch failed (exit $code${source.startupError?.let { ": $it" } ?: ""}); starting again with compatible launch", "system")
                 // A startup deadline already published its card and STOPPING: this retry replaces both.
@@ -1263,6 +1309,8 @@ class RuntimeController private constructor(private val app: Context) : DshProce
         private const val K_TAWC_ENGINE = "tawcEngine"
         /** Runtime version tawcroot failed to start DSH with. */
         private const val K_TAWC_FAILED = "tawcEngineFailedRuntime"
+        private const val K_ZT_ENGINE = "yinglongEngine"
+        private const val K_ZT_FAILED = "yinglongEngineFailedRuntime"
         private const val MAIN_FAILURE_LOG = "failure-normal.log"
         private const val LATEST_FAILURE_LOG = "failure-latest.log"
 

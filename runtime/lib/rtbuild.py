@@ -1545,6 +1545,10 @@ def cmd_assemble(args):
                  "pnpm", pnpm_drop_reason)
     if args.bridge:
         add_tree(args.bridge, DSH_GO_BRIDGE.lstrip("/"), "bridge", lambda rel, abi, prune: None)
+    if args.yinglong:
+        # 应龙 (Zero-Trap): the patched loader and libc run the engine without PRoot.
+        # They are libraries the app starts explicitly, never the image's own /lib.
+        add_tree(args.yinglong, "opt/yinglong", "yinglong", lambda rel, abi, prune: None)
 
     # 4. dsh-app overlay (wins over everything above)
     for p, e in overlay_entries(runtime_info, with_python=bool(args.python), with_pnpm=bool(args.pnpm_prefix),
@@ -1898,6 +1902,7 @@ def main():
     p.add_argument("--deb", action="append", help="extra .deb to unpack and register (no maintainer scripts)")
     p.add_argument("--python", help="python-build-standalone install_only tarball -> /opt/python")
     p.add_argument("--bridge", help="dsh-go-bridge package dir -> " + DSH_GO_BRIDGE + " (+ overlay row)")
+    p.add_argument("--yinglong", help="应龙 Zero-Trap payload (ld-linux + libc) -> /opt/yinglong")
     p.set_defaults(fn=cmd_assemble)
 
     p = sub.add_parser("manifest")

@@ -483,10 +483,16 @@ PYEOF
   fi
   local -a prune=(); [[ "$PRUNE_DEV_METADATA" == 1 ]] && prune=(--prune-dev-metadata)
   log "assembling rootfs ($COMPRESS)"
+  # 应龙 (Zero-Trap): the patched glibc ships inside the image; the app starts the
+  # engine through it instead of PRoot. Only the ABI yinglong has a build for.
+  local -a yinglong=()
+  if [[ -f "$HERE/yinglong/libc.so.6" && "$abi" == arm64-v8a ]]; then
+    yinglong=(--yinglong "$HERE/yinglong")
+  fi
   "${PY[@]}" assemble --abi "$abi" --base "$base" --node "$node" --dsh-prefix "$prefix" --pnpm-prefix "$pnpm_prefix" \
     "${archive_args[@]}" --report "$out/build-report.json" --runtime-info "$runtime_info" \
     --compress "$COMPRESS" --xz-preset "$XZ_PRESET" --threads "$XZ_THREADS" --epoch "$SOURCE_DATE_EPOCH" "${prune[@]}" \
-    "${extra_debs[@]/#/--deb=}" --python "$python" --bridge "$bridge"
+    "${extra_debs[@]/#/--deb=}" --python "$python" --bridge "$bridge" "${yinglong[@]}"
 
   local versions
   versions="$(printf '{"runtimeVersion":"%s","dshVersion":"%s","nodeVersion":"%s","pnpmVersion":"%s","ubuntuVersion":"%s","prootVersion":"%s","tallocVersion":"%s","androidShmemVersion":"%s","dshPatches":%s,"dshGoBridge":"%s","build":{"inputsSha256_12":"%s","ubuntuBaseSha256":"%s","nodeSha256":"%s","dshLockSha256":"%s","pnpmIntegrity":"%s","sourceDateEpoch":%s}}' \

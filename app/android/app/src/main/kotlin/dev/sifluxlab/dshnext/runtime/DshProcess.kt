@@ -74,6 +74,10 @@ class DshProcess(
     var tawc: Boolean = false
         private set
 
+    /** This process runs on 应龙 Zero-Trap ([YinglongLaunch]): no PRoot in front of its syscalls. */
+    var zt: Boolean = false
+        private set
+
     val launchDiagnostics = LaunchDiagnostics()
     val executionMode: String? get() = launchDiagnostics.currentMode(process?.isAlive == true)
 
@@ -84,27 +88,37 @@ class DshProcess(
      * [binds] are extra proot `-b host:guest` mounts, inserted before the guest command.
      * [safe] boots the rescue profile instead of `web` (see [SafeMode.profileArg]).
      */
-    fun start(guestEnv: Map<String, String>, binds: List<String> = emptyList(), safe: Boolean = false, phone: Boolean = false, directEngine: Boolean = false, directFailed: Boolean = false, searchOverlay: Boolean = false, authOverlay: Boolean = false, speechOverlay: Boolean = false, tawcEngine: Boolean = false, tawcFailed: Boolean = false, onLaunchMethod: ((Boolean) -> Unit)? = null) {
+    fun start(guestEnv: Map<String, String>, binds: List<String> = emptyList(), safe: Boolean = false, phone: Boolean = false, directEngine: Boolean = false, directFailed: Boolean = false, searchOverlay: Boolean = false, authOverlay: Boolean = false, speechOverlay: Boolean = false, tawcEngine: Boolean = false, tawcFailed: Boolean = false, ztEngine: Boolean = false, ztFailed: Boolean = false, onLaunchMethod: ((Boolean) -> Unit)? = null) {
         check(process == null) { "already started" }
+        // 应龙 (Zero-Trap) wins when the image carries it: the patched glibc translates
+        // paths in userspace, so no PRoot process sits in front of every syscall.
+        val ztWanted = ztEngine && !safe
+        val ztMissing = if (ztWanted) YinglongLaunch.unavailable(rootfs, manifest.abi) else null
+        val ztReady = ztWanted && !ztFailed && ztMissing == null
         // tawcroot wins over Direct when both are on; like Direct it needs PRoot's fake hard links gone.
-        val tawcWanted = tawcEngine && !safe
+        val tawcWanted = !ztReady && tawcEngine && !safe
         val tawcMissing = if (tawcWanted) TawcrootLaunch.unavailable(context.applicationInfo.nativeLibraryDir, android.os.Build.VERSION.SDK_INT) else null
         val tawcReady = tawcWanted && !tawcFailed && tawcMissing == null
-        var selection = if (tawcReady) DirectLaunch.select(rootfs, requested = true, safe = false)
+        var selection = if (ztReady) DirectLaunch.Selection(false)
+            else if (tawcReady) DirectLaunch.select(rootfs, requested = true, safe = false)
             else DirectLaunch.select(rootfs, directEngine, safe, directFailed)
         // Only PRoot's fake hard links stand in the way: tidy them once no runtime process is left.
         val tidy = selection.fallbackReason == DirectLaunch.INCOMPATIBLE
         val cleanup = reapStrays(allowObservationGap = true)
         if (tidy && cleanup.complete) selection = tidyLinks(binds)
-        tawc = tawcReady && selection.direct
-        direct = selection.direct && !tawcReady
+        zt = ztReady
+        tawc = !zt && tawcReady && selection.direct
+        direct = !zt && selection.direct && !tawcReady
         directFallbackReason = selection.fallbackReason ?: when {
+            ztWanted && ztFailed -> YinglongLaunch.FAILED
+            ztMissing != null -> ztMissing
             tawcWanted && tawcFailed -> TawcrootLaunch.FAILED
             tawcMissing != null -> tawcMissing
-            (directEngine || tawcEngine) && safe -> "safeRecovery"
+            (directEngine || tawcEngine || ztEngine) && safe -> "safeRecovery"
             else -> null
         }
-        launchDiagnostics.selected(if (tawc) "tawcroot" else if (direct) "direct" else "proot", directFallbackReason)
+        launchDiagnostics.selected(
+            if (zt) "yinglong" else if (tawc) "tawcroot" else if (direct) "direct" else "proot", directFallbackReason)
         check(!cleanup.ownedRemaining) { "runtime cleanup incomplete; stop the engine and retry" }
         if (!cleanup.complete) listener.onLog("[dsh-app] starting with incomplete process observation; no captured runtime identities remain", "system")
         val pidFile = File(rootfs, "tmp/dsh-web.pid")
@@ -206,12 +220,19 @@ class DshProcess(
             env.clear()
             env.putAll(tawcPlan.environment)
         }
+        if (zt) {
+            val plan = YinglongLaunch.prepare(rootfs, manifest.abi, argv, env.toMap())
+            builder.command(plan.argv).directory(plan.cwd)
+            env.clear()
+            env.putAll(plan.environment)
+        }
 
         readyReported = false
         if (directFallbackReason == DirectLaunch.INCOMPATIBLE) listener.onLog("[dsh-app] direct fallback: proot hard-link backing files need compatible launch; user preference and data retained", "system")
         if (directFallbackReason == DirectLaunch.FAILED) listener.onLog("[dsh-app] direct fallback: direct launch failed before with this runtime; turn Direct on again to retry", "system")
         if (directFallbackReason == TawcrootLaunch.FAILED) listener.onLog("[dsh-app] tawcroot fallback: tawcroot failed to start before with this runtime; turn tawcroot on again to retry", "system")
-        listener.onLog("[dsh-app] launch method: ${if (tawc) "tawcroot" else if (direct) "direct-glibc" else "proot"}${if ((directEngine || tawcEngine) && safe) " (safe recovery)" else ""}", "system")
+        if (directFallbackReason == YinglongLaunch.FAILED) listener.onLog("[dsh-app] yinglong fallback: the Zero-Trap launch failed before with this runtime; running on PRoot until the runtime changes or 应龙 is turned on again", "system")
+        listener.onLog("[dsh-app] launch method: ${if (zt) "yinglong" else if (tawc) "tawcroot" else if (direct) "direct-glibc" else "proot"}${if ((directEngine || tawcEngine || ztEngine) && safe) " (safe recovery)" else ""}", "system")
         listener.onLog("[dsh-app] launching ${builder.command().joinToString(" ") { redact(it) }}", "system")
         // stop() came in while this was being prepared: don't launch at all.
         if (stopping) {
