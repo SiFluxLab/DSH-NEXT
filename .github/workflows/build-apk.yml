@@ -161,17 +161,40 @@ jobs:
           keyPassword=$KEY_PASSWORD
           EOF
 
+      # The runner image is ~14 GB free at start; the NDK and a Flutter build
+      # eat a good part of it. Drop what this build never uses.
+      - name: Free disk
+        shell: bash
+        run: |
+          df -h / | tail -1
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost \
+                      /usr/local/lib/android/sdk/system-images /usr/local/lib/android/sdk/ndk/2[0-7]* \
+                      /usr/local/lib/android/sdk/ndk/29* || true
+          df -h / | tail -1
+
       - name: pub get
         working-directory: app
         run: flutter pub get
 
       - name: Build (${{ matrix.flavor }})
         shell: bash
+        env:
+          GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.parallel=false
         run: |
+          set -o pipefail
           args=(-f "${{ matrix.flavor }}" --no-companion)
           [[ -n "${{ inputs.build_name }}" ]] && args+=(--build-name "${{ inputs.build_name }}")
           [[ -n "${{ inputs.build_number }}" ]] && args+=(--build-number "${{ inputs.build_number }}")
-          tooling/build-apk.sh "${args[@]}"
+          tooling/build-apk.sh "${args[@]}" 2>&1 | tee build.log
+
+      - name: Build diagnostics
+        if: always()
+        shell: bash
+        run: |
+          free -h || true
+          df -h / | tail -1 || true
+          sudo dmesg 2>/dev/null | tail -20 || true
+          [[ -f build.log ]] && tail -80 build.log || true
 
       - name: Rename the APK
         shell: bash
