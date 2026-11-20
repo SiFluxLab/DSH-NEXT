@@ -53,12 +53,15 @@ jobs:
       - id: pick
         shell: bash
         run: |
+          # flavor = Gradle's, abi = the runtime's own name for it.
+          arm64='{"flavor":"arm64","abi":"arm64-v8a"}'
+          x64='{"flavor":"x64","abi":"x86_64"}'
           case "${{ inputs.abis || 'both' }}" in
-            arm64) abis='["arm64"]' ;;
-            x64) abis='["x64"]' ;;
-            *) abis='["arm64","x64"]' ;;
+            arm64) list="[$arm64]" ;;
+            x64) list="[$x64]" ;;
+            *) list="[$arm64,$x64]" ;;
           esac
-          echo "matrix={\"abi\":$abis}" >> "$GITHUB_OUTPUT"
+          echo "matrix={\"include\":$list}" >> "$GITHUB_OUTPUT"
 
   runtime:
     needs: abis
@@ -151,10 +154,10 @@ jobs:
         working-directory: app
         run: flutter pub get
 
-      - name: Build (${{ matrix.abi }})
+      - name: Build (${{ matrix.flavor }})
         shell: bash
         run: |
-          args=(-f "${{ matrix.abi }}" --no-companion)
+          args=(-f "${{ matrix.flavor }}" --no-companion)
           [[ -n "${{ inputs.build_name }}" ]] && args+=(--build-name "${{ inputs.build_name }}")
           [[ -n "${{ inputs.build_number }}" ]] && args+=(--build-number "${{ inputs.build_number }}")
           tooling/build-apk.sh "${args[@]}"
@@ -165,13 +168,13 @@ jobs:
           cd app/build/app/outputs/flutter-apk
           for f in app-*.apk; do
             [[ -e "$f" ]] || continue
-            mv "$f" "dsh-next-${{ matrix.abi }}-${f}"
+            mv "$f" "dsh-next-${{ matrix.flavor }}-${f}"
           done
           ls -l
 
       - uses: actions/upload-artifact@v4
         with:
-          name: apk-${{ matrix.abi }}
+          name: apk-${{ matrix.flavor }}
           path: app/build/app/outputs/flutter-apk/dsh-next-*.apk
           if-no-files-found: error
           retention-days: 30
