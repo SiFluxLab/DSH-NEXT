@@ -28048,6 +28048,10 @@ class L10nEn extends L10n {
   String get builtinPluginTavernHint => 'Role play: SillyTavern-compatible cards, lorebooks and presets';
   String get builtinPluginWorkshopHint => 'Download and publish pet and companion packs (needs a workshop server)';
   String get builtinPluginCompanionHint => 'Companion room: a Live2D stage and a long-lived character';
+  String get yinglongEngine => 'Yinglong engine';
+  String get yinglongEngineHint => 'Runs on the patched glibc instead of PRoot, so syscalls cost far less';
+  String get yinglongEngineUnavailable => 'This runtime has no Yinglong build for this ABI; PRoot stays in use';
+  String get yinglongEngineFailedHint => 'The Yinglong launch did not come up; it fell back to PRoot. Turn it on to try again';
   String get workshopTitle => 'Workshop';
 
   @override

@@ -1,0 +1,6 @@
+{
+  "yinglongEngine": "Yinglong engine",
+  "yinglongEngineHint": "Runs on the patched glibc instead of PRoot, so syscalls cost far less",
+  "yinglongEngineUnavailable": "This runtime has no Yinglong build for this ABI; PRoot stays in use",
+  "yinglongEngineFailedHint": "The Yinglong launch did not come up; it fell back to PRoot. Turn it on to try again"
+}

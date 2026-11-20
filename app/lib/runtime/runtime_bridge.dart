@@ -199,6 +199,9 @@ class RuntimeStatus {
     this.directEngineAvailable = false,
     this.directEngineActive = false,
     this.directEngineFallbackReason,
+    this.yinglongEngineEnabled = false,
+    this.yinglongEngineAvailable = false,
+    this.yinglongEngineActive = false,
     this.tawcEngineEnabled = false,
     this.tawcEngineAvailable = false,
     this.tawcEngineActive = false,
@@ -278,6 +281,9 @@ class RuntimeStatus {
   final String? directEngineFallbackReason;
 
   /// The tawcroot launch, on by default (native `TawcrootLaunch`); one of it and Direct is on at most.
+  final bool yinglongEngineEnabled;
+  final bool yinglongEngineAvailable;
+  final bool yinglongEngineActive;
   final bool tawcEngineEnabled;
   final bool tawcEngineAvailable;
   final bool tawcEngineActive;
@@ -309,6 +315,9 @@ class RuntimeStatus {
     'directEngineAvailable': directEngineAvailable,
     'directEngineActive': directEngineActive,
     'directEngineFallbackReason': directEngineFallbackReason,
+    'yinglongEngineEnabled': yinglongEngineEnabled,
+    'yinglongEngineAvailable': yinglongEngineAvailable,
+    'yinglongEngineActive': yinglongEngineActive,
     'tawcEngineEnabled': tawcEngineEnabled,
     'tawcEngineAvailable': tawcEngineAvailable,
     'tawcEngineActive': tawcEngineActive,
@@ -367,6 +376,9 @@ class RuntimeStatus {
     directEngineAvailable: map['directEngineAvailable'] == true,
     directEngineActive: map['directEngineActive'] == true,
     directEngineFallbackReason: map['directEngineFallbackReason'] as String?,
+    yinglongEngineEnabled: map['yinglongEngineEnabled'] == true,
+    yinglongEngineAvailable: map['yinglongEngineAvailable'] == true,
+    yinglongEngineActive: map['yinglongEngineActive'] == true,
     tawcEngineEnabled: map['tawcEngineEnabled'] == true,
     tawcEngineAvailable: map['tawcEngineAvailable'] == true,
     tawcEngineActive: map['tawcEngineActive'] == true,
@@ -697,6 +709,10 @@ class RuntimeBridge {
   /// Takes effect on the next start; native code rejects changes while active.
   Future<void> setDirectEngine(bool enabled) => _methods.invokeMethod<void>('setDirectEngine', {'enabled': enabled});
   Future<void> setTawcEngine(bool enabled) => _methods.invokeMethod<void>('setTawcEngine', {'enabled': enabled});
+
+  /// 应龙 (Zero-Trap): on by default where the image carries the patched libc.
+  Future<void> setYinglongEngine(bool enabled) =>
+      _methods.invokeMethod<void>('setYinglongEngine', {'enabled': enabled});
 
   /// Output around the last failure, tokens masked.
   Future<List<String>> failureLog() async => (await _methods.invokeListMethod<String>('failureLog')) ?? const [];

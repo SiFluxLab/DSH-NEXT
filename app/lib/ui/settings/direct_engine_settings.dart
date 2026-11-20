@@ -40,6 +40,18 @@ class _DirectEngineSettingsState extends ConsumerState<DirectEngineSettings> {
         !directFailed &&
         !fallback.startsWith('tawcroot');
     final tawcFailed = fallback == 'tawcrootFailed';
+    final ztFailed = fallback == 'yinglongFailed';
+    final ztEnabled =
+        runtime.loaded && stopped && !_saving && (status.yinglongEngineAvailable || status.yinglongEngineEnabled);
+    final ztHint = !status.yinglongEngineAvailable
+        ? l10n.yinglongEngineUnavailable
+        : ztFailed && !status.yinglongEngineEnabled
+        ? l10n.yinglongEngineFailedHint
+        : !stopped
+        ? l10n.phoneDirectStopFirst
+        : status.inSafeMode
+        ? l10n.phoneDirectSafeHint
+        : l10n.yinglongEngineHint;
     final tawcEnabled =
         runtime.loaded && stopped && !_saving && (status.tawcEngineAvailable || status.tawcEngineEnabled);
     final tawcHint = !status.tawcEngineAvailable
@@ -82,6 +94,14 @@ class _DirectEngineSettingsState extends ConsumerState<DirectEngineSettings> {
           value: status.directEngineEnabled,
           onChanged: enabled ? _change : null,
         ),
+        // 应龙 (Zero-Trap) is the default where the image carries it: no PRoot.
+        SettingsSwitchTile(
+          key: const ValueKey('yinglong-engine'),
+          title: l10n.yinglongEngine,
+          subtitle: ztHint,
+          value: status.yinglongEngineEnabled,
+          onChanged: ztEnabled ? _changeZt : null,
+        ),
         SettingsSwitchTile(
           title: l10n.phoneTawcEngine,
           subtitle: tawcHint,
@@ -90,6 +110,17 @@ class _DirectEngineSettingsState extends ConsumerState<DirectEngineSettings> {
         ),
       ],
     );
+  }
+
+  Future<void> _changeZt(bool value) async {
+    setState(() => _saving = true);
+    try {
+      await ref.read(runtimeBridgeProvider).setYinglongEngine(value);
+    } catch (_) {
+      if (mounted) showBriefNotice(context, context.l10n.phoneDirectChangeFailed);
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   Future<void> _changeTawc(bool value) async {

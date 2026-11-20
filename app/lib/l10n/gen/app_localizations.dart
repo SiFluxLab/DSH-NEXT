@@ -48608,6 +48608,30 @@ abstract class L10n {
   /// **'伙伴小屋：Live2D 舞台与长期角色'**
   String get builtinPluginCompanionHint;
 
+  /// No description provided for @yinglongEngine.
+  ///
+  /// In zh, this message translates to:
+  /// **'应龙引擎'**
+  String get yinglongEngine;
+
+  /// No description provided for @yinglongEngineHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'在打过补丁的 glibc 上直接运行，不再经过 PRoot，系统调用快得多'**
+  String get yinglongEngineHint;
+
+  /// No description provided for @yinglongEngineUnavailable.
+  ///
+  /// In zh, this message translates to:
+  /// **'这个运行时没有对应架构的应龙，仍用 PRoot'**
+  String get yinglongEngineUnavailable;
+
+  /// No description provided for @yinglongEngineFailedHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'上次用应龙没能起来，已自动退回 PRoot；打开再试一次'**
+  String get yinglongEngineFailedHint;
+
   /// No description provided for @workshopTitle.
   ///
   /// In zh, this message translates to:

@@ -1,0 +1,6 @@
+{
+  "yinglongEngine": "应龙引擎",
+  "yinglongEngineHint": "在打过补丁的 glibc 上直接运行，不再经过 PRoot，系统调用快得多",
+  "yinglongEngineUnavailable": "这个运行时没有对应架构的应龙，仍用 PRoot",
+  "yinglongEngineFailedHint": "上次用应龙没能起来，已自动退回 PRoot；打开再试一次"
+}

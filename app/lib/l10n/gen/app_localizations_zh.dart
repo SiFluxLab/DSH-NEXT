@@ -26610,6 +26610,10 @@ class L10nZh extends L10n {
   String get builtinPluginTavernHint => '角色扮演：SillyTavern 兼容的角色卡、世界书与预设';
   String get builtinPluginWorkshopHint => '下载与投稿桌宠包、伙伴包（需要一个工坊服务端）';
   String get builtinPluginCompanionHint => '伙伴小屋：Live2D 舞台与长期角色';
+  String get yinglongEngine => '应龙引擎';
+  String get yinglongEngineHint => '在打过补丁的 glibc 上直接运行，不再经过 PRoot，系统调用快得多';
+  String get yinglongEngineUnavailable => '这个运行时没有对应架构的应龙，仍用 PRoot';
+  String get yinglongEngineFailedHint => '上次用应龙没能起来，已自动退回 PRoot；打开再试一次';
   String get workshopTitle => '创意工坊';
 
   @override

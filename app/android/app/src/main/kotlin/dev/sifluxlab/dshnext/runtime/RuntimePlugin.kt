@@ -195,6 +195,14 @@ class RuntimePlugin :
                     result.error("launch_method_unavailable", error.message, null)
                 }
             }
+            "setYinglongEngine" -> {
+                try {
+                    controller.setZtEngine(call.argument<Boolean>("enabled") == true)
+                    result.success(null)
+                } catch (error: IllegalStateException) {
+                    result.error("launch_method_unavailable", error.message, null)
+                }
+            }
             "setTawcEngine" -> {
                 try {
                     controller.setTawcEngine(call.argument<Boolean>("enabled") == true)
