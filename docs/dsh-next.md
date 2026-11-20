@@ -78,3 +78,66 @@ GitHub OAuth App；部署步骤见 `services/share-worker/docs/`。
 - `market/` 目录里的插件条目是上游作者的 npm 包，已不再适用，可整体删除或换成
   自己的目录。
 - iOS 与鸿蒙工程只做了包名/名称替换，没有在真机上验证。
+
+## 6. 运行时：应龙（Zero-Trap）替代 PRoot
+
+本 fork 在 **arm64-v8a** 上默认用应龙（YingLong）启动引擎，不再经过 PRoot：
+路径翻译在打过补丁的 glibc 里完成，PTrace 那一层没有了。
+
+### 6.1 装了什么
+
+| 位置 | 内容 |
+|---|---|
+| `runtime/yinglong/` | 仓库里：应龙提供的 `ld-linux-aarch64.so.1` + `libc.so.6`（glibc 2.39 + Zero-Trap 补丁，LGPL-2.1，见该目录的 `NOTICE.md`） |
+| 镜像 `/opt/yinglong/` | 构建时由 `rtbuild assemble --yinglong` 拷进去；只对 arm64-v8a 生效 |
+| App 侧 | `YinglongLaunch.kt`：把 PRoot 的 argv 改写成「加载器 + `--library-path` + `env -i` + `/bin/sh -c`」，并注入 `ZT_*` |
+
+启动形状：
+
+```
+opt/yinglong/ld-linux-aarch64.so.1 --library-path <opt/yinglong>:<镜像 lib> \
+  <镜像>/usr/bin/env -i <guest 环境> <ZT_*> /bin/sh -c 'echo $$ > /tmp/dsh-web.pid; exec /usr/local/bin/dsh web …'
+```
+
+三条容易踩的规则（都在 `YinglongLaunch` 的注释里）：
+
+1. 加载器用**宿主路径**且必须绝对；它后面的东西都是 **guest 路径**，由补丁 libc 翻译。
+2. `env -i` 会清环境，所以 `ZT_ROOT` / `ZT_BIND` / `ZT_FAKE_ROOT` / `ZT_LD` / `ZT_LIBPATH`
+   必须作为 `env -i` 的参数传下去，否则子进程全部退回系统 libc。
+3. 不要把镜像里的 `/lib/libc.so.6` 换掉：`execve` 时内核按 PT_INTERP 找解释器，那一步
+   不经过翻译，换了也无效。
+
+### 6.2 没有启用索引
+
+当前只做路径翻译（不设 `ZT_CACHE` / `ZT_DIRTY`），因为索引要在镜像构建期生成、
+并配一个长期存活的 `ztwatch` 维护脏页。这一步留到下一版；现在的好处是**没有任何
+缓存过期的风险**，行为与 PRoot 等价而更快。
+
+### 6.3 性能预期（来自应龙自己的实测，非本仓库测量）
+
+| 场景 | PRoot | 应龙 | 说明 |
+|---|---:|---:|---|
+| 4 线程 `stat` 循环 | 4157 ms | 38 ms | ptrace 消失，109× |
+| 模拟装包（解包+chmod） | 6911 ms | 182 ms | 38× |
+| `tar` 解 3000 文件 | 4895 ms | 161 ms | 30× |
+| `du -sh` 5000 文件 | 934 ms | 209 ms | 4.5×（含索引） |
+| 引擎启动（`dsh --version`） | 212 ms | 175 ms | −17.5%（含索引；仅翻译时收益更小） |
+| 64 MB 顺序读写 | 68 ms | 63 ms | 持平（按 fd 走，翻译层不介入） |
+
+**诚实结论**：真正的大头是「每次 syscall 不再 ptrace」。凡是免不了大量 syscall 的操作
+（装包、解包、遍历）收益最大；大文件 IO 没有变化；引擎启动省 20–45 ms。
+
+### 6.4 失败与回退
+
+- 引擎起不来 → `K_ZT_FAILED` 记下该运行时版本 → 下一次启动直接走 PRoot，不再尝试；
+  换运行时（升级）后自动重试。`launchDiagnostics` 会显示实际用的方法。
+- 安全模式一律走 PRoot。
+- x86_64 没有对应 libc 构建，仍用 PRoot。
+- 手动切换的开关还没做（下一步），目前靠「失败自动回退 + 安全模式」兜底。
+
+### 6.5 待办
+
+1. 设置页加「应龙」开关（`RuntimeController.setZtEngine` 已就绪，缺 Dart 侧字段与 UI）。
+2. 构建期生成索引 + `ztwatch` 生命周期，把引擎启动的 17% 全部拿到。
+3. 真机验证清单：`launch method: yinglong` 是否出现、`/tmp` `/dev` `/proc` 是否正常、
+   `npm i` / 插件安装是否可用、伙伴 Live2D 与手机操控是否受影响。
