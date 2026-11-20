@@ -40,14 +40,14 @@ Widget appModePage(AppMode mode) => switch (mode) {
 };
 
 /// Whether [mode]'s plugin is on (工作 always is).
-bool appModeEnabled(Ref ref, AppMode mode) => switch (mode) {
+bool appModeEnabled(WidgetRef ref, AppMode mode) => switch (mode) {
   AppMode.work => true,
   AppMode.companion => ref.read(builtinPluginEnabledProvider(BuiltinPlugin.companion)),
   AppMode.tavern => ref.read(builtinPluginEnabledProvider(BuiltinPlugin.tavern)),
 };
 
 /// The modes to offer: 工作 and whichever plugins are on.
-List<AppMode> enabledModes(Ref ref) => [
+List<AppMode> enabledModes(WidgetRef ref) => [
   for (final mode in AppMode.values)
     if (appModeEnabled(ref, mode)) mode,
 ];
