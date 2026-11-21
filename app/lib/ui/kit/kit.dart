@@ -271,3 +271,126 @@ class _KitInputState extends State<KitInput> {
     );
   }
 }
+
+/// 浮层的统一皮肤（`packages/ui/src/utils.ts` 的四段常量在这里各对应一条）。
+abstract final class KitSurface {
+  /// `PANEL_SHADOW_CLASS`：两层小半径柔影，没有外边框。
+  /// 0 16px 40px -12px rgb(0 0 0 / 0.10) + 0 2px 8px -2px rgb(0 0 0 / 0.05)
+  static List<BoxShadow> panelShadow() => const [
+    BoxShadow(color: Color(0x1A000000), blurRadius: 40, offset: Offset(0, 16), spreadRadius: -12),
+    BoxShadow(color: Color(0x0D000000), blurRadius: 8, offset: Offset(0, 2), spreadRadius: -2),
+  ];
+
+  /// `OVERLAY_BACKDROP_CLASS`：黑 20% + 12px 模糊。
+  static const backdropAlpha = 0.20;
+  static const backdropBlur = 12.0;
+
+  /// `FLOATING_SURFACE_CLASS`：圆角 16、popover 底色、深色下补 1px 白色 10% 内环。
+  static const floatingRadius = 16.0;
+}
+
+/// muted 阶梯：vetta 只用固定几档透明度做层级（100/80/70/65/60/55/45/40）。
+abstract final class KitMuted {
+  static const full = 1.0;
+  static const a80 = 0.80;
+  static const a70 = 0.70;
+  static const a65 = 0.65;
+  static const a60 = 0.60;
+  static const a55 = 0.55;
+  static const a45 = 0.45;
+  static const a40 = 0.40;
+}
+
+/// 分区卡：`overflow-hidden rounded-xl border border-border bg-card`。
+///
+/// 注意它和 [FlatPanel] 的差别：vetta 的实体卡用的是**实色 border**（不用半透明），
+/// 因为它的角色是"这里是一个界定清楚的分区"；半透明边框只给输入框、菜单这类控件。
+class KitCard extends StatelessWidget {
+  const KitCard({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(Kit.radiusPanel),
+        border: Border.all(color: scheme.outlineVariant, width: 1),
+      ),
+      child: ClipRRect(borderRadius: BorderRadius.circular(Kit.radiusPanel), child: child),
+    );
+  }
+}
+
+/// 分区标题：vetta 的 SectionHeader 是 `text-[15px] font-semibold` + 下方 12。
+class KitSectionHeader extends StatelessWidget {
+  const KitSectionHeader({super.key, required this.title, this.note});
+
+  final String title;
+
+  /// 计数或补充说明，`text-[12px] muted`，与标题同一基线。
+  final String? note;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(2, 0, 2, 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, height: 1.25, color: scheme.onSurface),
+            ),
+          ),
+          if (note case final note?)
+            Text(
+              note,
+              style: TextStyle(
+                fontSize: 12,
+                color: scheme.onSurfaceVariant.withValues(alpha: KitMuted.a60),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 卡片角标：`h-5 rounded-full px-2 text-[10px] font-semibold` + 15% 底色。
+class KitChip extends StatelessWidget {
+  const KitChip({super.key, required this.label, this.color, this.dot = false});
+
+  final String label;
+  final Color? color;
+  final bool dot;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final tint = color ?? scheme.primary;
+    return Container(
+      height: 20,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(color: tint.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(999)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (dot) ...[
+            Container(width: 6, height: 6, decoration: BoxDecoration(color: tint, shape: BoxShape.circle)),
+            const SizedBox(width: 5),
+          ],
+          Text(
+            label,
+            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, height: 1.2, color: tint),
+          ),
+        ],
+      ),
+    );
+  }
+}

@@ -50,8 +50,8 @@ abstract final class SettingsMetrics {
 
   /// Where titles start in rows with an icon.
   static const textStart = inset + icon + iconGap;
-  static const rowHeight = 48.0;
-  static const rowHeightTwoLine = 58.0;
+  static const rowHeight = 44.0;
+  static const rowHeightTwoLine = 56.0;
 }
 
 /// 行标题：14 / 500。vetta 的列表是 `text-[13px]`、标题只多一个 `font-semibold`；
@@ -364,21 +364,14 @@ class SettingsSection extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (title case final title?)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-              child: Semantics(header: true, child: Text(title, style: titleStyle(context))),
-            ),
-          SheetGroup(
-            margin: EdgeInsets.zero,
-            children: spot == null
-                ? children
-                : [
-                    // One child keeps SheetGroup's 2dp between rows inside it.
-                    SpotAnchor(
-                      spot: spot!,
-                      child: Column(mainAxisSize: MainAxisSize.min, spacing: 2, children: children),
-                    ),
-                  ],
+            Semantics(header: true, child: KitSectionHeader(title: title)),
+          // 分区卡：实色面 + 实线边框 + 圆角 12（vetta 的 `rounded-xl border border-border bg-card`）。
+          // 行与行之间是一条 0.5px 细线，不再是 2px 的"缝"——缝会读出"一堆小卡片"，
+          // 细线才读作"一张卡里的多行"。
+          KitCard(
+            child: spot == null
+                ? _divided(context, children)
+                : SpotAnchor(spot: spot!, child: _divided(context, children)),
           ),
           if (footer case final footer?)
             Padding(
