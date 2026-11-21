@@ -75,7 +75,7 @@ class _FadeSlideInState extends State<FadeSlideIn> with SingleTickerProviderStat
       curve: Interval(
         start,
         fluid ? (lead + widget.duration).inMicroseconds / total.inMicroseconds : 1,
-        curve: AppMotion.enter,
+        curve: AppMotion.swift,
       ),
     );
     if (fluid) {

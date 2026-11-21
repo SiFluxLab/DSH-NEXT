@@ -56,6 +56,12 @@ abstract final class AppMotion {
   /// 折叠展开。
   static const collapseCurve = Curves.easeInOutCubic;
 
+  /// 到位:内容进场用的 easeOutQuint 曲线(0.22, 1, 0.36, 1)。
+  ///
+  /// 比 M3 的 emphasizedDecelerate 更"快落定":前 30% 走完七成路程,最后收得极轻。
+  /// 借自 open-vetta 的页面转场(easeOut),它让卡片与列表"啪"地就位而不显得急。
+  static const swift = Cubic(0.22, 1, 0.36, 1);
+
   /// 滑行:抽屉、胶囊位移这类"跟手后落位"的运动,长尾减速。
   static const glide = Cubic(0.32, 0.72, 0.0, 1.0);
 

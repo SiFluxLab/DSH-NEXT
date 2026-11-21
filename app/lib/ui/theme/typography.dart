@@ -186,12 +186,12 @@ abstract final class AppType {
   /// | labelMedium | 12 / 1.35 w600 | Chip、胶囊 |
   /// | labelSmall | 11 / 1.35 | 时间戳、角标 |
   static const textTheme = TextTheme(
-    displayLarge: TextStyle(fontSize: 36, fontWeight: FontWeight.w300, height: 1.2, leadingDistribution: _even),
-    displayMedium: TextStyle(fontSize: 32, fontWeight: FontWeight.w300, height: 1.2, leadingDistribution: _even),
-    displaySmall: TextStyle(fontSize: 28, fontWeight: FontWeight.w300, height: 1.25, leadingDistribution: _even),
-    headlineLarge: TextStyle(fontSize: 26, fontWeight: FontWeight.w600, height: 1.3, leadingDistribution: _even),
-    headlineMedium: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, height: 1.3, leadingDistribution: _even),
-    headlineSmall: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, height: 1.35, leadingDistribution: _even),
+    displayLarge: TextStyle(fontSize: 36, fontWeight: FontWeight.w300, height: 1.18, letterSpacing: -0.6, leadingDistribution: _even),
+    displayMedium: TextStyle(fontSize: 32, fontWeight: FontWeight.w300, height: 1.18, letterSpacing: -0.5, leadingDistribution: _even),
+    displaySmall: TextStyle(fontSize: 28, fontWeight: FontWeight.w300, height: 1.22, letterSpacing: -0.4, leadingDistribution: _even),
+    headlineLarge: TextStyle(fontSize: 26, fontWeight: FontWeight.w600, height: 1.28, letterSpacing: -0.3, leadingDistribution: _even),
+    headlineMedium: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, height: 1.28, letterSpacing: -0.25, leadingDistribution: _even),
+    headlineSmall: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, height: 1.32, letterSpacing: -0.2, leadingDistribution: _even),
     titleLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, height: 1.4, leadingDistribution: _even),
     titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, height: 1.45, leadingDistribution: _even),
     titleSmall: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, height: 1.45, leadingDistribution: _even),
