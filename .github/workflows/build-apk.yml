@@ -233,6 +233,27 @@ jobs:
                       /usr/local/lib/android/sdk/ndk/29* || true
           df -h / | tail -1
 
+      # plugins.gradle.org times out from these runners every few runs; the mirrors
+      # answer the same coordinates and are tried first.
+      - name: Gradle mirrors
+        shell: bash
+        run: |
+          mkdir -p ~/.gradle
+          cat > ~/.gradle/init.gradle <<'EOF'
+          def mirrors = ['https://maven.aliyun.com/repository/gradle-plugin',
+                         'https://maven.aliyun.com/repository/public',
+                         'https://maven.aliyun.com/repository/google']
+          settingsEvaluated { settings ->
+            settings.pluginManagement.repositories {
+              mirrors.each { m -> maven { url m } }
+            }
+          }
+          allprojects {
+            buildscript.repositories { mirrors.each { m -> maven { url m } } }
+            repositories { mirrors.each { m -> maven { url m } } }
+          }
+          EOF
+
       - name: pub get
         working-directory: app
         run: flutter pub get
@@ -246,7 +267,14 @@ jobs:
           args=(-f "${{ matrix.flavor }}" --no-companion)
           [[ -n "${{ inputs.build_name }}" ]] && args+=(--build-name "${{ inputs.build_name }}")
           [[ -n "${{ inputs.build_number }}" ]] && args+=(--build-number "${{ inputs.build_number }}")
-          tooling/build-apk.sh "${args[@]}" 2>&1 | tee build.log
+          # Dependency resolution fails now and then on a mirror timeout; one retry
+          # costs a minute, a failed run costs the whole matrix.
+          for attempt in 1 2; do
+            if tooling/build-apk.sh "${args[@]}" 2>&1 | tee build.log; then exit 0; fi
+            echo "attempt $attempt failed; retrying in 20 s" >&2
+            sleep 20
+          done
+          exit 1
 
       - name: Build diagnostics
         if: always()
