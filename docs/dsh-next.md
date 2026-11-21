@@ -148,3 +148,14 @@ opt/yinglong/ld-linux-aarch64.so.1 --library-path <opt/yinglong>:<镜像 lib> \
 2. 构建期生成索引 + `ztwatch` 生命周期，把引擎启动的 17% 全部拿到。
 3. 真机验证清单：`launch method: yinglong` 是否出现、`/tmp` `/dev` `/proc` 是否正常、
    `npm i` / 插件安装是否可用、伙伴 Live2D 与手机操控是否受影响。
+
+### 已知差异：应龙路径不写客人 pid 文件
+
+PRoot 路径的启动脚本里有 `echo $$ > /tmp/dsh-web.pid`；应龙路径直接 exec node，没有 shell，
+Kotlin 侧也补不上这个文件——`Process.pid()` 是 Java 9+ / Android API 26 的 API，本模块的
+`compileOptions` 是 Java 8，符号不可见（用了会 Kotlin 编译失败）。
+
+影响面很小：`captureGuestRecord()` 读不到这个文件时返回 null，只跳过"结束进程前再核对一次
+PID 归属"这道额外的安全检查；真正结束用的仍是自己持有的 `Process` 对象。**不要**为了补这个文件
+去开 Java 9 的 desugar 或反射。
+

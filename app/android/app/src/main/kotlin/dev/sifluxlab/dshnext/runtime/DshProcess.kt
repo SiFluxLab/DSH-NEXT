@@ -247,8 +247,6 @@ class DshProcess(
         }
         onLaunchMethod?.invoke(direct)
         val p = builder.start()
-        // 应龙 runs node directly (no shell), so the launch writes the guest pid file.
-        if (zt) runCatching { File(rootfs, "tmp/dsh-web.pid").writeText("${p.pid()}\n") }
         process = p
         launchDiagnostics.spawned()
         val out = pump(p.inputStream.bufferedReader(), "stdout")
