@@ -44,3 +44,10 @@ paths inside the process instead of through PRoot. See
 `runtime/yinglong/NOTICE.md` for the source of the patch and the relinking
 obligations; the files are kept separable in the image at `/opt/yinglong/` so
 they can be replaced.
+
+Model brand marks
+-----------------
+The provider marks under app/assets/brand/models/ are rasterised from
+LobeHub Icons (@lobehub/icons-static-svg), MIT License,
+https://github.com/lobehub/lobe-icons. Their brand shapes belong to their owners;
+they are used here only to identify which provider a model belongs to.

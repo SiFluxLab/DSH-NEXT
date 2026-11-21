@@ -153,6 +153,8 @@ flutter:
           weight: 700
 
   assets:
+    # 模型厂商标识（LobeHub Icons，MIT）。SVG 在构建期栅格化为 128px PNG。
+    - assets/brand/models/
     - assets/licenses/streaming-asr-model-APACHE-2.0.txt
     # Full upstream WebRTC Android release notices, shown by LicenseRegistry.
     - assets/licenses/webrtc-150.7871.04.md

@@ -40,6 +40,30 @@ class ProviderGlyph extends StatelessWidget {
   final String modelId;
   final double size;
 
+  /// 有官方形状的就用真图标（LobeHub Icons，MIT，构建期栅格化），
+  /// 没有的退回几何标识——**不联网**，全部随包发。
+  Widget _mark(ModelFamily family, Color tint, double size) {
+    final asset = switch (family) {
+      ModelFamily.anthropic => 'assets/brand/models/anthropic.png',
+      ModelFamily.openai => 'assets/brand/models/openai.png',
+      ModelFamily.google => 'assets/brand/models/google.png',
+      ModelFamily.deepseek => 'assets/brand/models/deepseek.png',
+      ModelFamily.other => null,
+    };
+    if (asset == null) {
+      return CustomPaint(size: Size.square(size * 0.5), painter: _GlyphPainter(family, tint));
+    }
+    return Image.asset(
+      asset,
+      width: size * 0.62,
+      height: size * 0.62,
+      filterQuality: FilterQuality.medium,
+      // OpenAI 那只在图标集里是单色的，压成与文字同族的中性色，避免纯黑在深色底上糊成一团。
+      color: family == ModelFamily.openai ? tint : null,
+      colorBlendMode: family == ModelFamily.openai ? BlendMode.srcIn : null,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final family = familyOf(providerId, modelId);
@@ -54,7 +78,7 @@ class ProviderGlyph extends StatelessWidget {
             borderRadius: BorderRadius.circular(size * 0.3),
             border: Border.all(color: tint.withValues(alpha: 0.35), width: 0.5),
           ),
-          child: Center(child: CustomPaint(size: Size.square(size * 0.5), painter: _GlyphPainter(family, tint))),
+          child: Center(child: _mark(family, tint, size)),
         ),
       ),
     );
