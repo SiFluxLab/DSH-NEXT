@@ -11,6 +11,7 @@ export 'highlight_theme.dart';
 export 'ink_glow.dart';
 export 'motion.dart';
 export 'oklch.dart';
+export 'optics.dart';
 export 'page_transitions.dart';
 export 'palette.dart';
 export 'semantic_colors.dart';

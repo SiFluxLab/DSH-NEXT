@@ -12,6 +12,7 @@ import 'performance/refresh_rate.dart';
 import 'state/app_info.dart';
 import 'state/appearance_state.dart';
 import 'state/locale_state.dart';
+import 'state/optics_state.dart';
 import 'state/star_prompt.dart' show starPromptGateProvider, starPromptProvider;
 import 'state/tile_style_state.dart';
 import 'ui/chat/dsh_ui/dsh_ui_model.dart' show DshUiAppAccent;
@@ -19,6 +20,7 @@ import 'ui/common/keyboard_motion.dart';
 import 'ui/common/side_insets.dart';
 import 'ui/launch/launch_overlay.dart';
 import 'ui/shell/root_gate.dart';
+import 'ui/theme/optics.dart';
 import 'ui/theme/theme.dart';
 import 'ui_config/ui_config_state.dart';
 import 'usage/usage_stats.dart';
@@ -170,6 +172,13 @@ class _DshAppState extends ConsumerState<DshApp> with WidgetsBindingObserver {
     final reduced =
         performance.reduceMotion || WidgetsBinding.instance.platformDispatcher.accessibilityFeatures.disableAnimations;
     final fluid = performance.fluidMotion && !reduced;
+    // 光感：用户档位 × 系统偏好 × 省电模式。系统偏好永远赢（见 Optics.resolve）。
+    final optics = Optics.resolve(
+      ref.watch(opticsPresetProvider),
+      reduceMotion: reduced,
+      reduceTransparency: !performance.blur,
+      lowPower: ref.watch(performancePrefsProvider.select((p) => p.mode)) == PerformanceMode.light,
+    );
     FrameClock.instance.enabled = fluid;
     _themesFor(ref.watch(accentProvider), locale.languageCode == 'en', performance.blur, reduced, fluid);
     if (!waiting && !_settled) {
@@ -205,7 +214,9 @@ class _DshAppState extends ConsumerState<DshApp> with WidgetsBindingObserver {
           data: media.copyWith(disableAnimations: media.disableAnimations || performance.reduceMotion),
           child: AppMotionScope(
             fluid: fluid,
-            child: ThemeRevealHost(
+            child: OpticsScope(
+              optics: optics,
+              child: ThemeRevealHost(
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -216,6 +227,7 @@ class _DshAppState extends ConsumerState<DshApp> with WidgetsBindingObserver {
                   ),
                   const LaunchLayer(),
                 ],
+                ),
               ),
             ),
           ),

@@ -48632,6 +48632,60 @@ abstract class L10n {
   /// **'上次用应龙没能起来，已自动退回 PRoot；打开再试一次'**
   String get yinglongEngineFailedHint;
 
+  /// No description provided for @opticsTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'光感与动效'**
+  String get opticsTitle;
+
+  /// No description provided for @opticsFooter.
+  ///
+  /// In zh, this message translates to:
+  /// **'系统开启「移除动画」或关闭玻璃模糊时，这里的效果会自动减弱，不用手动关。'**
+  String get opticsFooter;
+
+  /// No description provided for @opticsPreset.
+  ///
+  /// In zh, this message translates to:
+  /// **'光感强度'**
+  String get opticsPreset;
+
+  /// No description provided for @opticsFull.
+  ///
+  /// In zh, this message translates to:
+  /// **'完整光感'**
+  String get opticsFull;
+
+  /// No description provided for @opticsFocus.
+  ///
+  /// In zh, this message translates to:
+  /// **'专注'**
+  String get opticsFocus;
+
+  /// No description provided for @opticsSilent.
+  ///
+  /// In zh, this message translates to:
+  /// **'静默省电'**
+  String get opticsSilent;
+
+  /// No description provided for @opticsFullHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'玻璃、光刃、颗粒与棱镜边缘全开，动画最丰富'**
+  String get opticsFullHint;
+
+  /// No description provided for @opticsFocusHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'玻璃与光刃保留，去掉颗粒，光刃只反映引擎状态'**
+  String get opticsFocusHint;
+
+  /// No description provided for @opticsSilentHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'不做模糊、不画光刃，只留必要的描边与淡入'**
+  String get opticsSilentHint;
+
   /// No description provided for @workshopTitle.
   ///
   /// In zh, this message translates to:

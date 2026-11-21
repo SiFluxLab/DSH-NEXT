@@ -26614,6 +26614,15 @@ class L10nZh extends L10n {
   String get yinglongEngineHint => '在打过补丁的 glibc 上直接运行，不再经过 PRoot，系统调用快得多';
   String get yinglongEngineUnavailable => '这个运行时没有对应架构的应龙，仍用 PRoot';
   String get yinglongEngineFailedHint => '上次用应龙没能起来，已自动退回 PRoot；打开再试一次';
+  String get opticsTitle => '光感与动效';
+  String get opticsFooter => '系统开启「移除动画」或关闭玻璃模糊时，这里的效果会自动减弱，不用手动关。';
+  String get opticsPreset => '光感强度';
+  String get opticsFull => '完整光感';
+  String get opticsFocus => '专注';
+  String get opticsSilent => '静默省电';
+  String get opticsFullHint => '玻璃、光刃、颗粒与棱镜边缘全开，动画最丰富';
+  String get opticsFocusHint => '玻璃与光刃保留，去掉颗粒，光刃只反映引擎状态';
+  String get opticsSilentHint => '不做模糊、不画光刃，只留必要的描边与淡入';
   String get workshopTitle => '创意工坊';
 
   @override

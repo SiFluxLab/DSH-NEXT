@@ -28052,6 +28052,15 @@ class L10nEn extends L10n {
   String get yinglongEngineHint => 'Runs on the patched glibc instead of PRoot, so syscalls cost far less';
   String get yinglongEngineUnavailable => 'This runtime has no Yinglong build for this ABI; PRoot stays in use';
   String get yinglongEngineFailedHint => 'The Yinglong launch did not come up; it fell back to PRoot. Turn it on to try again';
+  String get opticsTitle => 'Light and motion';
+  String get opticsFooter => 'Effects step down on their own when the system turns off animations or glass blur; you do not have to switch them off here.';
+  String get opticsPreset => 'Intensity';
+  String get opticsFull => 'Full';
+  String get opticsFocus => 'Focus';
+  String get opticsSilent => 'Quiet';
+  String get opticsFullHint => 'Glass, the light blade, grain and prism edges, with every animation';
+  String get opticsFocusHint => 'Glass and the light blade stay, grain goes, and the blade only tracks the engine';
+  String get opticsSilentHint => 'No blur, no blade: just the strokes and fades a screen needs';
   String get workshopTitle => 'Workshop';
 
   @override

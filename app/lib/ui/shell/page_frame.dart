@@ -9,6 +9,7 @@ import '../common/ui_trace.dart';
 import '../common/side_insets.dart';
 import '../settings/index/spot_anchor.dart' show seekSpot;
 import '../theme/app_icons.dart';
+import '../common/light_blade.dart';
 import '../theme/theme.dart';
 
 /// Frame for every secondary page (settings, engine, remote, diagnostics…).
@@ -181,6 +182,13 @@ class _AppPageState extends State<AppPage> {
           backgroundColor: Colors.transparent,
           body: Stack(
             children: [
+              // 签名元素：顶栏上沿的一道光刃，只表达引擎状态（此处是页面级空闲呼吸）。
+              Positioned(
+                left: 10,
+                right: 10,
+                top: padding.top + 2,
+                child: const LightBlade(state: BladeState.idle, radius: 14),
+              ),
               CustomScrollView(
                 controller: _controller,
                 physics: AppMotion.scrollPhysics(context),

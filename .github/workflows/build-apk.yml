@@ -237,6 +237,11 @@ jobs:
         working-directory: app
         run: flutter pub get
 
+      # 先做一次静态检查：编译错误在这里 1–2 分钟就出来，不用等整包。
+      - name: Analyze
+        working-directory: app
+        run: flutter analyze --no-pub
+
       - name: Build (${{ matrix.flavor }})
         shell: bash
         env:
