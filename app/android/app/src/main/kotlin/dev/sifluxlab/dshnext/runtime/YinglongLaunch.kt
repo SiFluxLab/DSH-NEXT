@@ -179,7 +179,16 @@ object YinglongLaunch {
         // 而 ZT_BIND 有 **16 项 / 1024 字节**的硬上限，超了会被整表静默丢弃——
         // 我上一版给 11 个顶层目录各加一条，PRoot 那 14 条再加上去必然超限。
         // 让 /opt 走 ZT_ROOT 前缀即可。
-        val ztBind = binds.entries.joinToString(";") { (guestPath, host) -> "$guestPath=$host" }
+        // 只保留**镜像之外**的绑定。
+        //
+        // 自检（不带 ZT_BIND）能起来，真实启动（带 14 条绑定）打不开 /opt——两者唯一的
+        // 差别就是这张表。按文档的规则，未命中绑定会退回"加 ZT_ROOT"，所以镜像内的路径
+        // 本来就不需要绑定；绑定只有一种必要用途：把宿主上**不在 rootfs 里**的目录
+        // （/sdcard、/system、/apex…）接进 guest 视图。镜像内的那些（/dev、/proc、/sys
+        // 及其子路径）全部交给 ZT_ROOT，表也因此短得多，不可能撞上 16 项/1024 字节的上限。
+        val rootPrefix = rootPath.trimEnd('/') + "/"
+        val outside = binds.filterValues { host -> !(host.trimEnd('/') + "/").startsWith(rootPrefix) && host != rootPath }
+        val ztBind = outside.entries.joinToString(";") { (guestPath, host) -> "$guestPath=$host" }
 
         // 3. Loader, libraries and the first executable — all host paths. No shell
         //    and no /usr/bin/env in the chain: both would have to exec guest
