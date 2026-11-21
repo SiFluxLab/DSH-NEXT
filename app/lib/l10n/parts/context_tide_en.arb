@@ -1,0 +1,8 @@
+{
+  "contextTideTitle": "Context use",
+  "contextTideUsed": "Last request",
+  "contextTideCached": "of which cached",
+  "contextTideOutput": "Last output",
+  "contextTideWindow": "Context window",
+  "contextTideUnknown": "not declared for this model"
+}

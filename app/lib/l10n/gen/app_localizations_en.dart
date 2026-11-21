@@ -28107,6 +28107,12 @@ class L10nEn extends L10n {
   String get drawerPagerTitle => 'Sidebar pager';
   String get drawerPagerHint => 'A row of tabs on top; swipe left and right to turn pages';
   String get drawerPagerFooter => 'Turned off, the sidebar goes back to a single long list. Nothing about your data or actions changes.';
+  String get contextTideTitle => 'Context use';
+  String get contextTideUsed => 'Last request';
+  String get contextTideCached => 'of which cached';
+  String get contextTideOutput => 'Last output';
+  String get contextTideWindow => 'Context window';
+  String get contextTideUnknown => 'not declared for this model';
   String get workshopTitle => 'Workshop';
 
   @override

@@ -2271,6 +2271,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
                                   const ReadOnlyBar()
                                 else
                                   Composer(
+                                    sessionId: sessionId,
                                     hardwareEnterSends: ref.watch(settingsProvider.select((s) => s.hardwareEnterSends)),
                                     controller: _input,
                                     groupId: _composerGroup,

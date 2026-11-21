@@ -48962,6 +48962,42 @@ abstract class L10n {
   /// **'关掉后侧边栏回到一屏到底的长列表；数据与操作完全不变。'**
   String get drawerPagerFooter;
 
+  /// No description provided for @contextTideTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'上下文用量'**
+  String get contextTideTitle;
+
+  /// No description provided for @contextTideUsed.
+  ///
+  /// In zh, this message translates to:
+  /// **'上次请求占用'**
+  String get contextTideUsed;
+
+  /// No description provided for @contextTideCached.
+  ///
+  /// In zh, this message translates to:
+  /// **'其中命中缓存'**
+  String get contextTideCached;
+
+  /// No description provided for @contextTideOutput.
+  ///
+  /// In zh, this message translates to:
+  /// **'上次输出'**
+  String get contextTideOutput;
+
+  /// No description provided for @contextTideWindow.
+  ///
+  /// In zh, this message translates to:
+  /// **'上下文窗口'**
+  String get contextTideWindow;
+
+  /// No description provided for @contextTideUnknown.
+  ///
+  /// In zh, this message translates to:
+  /// **'这个模型未声明'**
+  String get contextTideUnknown;
+
   /// No description provided for @workshopTitle.
   ///
   /// In zh, this message translates to:

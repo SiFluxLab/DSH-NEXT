@@ -1,0 +1,8 @@
+{
+  "contextTideTitle": "上下文用量",
+  "contextTideUsed": "上次请求占用",
+  "contextTideCached": "其中命中缓存",
+  "contextTideOutput": "上次输出",
+  "contextTideWindow": "上下文窗口",
+  "contextTideUnknown": "这个模型未声明"
+}

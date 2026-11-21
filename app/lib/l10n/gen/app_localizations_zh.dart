@@ -26669,6 +26669,12 @@ class L10nZh extends L10n {
   String get drawerPagerTitle => '侧边栏翻页器';
   String get drawerPagerHint => '顶上一排页签，左右滑动即可翻页';
   String get drawerPagerFooter => '关掉后侧边栏回到一屏到底的长列表；数据与操作完全不变。';
+  String get contextTideTitle => '上下文用量';
+  String get contextTideUsed => '上次请求占用';
+  String get contextTideCached => '其中命中缓存';
+  String get contextTideOutput => '上次输出';
+  String get contextTideWindow => '上下文窗口';
+  String get contextTideUnknown => '这个模型未声明';
   String get workshopTitle => '创意工坊';
 
   @override

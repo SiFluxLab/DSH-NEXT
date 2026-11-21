@@ -14,6 +14,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
 import '../../l10n/l10n.dart';
+import 'context_tide.dart';
 import '../common/expand_reveal.dart';
 import '../common/smooth_size.dart';
 import '../fx/voice_glow/voice_beam.dart';
@@ -48,6 +49,7 @@ class Composer extends StatefulWidget {
     required this.onStop,
     this.focusNode,
     this.groupId = EditableText,
+    this.sessionId,
     this.busy = false,
     this.stopping = false,
     this.sessionReady = true,
@@ -149,6 +151,9 @@ class Composer extends StatefulWidget {
   /// rounded rectangle, the text on a line of its own and the keys and this in a row
   /// below. It closes again when the keyboard goes. Null: the capsule stays as it is.
   final Widget? footer;
+
+  /// 输入条上沿那条潮线要知道是哪个会话；为空时不画。
+  final String? sessionId;
 
   /// The keyboard's height, from a page that still knows it: how [footer] tells the
   /// keyboard going down from the field losing focus.
@@ -395,6 +400,7 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
     return PetPerch(
       kind: PerchKind.composer,
       child: _ComposerGlass(
+        top: widget.sessionId == null ? null : ContextTide(sessionId: widget.sessionId!),
         open: widget.footer == null ? null : _open,
         child: ListenableBuilder(
           // The editor listens to text, selection and composing changes itself.
@@ -638,17 +644,21 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
 /// The composer's glass. With [open], its corners tighten as the composer opens, from
 /// the capsule into a rounded rectangle.
 class _ComposerGlass extends StatelessWidget {
-  const _ComposerGlass({required this.open, required this.child});
+  const _ComposerGlass({required this.open, required this.child, this.top});
 
   final Animation<double>? open;
   final Widget child;
+
+  /// 贴在玻璃上沿的一条线（上下文潮线）。null 时不占空间。
+  final Widget? top;
 
   static const _opened = BorderRadius.all(Radius.circular(AppShape.lg));
 
   @override
   Widget build(BuildContext context) {
     final open = this.open;
-    if (open == null) return GlassSurface(tier: GlassTier.chrome, borderRadius: AppShape.radiusXl, child: child);
+    final body = top == null ? child : Column(mainAxisSize: MainAxisSize.min, children: [top!, child]);
+    if (open == null) return GlassSurface(tier: GlassTier.chrome, borderRadius: AppShape.radiusXl, child: body);
     return AnimatedBuilder(
       animation: open,
       builder: (context, child) => GlassSurface(
@@ -656,7 +666,7 @@ class _ComposerGlass extends StatelessWidget {
         borderRadius: BorderRadius.lerp(AppShape.radiusXl, _opened, open.value),
         child: child,
       ),
-      child: child,
+      child: body,
     );
   }
 }
