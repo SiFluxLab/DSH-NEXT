@@ -22,9 +22,14 @@ class ContextTide extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final usage = ref.watch(contextUsageProvider(sessionId));
     if (usage == null) return const SizedBox.shrink();
+    final ratio = usage.ratio;
+    // 平时**不画**这条线。
+    //
+    // 它是"还能装多少"的进度条，只有在快满的时候才有信息量；常驻就变成输入框上方
+    // 一条说不清来历的横线（用户原话）。所以阈值 80% 以下完全不出现，也不占位。
+    if (ratio == null || ratio < 0.8) return const SizedBox.shrink();
     final scheme = Theme.of(context).colorScheme;
     final optics = Optics.of(context);
-    final ratio = usage.ratio;
     // 80% 开始变暖、95% 变红：颜色只是提醒，真正的信息是那条线的长度。
     final color = ratio == null
         ? scheme.onSurfaceVariant.withValues(alpha: 0.35)
