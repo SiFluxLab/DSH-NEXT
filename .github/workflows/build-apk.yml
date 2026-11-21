@@ -17,7 +17,7 @@ on:
         description: Which ABIs to build
         type: choice
         options: [arm64, x64, both]
-        default: both
+        default: arm64
       build_name:
         description: Version name (empty = app/pubspec.yaml)
         type: string
@@ -72,12 +72,26 @@ jobs:
       matrix: ${{ fromJSON(needs.abis.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
+      # The hash covers every tracked file under runtime/ (build script, patches,
+      # locks, bridge, the 应龙 payload). Anything else — app code, docs — does not
+      # need a new runtime, and the built one is reused instead (~2-4 min saved).
+      - id: inhash
+        shell: bash
+        run: echo "hash=$(git ls-tree -r HEAD -- runtime | sha1sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
+      - name: Restore the built runtime
+        id: out
+        uses: actions/cache@v4
+        with:
+          path: runtime/out/${{ matrix.abi }}
+          key: runtime-out-${{ matrix.abi }}-${{ steps.inhash.outputs.hash }}
       - name: Restore the download cache
+        if: steps.out.outputs.cache-hit != 'true'
         uses: actions/cache@v4
         with:
           path: runtime/.cache
           key: runtime-cache-${{ matrix.abi }}-${{ hashFiles('runtime/build-runtime.sh', 'runtime/patches/pins.json') }}
       - name: Build the runtime (${{ matrix.abi }})
+        if: steps.out.outputs.cache-hit != 'true'
         shell: bash
         run: |
           sudo apt-get update -qq
@@ -179,7 +193,7 @@ jobs:
       - name: Build (${{ matrix.flavor }})
         shell: bash
         env:
-          GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.parallel=false
+          GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.parallel=false -Dorg.gradle.caching=true
         run: |
           set -o pipefail
           args=(-f "${{ matrix.flavor }}" --no-companion)
