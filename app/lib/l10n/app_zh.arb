@@ -16,6 +16,8 @@
   "a11yRestoreComputer": "也可以连接电脑，执行一次：",
   "a11yRestoreCopy": "复制授权命令",
   "a11yRestoreCopied": "授权命令已复制",
+  "phoneAccentCobalt": "钴蓝",
+  "phoneAccentIris": "鸢尾",
   "accessPickTitle": "想让 DSH NEXT 帮你做哪些事",
   "accessPickMessage": "选好后逐项开启",
   "accessPickConfirm": "开启所选",

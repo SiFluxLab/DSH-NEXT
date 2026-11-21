@@ -26649,6 +26649,8 @@ class L10nZh extends L10n {
   String get sceneFocusHint => '玻璃与光刃保留、去掉颗粒，动画只保留必要的反馈';
   String get sceneQuiet => '静默省电';
   String get sceneQuietHint => '不做模糊、不画光刃、关动画，刷新率交给系统';
+  String get phoneAccentCobalt => '钴蓝';
+  String get phoneAccentIris => '鸢尾';
   String get workshopTitle => '创意工坊';
 
   @override

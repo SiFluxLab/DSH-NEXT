@@ -48842,6 +48842,18 @@ abstract class L10n {
   /// **'不做模糊、不画光刃、关动画，刷新率交给系统'**
   String get sceneQuietHint;
 
+  /// No description provided for @phoneAccentCobalt.
+  ///
+  /// In zh, this message translates to:
+  /// **'钴蓝'**
+  String get phoneAccentCobalt;
+
+  /// No description provided for @phoneAccentIris.
+  ///
+  /// In zh, this message translates to:
+  /// **'鸢尾'**
+  String get phoneAccentIris;
+
   /// No description provided for @workshopTitle.
   ///
   /// In zh, this message translates to:

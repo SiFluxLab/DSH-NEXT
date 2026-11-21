@@ -74,6 +74,8 @@ class AppAccent {
         'turquoise' => appL10n.phoneAccentTurquoise,
         'amber' => appL10n.phoneAccentAmber,
         'graphite' => appL10n.phoneAccentGraphite,
+        'cobalt' => appL10n.phoneAccentCobalt,
+        'iris' => appL10n.phoneAccentIris,
         _ => appL10n.phoneAccentCustom,
       };
 
@@ -258,7 +260,12 @@ class AppAccent {
   );
 
   /// 设置页里的顺序。
-  static const presets = [mist, daiqing, dusk, turquoise, amber, graphite];
+  /// 钴蓝 / 鸢尾：取自 obsidian-prism 的主色（#5b89d6 / #846dc9）。
+  /// 用 [derive] 推出整套角色色，不手写 14 个色值——它是"现推"的预设，故非 const。
+  static final cobalt = AppAccent.derive(const Color(0xFF5B89D6), id: 'cobalt', label: null);
+  static final iris = AppAccent.derive(const Color(0xFF846DC9), id: 'iris', label: null);
+
+  static final presets = [mist, daiqing, dusk, turquoise, amber, graphite, cobalt, iris];
 
   static const customId = 'custom';
   static const wallpaperId = 'wallpaper';

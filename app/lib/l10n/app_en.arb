@@ -16,6 +16,8 @@
   "a11yRestoreComputer": "Or connect to a computer and run once:",
   "a11yRestoreCopy": "Copy command",
   "a11yRestoreCopied": "Command copied",
+  "phoneAccentCobalt": "Cobalt",
+  "phoneAccentIris": "Iris",
   "accessPickTitle": "What should DSH NEXT help with?",
   "accessPickMessage": "Pick any, then turn each one on",
   "accessPickConfirm": "Turn on selected",

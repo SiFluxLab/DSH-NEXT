@@ -28087,6 +28087,8 @@ class L10nEn extends L10n {
   String get sceneFocusHint => 'Glass and blade stay, grain goes, motion keeps only the feedback that matters';
   String get sceneQuiet => 'Quiet and thrifty';
   String get sceneQuietHint => 'No blur, no blade, no animations, refresh rate left to the system';
+  String get phoneAccentCobalt => 'Cobalt';
+  String get phoneAccentIris => 'Iris';
   String get workshopTitle => 'Workshop';
 
   @override
