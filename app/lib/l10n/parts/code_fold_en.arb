@@ -1,0 +1,9 @@
+{
+  "chatFoldCode": "Collapse long code",
+  "chatShowAllLines": "Show all {count} lines",
+  "@chatShowAllLines": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  }
+}

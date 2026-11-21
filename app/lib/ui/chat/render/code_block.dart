@@ -396,10 +396,23 @@ class _CodeBlockState extends State<CodeBlock> {
   /// 长行折回显示,而不是横向滚动。
   bool _wrap = false;
 
+  /// 长代码块被用户收起（只留前几行）。默认展开：不自动截断——
+  /// 自动截断最容易把用户正在读的位置弄丢。
+  bool _folded = false;
+
+  /// 折叠/展开时用来量高度差，做滚动补偿。
+  final _blockKey = GlobalKey();
+
   /// While code streams in, it is highlighted again at most this often (the
   /// last chunk of up to 8000 characters, every delta, was the cost); what
   /// came since shows plain until then.
   static const _highlightEvery = Duration(milliseconds: 250);
+
+  /// 超过这么多行才给折叠键。48 取自 prism 的阈值：再短的代码收起来反而碍事。
+  static const foldThreshold = 48;
+
+  /// 收起时留几行。
+  static const foldPreviewLines = 12;
   Timer? _cooldown;
 
   @override
@@ -422,6 +435,25 @@ class _CodeBlockState extends State<CodeBlock> {
     return code;
   }
 
+  void _toggleFold() {
+    final box = _blockKey.currentContext?.findRenderObject() as RenderBox?;
+    final heightBefore = box?.size.height ?? 0;
+    final topBefore = box?.localToGlobal(Offset.zero).dy ?? 0;
+    final position = Scrollable.maybeOf(context)?.position;
+    setState(() => _folded = !_folded);
+    if (position == null) return;
+    // 补偿：块的上沿已经滚出视口时，高度变化会把正在读的那几行拽走。
+    // 把差值补回滚动位置，读者的视线就不动。
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final after = _blockKey.currentContext?.findRenderObject() as RenderBox?;
+      if (after == null || !position.hasPixels) return;
+      final delta = after.size.height - heightBefore;
+      if (delta == 0 || topBefore >= 0) return;
+      final target = (position.pixels + delta).clamp(position.minScrollExtent, position.maxScrollExtent);
+      if (target != position.pixels) position.jumpTo(target);
+    });
+  }
+
   void _copy() {
     Clipboard.setData(ClipboardData(text: _trimmedCode));
     HapticFeedback.lightImpact();
@@ -439,7 +471,11 @@ class _CodeBlockState extends State<CodeBlock> {
     final dsh = DshColors.of(context);
     final brightness = Theme.of(context).brightness;
     final accent = DshSurfaces.of(context).accent;
-    final code = _trimmedCode;
+    final fullCode = _trimmedCode;
+    final lineCount = '\n'.allMatches(fullCode).length + 1;
+    // 折叠是"用户收起来"，不是"自动截断"：默认永远展开。
+    final foldable = !widget.embedded && lineCount >= foldThreshold;
+    final code = _folded && foldable ? _firstLines(fullCode, foldPreviewLines) : fullCode;
     final style = widget.dense ? AppType.monoSmall(color: dsh.codeWellFg) : AppType.mono(color: dsh.codeWellFg);
 
     final previous = _cachedCode;
@@ -529,6 +565,30 @@ class _CodeBlockState extends State<CodeBlock> {
       );
     }
 
+    if (_folded && foldable) {
+      body = Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // 渐隐告诉人"下面还有"，而不是让人以为代码就这么长。
+          ShaderMask(
+            blendMode: BlendMode.dstIn,
+            shaderCallback: (rect) => const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFFFFFFFF), Color(0xFFFFFFFF), Color(0x00FFFFFF)],
+              stops: [0, 0.72, 1],
+            ).createShader(rect),
+            child: body,
+          ),
+          _FoldFooter(
+            label: l10n.chatShowAllLines(lineCount),
+            icon: AppIcons.expand,
+            onTap: _toggleFold,
+          ),
+        ],
+      );
+    }
+
     if (widget.embedded) return body;
 
     final label = widget.language?.trim();
@@ -574,6 +634,12 @@ class _CodeBlockState extends State<CodeBlock> {
                               : AppType.monoLabel(color: colors.onSurfaceVariant),
                         ),
                       ),
+                      if (foldable && !_folded)
+                        _HeaderButton(
+                          icon: AppIcons.collapse,
+                          tooltip: l10n.chatFoldCode,
+                          onTap: _toggleFold,
+                        ),
                       if (widget.replyActions && _mermaid)
                         _HeaderButton(
                           icon: AppIcons.preview,
@@ -757,6 +823,50 @@ class _CopyButton extends StatelessWidget {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 前 [lines] 行（保留行尾换行语义，预览里不留空行）。
+String _firstLines(String code, int lines) {
+  var seen = 0;
+  for (var i = 0; i < code.length; i++) {
+    if (code.codeUnitAt(i) != 0x0A) continue;
+    if (++seen == lines) return code.substring(0, i);
+  }
+  return code;
+}
+
+/// 折叠状态下那颗"展开全部 N 行"的按钮：安静、整行可点。
+class _FoldFooter extends StatelessWidget {
+  const _FoldFooter({required this.label, required this.icon, required this.onTap});
+
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final dsh = DshColors.of(context);
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        height: 40,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: dsh.codeWellHeader,
+          border: Border(top: BorderSide(color: dsh.codeWellBorder, width: 0.5)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: scheme.primary),
+            const SizedBox(width: 6),
+            Text(label, style: TextStyle(fontSize: 12.5, color: scheme.primary)),
+          ],
         ),
       ),
     );

@@ -48998,6 +48998,18 @@ abstract class L10n {
   /// **'这个模型未声明'**
   String get contextTideUnknown;
 
+  /// 收起长代码。
+  ///
+  /// In zh, this message translates to:
+  /// **'收起长代码'**
+  String get chatFoldCode;
+
+  /// 展开全部 N 行。
+  ///
+  /// In zh, this message translates to:
+  /// **'展开全部 {count} 行'**
+  String chatShowAllLines(int count);
+
   /// No description provided for @workshopTitle.
   ///
   /// In zh, this message translates to:

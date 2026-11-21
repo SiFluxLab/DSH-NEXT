@@ -3069,6 +3069,15 @@
       }
     }
   },
+  "chatFoldCode": "收起长代码",
+  "chatShowAllLines": "展开全部 {count} 行",
+  "@chatShowAllLines": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "commonCancel": "取消",
   "commonRetry": "重试",
   "commonClose": "关闭",

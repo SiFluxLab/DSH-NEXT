@@ -1465,6 +1465,8 @@
   "chatTodoItemSemantics": "{content}, {state}",
   "chatMentionSemantics": "{kind}: {label}",
   "chatArtifactSemantics": "{name}, {description}",
+  "chatFoldCode": "Collapse long code",
+  "chatShowAllLines": "Show all {count} lines",
   "commonCancel": "Cancel",
   "commonRetry": "Retry",
   "commonClose": "Close",

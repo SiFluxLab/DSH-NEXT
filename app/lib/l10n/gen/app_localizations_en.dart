@@ -28113,6 +28113,8 @@ class L10nEn extends L10n {
   String get contextTideOutput => 'Last output';
   String get contextTideWindow => 'Context window';
   String get contextTideUnknown => 'not declared for this model';
+  String get chatFoldCode => 'Collapse long code';
+  String chatShowAllLines(int count) => 'Show all $count lines';
   String get workshopTitle => 'Workshop';
 
   @override
