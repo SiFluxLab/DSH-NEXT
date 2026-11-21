@@ -14,6 +14,7 @@ import '../../tavern/tavern_provider.dart';
 import '../common/brief_notice.dart';
 import '../common/discard_guard.dart';
 import '../features/feature_kit.dart';
+import '../kit/kit.dart';
 import '../providers/provider_widgets.dart';
 import '../settings/settings_widgets.dart';
 import '../shell/page_frame.dart';
@@ -149,6 +150,11 @@ class TavernBookEntryRow extends StatelessWidget {
     final dsh = DshColors.of(context);
     final keys = _strings(entry['keys']);
     final on = entry['enabled'] != false;
+    // 停用的条目整行压暗。原来用 Opacity 包住整列文字：每个停用条目都会为这一行
+    // 开一次离屏层（saveLayer），一本 100 条的世界书里滚起来就是 100 层。
+    // 这里把透明度直接给到文字与标签的颜色上，效果一样、没有离屏层。
+    final dim = on ? 1.0 : 0.55;
+    Color faded(Color color) => color.withValues(alpha: color.a * dim);
     return InkWell(
       onTap: onOpen,
       splashFactory: rowSplash(context),
@@ -157,48 +163,51 @@ class TavernBookEntryRow extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              child: Opacity(
-                opacity: on ? 1 : 0.5,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            tavernBookEntryTitle(entry),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodyLarge,
-                          ),
-                        ),
-                        if (entry['constant'] == true)
-                          Container(
-                            margin: const EdgeInsets.only(left: 6),
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.primary.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(99),
-                            ),
-                            child: Text(
-                              l10n.tavernLorebookConstant,
-                              style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.primary),
-                            ),
-                          ),
-                      ],
-                    ),
-                    if (keys.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
                         child: Text(
-                          l10n.tavernLorebookKeys(keys.join('、')),
-                          maxLines: 2,
+                          tavernBookEntryTitle(entry),
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodySmall?.copyWith(color: dsh.textTertiary),
+                          // 14/500：世界书条目也是列表行（规格 theme-ui §3.1），
+                          // 原来用 bodyLarge（16/400）比标题行还大。
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: faded(theme.colorScheme.onSurface),
+                          ),
                         ),
                       ),
-                  ],
-                ),
+                      if (entry['constant'] == true)
+                        Padding(
+                          // 「常驻」是一个状态标签，用 KitChip 的 15% 主色底 +
+                          // 10/600 字（规格 theme-ui §7.1），比自绘一个胶囊更容易统一。
+                          padding: const EdgeInsets.only(left: 6),
+                          child: KitChip(
+                            label: l10n.tavernLorebookConstant,
+                            color: on ? null : theme.colorScheme.primary.withValues(alpha: 0.55),
+                          ),
+                        ),
+                    ],
+                  ),
+                  if (keys.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(
+                        l10n.tavernLorebookKeys(keys.join('、')),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        // 12/70%：规格 §7.8 的二级文字档。
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: dsh.textTertiary.withValues(alpha: 0.70 * dim),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
             Switch(value: on, onChanged: onEnabled),

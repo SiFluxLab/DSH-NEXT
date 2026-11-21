@@ -19,6 +19,8 @@ import '../common/app_sheet.dart';
 import '../common/capsule_chip.dart';
 import '../common/search_capsule.dart';
 import '../features/feature_kit.dart';
+import '../kit/kit.dart';
+import '../kit/kit_list.dart';
 import '../modes/mode_switch.dart';
 import '../settings/settings_widgets.dart';
 import '../shell/page_frame.dart';
@@ -356,7 +358,9 @@ class _TavernHomePageState extends ConsumerState<TavernHomePage> {
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
         children: [
           Opacity(
-            opacity: canGroup ? 1 : 0.38,
+            // 0.40 = KitMuted.a40：muted 阶梯只有固定几档（100/80/70/65/60/55/45/40），
+            // 随手写 0.38 会让同屏两处"按不下去"的深浅不一致。
+            opacity: canGroup ? 1 : KitMuted.a40,
             child: SettingsTile(
               key: const ValueKey('tavern-group-new'),
               icon: AppIcons.newGroupChat,
@@ -539,11 +543,11 @@ class _ChatRow extends ConsumerWidget {
     final dsh = DshColors.of(context);
     final group = chat.kind == TavernChatKind.group;
     final name = group ? chat.title : character?.name ?? chat.title;
-    return GlassSurface(
+    // 会话卡：实色面 + 1px 实线边 + 圆角 12 + 内距 14/12（规格 page-composition
+    // §2.1 内容卡）。原来是 GlassSurface（20 圆角、半透明玻璃）：玻璃在滚动列表里
+    // 每张都要自己算描边与高光，而一条数据需要的只是"一张界定清楚的实色卡"。
+    return KitItemCard(
       key: ValueKey('tavern-chat-row-${chat.id}'),
-      tier: GlassTier.card,
-      borderRadius: AppShape.radiusLg,
-      padding: const EdgeInsets.all(12),
       onTap: () => Navigator.of(context).push(TavernChatPage.route(chat.id)),
       onLongPress: () => unawaited(
         showTavernActions(context, [
@@ -579,7 +583,10 @@ class _ChatRow extends ConsumerWidget {
                         name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleSmall,
+                        // 14/500：列表标题只有这一档（规格 theme-ui §3.1 的 13/medium
+                        // 在手机触控密度上抬一档），字重比 titleSmall 的 600 轻一档，
+                        // 让右侧那行元信息不跟标题抢注意力。
+                        style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w500),
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -598,7 +605,11 @@ class _ChatRow extends ConsumerWidget {
                   plainPreviewLines(chat.lastText ?? '', 2),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(color: dsh.textTertiary, height: 1.4),
+                  // 12/70%：规格 §7.8 的二级文字档，用透明度而不是另一个灰阶。
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: dsh.textTertiary.withValues(alpha: 0.70),
+                    height: 1.4,
+                  ),
                 ),
               ],
             ),
@@ -750,7 +761,9 @@ class _CharacterTile extends ConsumerWidget {
       button: true,
       selected: picked,
       label: favorite ? '${character.name}，${l10n.tavernFavorited}' : character.name,
-      child: GestureDetector(
+      // 角色卡：实色面 + 1px 实线边 + 圆角 12 + 内距 14/12（规格 page-composition
+      // §2.1 内容卡）。之前是裸头像 + 两行字，网格里看不出"这是一张可点的卡"。
+      child: KitItemCard(
         key: ValueKey('tavern-character-${character.id}'),
         onTap: picked != null ? onPick : () => Navigator.of(context).push(TavernCharacterPage.route(character.id)),
         onLongPress: picked != null
@@ -774,7 +787,6 @@ class _CharacterTile extends ConsumerWidget {
                   ),
                 ]),
               ),
-        behavior: HitTestBehavior.opaque,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -817,12 +829,19 @@ class _CharacterTile extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 8),
-            Text(character.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: theme.textTheme.titleSmall),
+            // 14/500 标题 + 12/70% 标签行（规格 theme-ui §3.1 / page-composition §7.8）。
+            Text(
+              character.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 2),
             Text(
               character.tags.isEmpty ? (character.creator ?? '') : character.tags.take(3).join(' · '),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.labelSmall?.copyWith(color: dsh.textTertiary),
+              style: TextStyle(fontSize: 12, height: 1.4, color: dsh.textTertiary.withValues(alpha: 0.70)),
             ),
           ],
         ),
@@ -845,11 +864,9 @@ class _ContinueCard extends ConsumerWidget {
     final name = chat.kind == TavernChatKind.group ? chat.title : character?.name ?? chat.title;
     return SizedBox(
       width: 256,
-      child: GlassSurface(
+      // 同 _ChatRow：一条会话一张实色条目卡（12 圆角、14/12 内距）。
+      child: KitItemCard(
         key: ValueKey('tavern-continue-${chat.id}'),
-        tier: GlassTier.card,
-        borderRadius: AppShape.radiusLg,
-        padding: const EdgeInsets.all(12),
         onTap: () => Navigator.of(context).push(TavernChatPage.route(chat.id)),
         onLongPress: () => unawaited(
           showTavernActions(context, [
@@ -876,7 +893,7 @@ class _ContinueCard extends ConsumerWidget {
                           name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.titleSmall,
+                          style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w500),
                         ),
                       ),
                       const SizedBox(width: 6),
@@ -891,7 +908,10 @@ class _ContinueCard extends ConsumerWidget {
                     plainPreviewLines(chat.lastText ?? '', 4),
                     maxLines: 4,
                     overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodySmall?.copyWith(color: dsh.textTertiary, height: 1.4),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: dsh.textTertiary.withValues(alpha: 0.70),
+                      height: 1.4,
+                    ),
                   ),
                 ],
               ),

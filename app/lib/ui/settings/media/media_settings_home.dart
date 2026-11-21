@@ -279,6 +279,8 @@ class MediaSettingsHome extends ConsumerWidget {
         ),
         SettingsSection(
           title: l10n.mediaSettingsServices,
+          // 标题右侧的计数（`2/4`）：服务有几条、上限多少，一眼看完不用数行。
+          note: '${services.length}/$mediaServiceLimit',
           children: [for (final service in services) serviceRow(service), addRow],
         ),
         if (error != null) MediaInlineError(error),

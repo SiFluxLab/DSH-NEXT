@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 
 import '../../../l10n/l10n.dart';
 import '../../common/expand_reveal.dart';
+import '../../kit/kit.dart';
 import '../../theme/app_icons.dart';
 import '../../theme/theme.dart';
 import '../render/markdown_body.dart';
@@ -378,7 +379,9 @@ class _OptionRow extends StatelessWidget {
             shape: Squircle.border(
               12,
               side: BorderSide(
-                color: selected ? colors.primary.withValues(alpha: 0.5) : colors.outlineVariant.withValues(alpha: 0.8),
+                color: selected
+                    ? colors.primary.withValues(alpha: 0.5)
+                    : colors.outlineVariant.withValues(alpha: KitMuted.a80),
               ),
             ),
           ),

@@ -306,7 +306,7 @@ class _KitInputState extends State<KitInput> {
         onChanged: widget.onChanged,
         style: const TextStyle(fontSize: Kit.textBody),
         cursorHeight: math.min(18, Kit.textBody * 1.3),
-        decoration: InputDecoration.collapsed(hintText: widget.hint, isDense: true),
+        decoration: InputDecoration.collapsed(hintText: widget.hint),
       ),
     );
   }

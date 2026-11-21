@@ -5,7 +5,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../common/app_sheet.dart';
 import '../common/list_page_row.dart' show ListPageRow;
 import '../common/overview_card.dart' show OverviewChevron;
 import '../kit/kit.dart';
@@ -38,10 +37,15 @@ abstract final class SettingsMetrics {
   /// chevron ink, segmented pill or a bare value on the right.
   static const inset = 16.0;
 
-  /// Right padding of a row ending in a switch or chevron: the switch's track
-  /// sits 4 inside its box, the chevron is nudged out by
-  /// [OverviewChevron.nudge] — both end at [inset].
+  /// Right padding of a row ending in a chevron: the chevron is nudged out by
+  /// [OverviewChevron.nudge] so its ink ends at [inset].
   static const trailingPad = ListPageRow.trailingPad;
+
+  /// Right padding of a row ending in a [KitSwitch].
+  ///
+  /// 开关自带 12 的外扩命中区（[KitSwitch.hitPadX]，那是布局的一部分），所以行
+  /// 的右内边距要把它减掉，轨道才和同一张卡里的值、箭头停在同一竖线上。
+  static const switchPad = inset - KitSwitch.hitPadX;
   static const icon = 32.0;
   static const iconGlyph = 18.0;
 
@@ -51,8 +55,11 @@ abstract final class SettingsMetrics {
 
   /// Where titles start in rows with an icon.
   static const textStart = inset + icon + iconGap;
-  static const rowHeight = 44.0;
-  static const rowHeightTwoLine = 56.0;
+
+  /// 44 / 56 两档行高只写在 [Kit] 一处：设置行和列表页的行本来就该一样高，
+  /// 两处各写一份迟早会差开 2px。
+  static const rowHeight = Kit.rowHeight;
+  static const rowHeightTwoLine = Kit.rowHeightTwo;
 }
 
 /// 行标题：14 / 500。vetta 的列表是 `text-[13px]`、标题只多一个 `font-semibold`；
@@ -109,9 +116,9 @@ class SettingsLineIcon extends StatelessWidget {
 
 /// One row: icon · title (+ subtitle) · value · chevron/trailing.
 ///
-/// Single-line rows are 52 tall, rows with a subtitle 64; the whole row is the
-/// tap target (a soft highlight, no ripple). A [Switch] passed as [trailing]
-/// is drawn without its extra tap padding so switch rows are as tall as the rest.
+/// Single-line rows are at least [SettingsMetrics.rowHeight] (44) tall, rows
+/// with a subtitle [SettingsMetrics.rowHeightTwoLine] (56); the whole row is the
+/// tap target (a soft highlight, no ripple).
 class SettingsTile extends StatelessWidget {
   const SettingsTile({
     super.key,
@@ -164,8 +171,18 @@ class SettingsTile extends StatelessWidget {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final colors = DshColors.of(context);
+    final trailing = switch (this.trailing) {
+      null => null,
+      final KitSwitch toggle => toggle,
+      // M3 开关自带 48 的点击区，放进行里要收掉；KitSwitch 的命中区长在它自己身上。
+      final other => SwitchTheme(
+        data: SwitchTheme.of(context).copyWith(materialTapTargetSize: MaterialTapTargetSize.shrinkWrap),
+        child: other,
+      ),
+    };
+    // 开关自带 12 的外扩命中区，行的右距要减掉它（见 [SettingsMetrics.switchPad]）。
+    final switchRow = trailing is KitSwitch;
     final showChevron = chevron ?? (onTap != null && trailing == null);
-    final endsInGlyph = showChevron || trailing != null;
     final icon = this.icon;
     final title = this.title ?? spot!.title(context.l10n);
     return anchorSpot(
@@ -182,7 +199,11 @@ class SettingsTile extends StatelessWidget {
             padding: EdgeInsets.fromLTRB(
               SettingsMetrics.inset,
               6,
-              endsInGlyph ? SettingsMetrics.trailingPad : SettingsMetrics.inset,
+              switchRow
+                  ? SettingsMetrics.switchPad
+                  : showChevron || trailing != null
+                  ? SettingsMetrics.trailingPad
+                  : SettingsMetrics.inset,
               6,
             ),
             child: Row(
@@ -209,21 +230,34 @@ class SettingsTile extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (value case final value?) ...[
+                // 右侧控件整簇最多 384（`max-w-[min(100%,24rem)]`）：值再长也在
+                // 这里换行，不会把左边的标题挤成一两个字。
+                if (value != null || trailing != null || showChevron) ...[
                   const SizedBox(width: 12),
-                  DefaultTextStyle.merge(
-                    style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
-                    child: value,
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: Kit.controlMaxWidth),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (value case final value?)
+                          Flexible(
+                            child: DefaultTextStyle.merge(
+                              style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+                              child: value,
+                            ),
+                          ),
+                        if (trailing != null) ...[
+                          if (value != null) const SizedBox(width: 8),
+                          trailing,
+                        ],
+                        if (showChevron) ...[
+                          if (value != null || trailing != null) const SizedBox(width: 4),
+                          const OverviewChevron(),
+                        ],
+                      ],
+                    ),
                   ),
                 ],
-                if (trailing case final trailing?) ...[
-                  const SizedBox(width: 8),
-                  SwitchTheme(
-                    data: SwitchTheme.of(context).copyWith(materialTapTargetSize: MaterialTapTargetSize.shrinkWrap),
-                    child: trailing,
-                  ),
-                ],
-                if (showChevron) ...[const SizedBox(width: 4), const OverviewChevron()],
               ],
             ),
           ),
@@ -332,6 +366,7 @@ class SettingsSection extends StatelessWidget {
   const SettingsSection({
     super.key,
     this.title,
+    this.note,
     required this.children,
     this.footer,
     this.margin = kSettingsGroupMargin,
@@ -339,6 +374,12 @@ class SettingsSection extends StatelessWidget {
   });
 
   final String? title;
+
+  /// 标题右侧的计数（`2/4`、`3 项`），与标题同一基线。
+  ///
+  /// vetta 的分区标题是"15/600 + 右侧计数"：数字在标题行内收口，就不用为了
+  /// 一个数字再多加一行说明，也不占行的位置。
+  final String? note;
   final List<Widget> children;
 
   /// The card as one place in the settings index (界面's 网页版): its rows
@@ -350,7 +391,7 @@ class SettingsSection extends StatelessWidget {
   final EdgeInsetsGeometry margin;
 
   /// Style of section titles, for places that draw one without a card.
-  static TextStyle? titleStyle(BuildContext context) => groupTitleStyle(context);
+  static TextStyle? titleStyle(BuildContext context) => KitSectionHeader.titleStyle(context);
 
   /// Space between the card and its [footer].
   static const footerGap = 8.0;
@@ -358,6 +399,7 @@ class SettingsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final rows = KitRowList(children: children);
     return Padding(
       padding: margin,
       child: Column(
@@ -365,15 +407,11 @@ class SettingsSection extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (title case final title?)
-            Semantics(header: true, child: KitSectionHeader(title: title)),
+            Semantics(header: true, child: KitSectionHeader(title: title, note: note)),
           // 分区卡：实色面 + 实线边框 + 圆角 12（vetta 的 `rounded-xl border border-border bg-card`）。
-          // 行与行之间是一条 0.5px 细线，不再是 2px 的"缝"——缝会读出"一堆小卡片"，
-          // 细线才读作"一张卡里的多行"。
-          KitCard(
-            child: spot == null
-                ? _divided(context, children)
-                : SpotAnchor(spot: spot!, child: _divided(context, children)),
-          ),
+          // 行与行之间是一条 0.5px 细线（[KitRowList]），不再是 2px 的"缝"——缝会读出
+          // "一堆小卡片"，细线才读作"一张卡里的多行"。
+          KitCard(child: spot == null ? rows : SpotAnchor(spot: spot!, child: rows)),
           if (footer case final footer?)
             Padding(
               padding: const EdgeInsets.fromLTRB(8, footerGap, 8, 0),

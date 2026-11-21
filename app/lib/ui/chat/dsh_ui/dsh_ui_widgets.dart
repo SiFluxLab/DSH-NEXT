@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../../l10n/l10n.dart';
 import '../../common/pressable.dart';
+import '../../kit/kit.dart';
 import '../../theme/app_icons.dart';
 import '../../theme/theme.dart';
 import '../render/markdown_body.dart';
@@ -792,7 +793,10 @@ class _CalloutView extends StatelessWidget {
     final body = Theme.of(context).textTheme.bodyMedium!;
     final line = (body.fontSize ?? 14) * 0.9 * (body.height ?? 1.55);
     return DecoratedBox(
-      decoration: ShapeDecoration(color: fill.withValues(alpha: 0.7), shape: Squircle.border(DshUiMetrics.wellRadius)),
+      decoration: ShapeDecoration(
+        color: fill.withValues(alpha: KitMuted.a70),
+        shape: Squircle.border(DshUiMetrics.wellRadius),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(

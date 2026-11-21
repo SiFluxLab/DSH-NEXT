@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../l10n/l10n.dart';
 import '../../../state/optics_state.dart';
 import '../../../ui/theme/theme.dart';
+import '../../kit/kit.dart';
 import '../../common/light_blade.dart';
 import '../settings_widgets.dart';
 
@@ -152,8 +153,11 @@ class _BladePreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    // 预览用**静止帧**：光刃 idle 时控制器停住（`LightBlade._sync` 里显式 stop），
+    // 只画那条 35% 的线。这一页要待多久不知道，让一条光刃常驻循环，等于每帧都
+    // 在重画整块预览——光感的 0fps 原则就是这么来的。
     return ClipRRect(
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(AppShape.md),
       child: SizedBox(
         height: 56,
         child: Stack(
@@ -173,13 +177,13 @@ class _BladePreview extends StatelessWidget {
               left: 10,
               right: 10,
               top: 1,
-              child: LightBlade(state: BladeState.streaming, radius: 14, color: scheme.primary),
+              child: LightBlade(state: BladeState.idle, radius: AppShape.md, color: scheme.primary),
             ),
             Center(
               child: Text(
                 optics.preset.name,
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: scheme.onSurfaceVariant.withValues(alpha: 0.7),
+                  color: scheme.onSurfaceVariant.withValues(alpha: KitMuted.a70),
                   letterSpacing: 1.2,
                 ),
               ),

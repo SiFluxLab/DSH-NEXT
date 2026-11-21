@@ -15,10 +15,9 @@ import '../../workshop/workshop_repository.dart';
 import '../common/capsule_chip.dart';
 import '../common/empty_view.dart';
 import '../common/fade_in.dart';
-import '../common/list_page_row.dart';
 import '../common/search_capsule.dart';
+import '../kit/kit_list.dart';
 import '../theme/app_icons.dart';
-import '../theme/theme.dart';
 import 'workshop_item_sheet.dart';
 import 'workshop_text.dart';
 import 'workshop_widgets.dart';
@@ -162,24 +161,23 @@ class _WorkshopBrowseSliverState extends ConsumerState<WorkshopBrowseSliver> {
               final item = items[i];
               return FadeSlideIn(
                 index: i,
+                // 目录是一张连续的分组卡：首末行圆角 12、行间 0.5px、外缘 1px 实线
+                // （规格 page-composition §2.2 与 theme-ui §3.2）。整张卡不能在懒加载
+                // 里一次画出来，所以按行拼。
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Material(
-                    color: DshSurfaces.of(context).card.fill,
-                    clipBehavior: Clip.antiAlias,
-                    shape: RoundedSuperellipseBorder(
-                      borderRadius: BorderRadius.vertical(
-                        top: first ? AppShape.radiusLg.topLeft : Radius.zero,
-                        bottom: last ? AppShape.radiusLg.bottomLeft : Radius.zero,
-                      ),
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.only(top: first ? 4 : 0, bottom: last ? 4 : 0),
-                      child: WorkshopItemRow(
-                        key: ValueKey(item.entry.metadata.identity),
-                        item: item,
-                        onReport: widget.onReport,
-                      ),
+                  child: KitRowSurface(
+                    position: items.length == 1
+                        ? KitRowPosition.single
+                        : first
+                        ? KitRowPosition.first
+                        : last
+                        ? KitRowPosition.last
+                        : KitRowPosition.middle,
+                    child: WorkshopItemRow(
+                      key: ValueKey(item.entry.metadata.identity),
+                      item: item,
+                      onReport: widget.onReport,
                     ),
                   ),
                 ),
@@ -207,11 +205,12 @@ class WorkshopItemRow extends ConsumerWidget {
     );
     final description = meta.description.trim();
     void open() => unawaited(showWorkshopItemSheet(context, item, onReport: onReport));
-    return ListPageRow(
-      leading: WorkshopEntryAvatar(item.entry),
-      leadingWidth: 40,
+    // 14/500 标题 + 12/70% 说明 + 32 的条目方块 + 行尾 field 控件：一行就是一条
+    // 列表行（规格 theme-ui §3.1 / page-composition §7.8）。
+    return KitRow(
+      leading: WorkshopEntryAvatar(item.entry, size: 32),
       title: workshopTitleOf(meta, locale),
-      subtitle: [meta.author, if (description.isNotEmpty) description.split('\n').first].join(' · '),
+      note: [meta.author, if (description.isNotEmpty) description.split('\n').first].join(' · '),
       trailing: WorkshopGetButton(
         state: running
             ? WorkshopGetState.running

@@ -95,9 +95,10 @@ class _QuickPanelItemsSheetState extends ConsumerState<QuickPanelItemsSheet> {
             Flexible(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(kSheetGutter, 6, kSheetGutter, 6),
-                child: GlassSurface(
-                  tier: GlassTier.card,
-                  borderRadius: AppShape.radiusLg,
+                // 弹层里的分组是内容面，不是 chrome：实色 + 1px 细线（FlatPanel），
+                // 和设置页的分区卡、弹层的 SheetGroup 同一套材质。
+                child: FlatPanel(
+                  radius: AppShape.lg,
                   child: Material(
                     type: MaterialType.transparency,
                     clipBehavior: Clip.antiAlias,
@@ -111,7 +112,8 @@ class _QuickPanelItemsSheetState extends ConsumerState<QuickPanelItemsSheet> {
                       proxyDecorator: (child, _, animation) => AnimatedBuilder(
                         animation: animation,
                         builder: (context, child) => Material(
-                          color: scheme.surface.withValues(alpha: 0.92),
+                          // 拖动中的那一行要盖住底下的行，半透明会让两行糊在一起。
+                          color: scheme.surface,
                           elevation: 6 * animation.value,
                           shadowColor: Colors.black26,
                           shape: Squircle.border(AppShape.md),

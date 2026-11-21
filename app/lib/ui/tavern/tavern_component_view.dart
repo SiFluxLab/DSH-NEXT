@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 
 import '../../l10n/l10n.dart';
 import '../../tavern/tavern_components.dart';
+import '../kit/kit.dart';
 import '../theme/app_icons.dart';
 import '../theme/theme.dart';
 import 'tavern_arrive.dart';
@@ -47,32 +48,68 @@ class _Folding extends StatefulWidget {
 class _FoldingState extends State<_Folding> {
   bool _open = false;
 
-  @override
-  Widget build(BuildContext context) => LayoutBuilder(
-    builder: (context, box) {
+  /// 折叠（[widget.lines] 行）与全文两个状态的高度，都实测一次。
+  ///
+  /// 有了这两个数，展开就不需要 `AnimatedSize` 那种"每帧让子树重新布局"的做法：
+  /// 外框在两个高度之间走一段、子树只布局一次（规格要求的 ClipRect + 尺寸过渡）。
+  ({double folded, double full, bool long}) _measure(BuildContext context, double width) {
+    ({double height, bool exceeded}) lay(int? maxLines) {
       final painter = TextPainter(
         text: TextSpan(text: widget.text, style: widget.style),
         textScaler: MediaQuery.textScalerOf(context),
         textDirection: Directionality.of(context),
-        maxLines: widget.lines,
-      )..layout(maxWidth: box.maxWidth);
-      final long = painter.didExceedMaxLines;
+        maxLines: maxLines,
+      )..layout(maxWidth: width);
+      final measured = (height: painter.height, exceeded: painter.didExceedMaxLines);
       painter.dispose();
+      return measured;
+    }
+
+    final folded = lay(widget.lines);
+    if (!folded.exceeded) return (folded: folded.height, full: folded.height, long: false);
+    return (folded: folded.height, full: lay(null).height, long: true);
+  }
+
+  Widget _text({required bool expanded}) => Text(
+    widget.text,
+    style: widget.style,
+    maxLines: expanded ? null : widget.lines,
+    overflow: expanded ? TextOverflow.visible : TextOverflow.ellipsis,
+  );
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, box) {
+      final measured = _measure(context, box.maxWidth);
+      final long = measured.long;
       final theme = Theme.of(context);
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          AnimatedSize(
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOutCubic,
-            alignment: Alignment.topCenter,
-            child: Text(
-              widget.text,
-              style: widget.style,
-              maxLines: _open ? null : widget.lines,
-              overflow: _open ? TextOverflow.visible : TextOverflow.ellipsis,
+          if (!long)
+            _text(expanded: true)
+          else
+            // 折叠：ClipRect + 高度过渡。时长/曲线取 [AppMotion.collapse] /
+            // [AppMotion.collapseCurve]（"大块高度变化"的那一档），系统要求
+            // 减少动画时时长为 0（[KitMotion.of]），直接到位。
+            TweenAnimationBuilder<double>(
+              tween: Tween<double>(end: _open ? 1 : 0),
+              duration: KitMotion.of(context, AppMotion.collapse),
+              curve: AppMotion.collapseCurve,
+              builder: (context, t, _) => ClipRect(
+                child: SizedBox(
+                  height: measured.folded + (measured.full - measured.folded) * t,
+                  width: double.infinity,
+                  child: OverflowBox(
+                    alignment: Alignment.topCenter,
+                    minHeight: 0,
+                    maxHeight: double.infinity,
+                    // 过渡期间画全文（靠外框裁），停稳的折叠态画带省略号的版本。
+                    child: _text(expanded: _open || t > 0),
+                  ),
+                ),
+              ),
             ),
-          ),
           if (long)
             Align(
               alignment: AlignmentDirectional.centerStart,

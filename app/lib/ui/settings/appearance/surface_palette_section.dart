@@ -70,8 +70,10 @@ class _Swatch extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final base = dark ? DshPalette.darkScheme(AppAccent.mist) : DshPalette.lightScheme(AppAccent.mist);
     final swatch = palette.apply(base);
+    // 圆角取 AppShape.xs（6）：小样是三格的"颗粒"，不是卡片，别用 7 这种
+    // 阶梯上没有的中间值。
     return ClipRRect(
-      borderRadius: BorderRadius.circular(7),
+      borderRadius: BorderRadius.circular(AppShape.xs),
       child: SizedBox(
         width: 46,
         height: 26,
@@ -79,7 +81,8 @@ class _Swatch extends StatelessWidget {
           children: [
             Expanded(child: ColoredBox(color: swatch.surface)),
             Expanded(child: ColoredBox(color: swatch.surfaceContainerLow)),
-            Expanded(child: ColoredBox(color: scheme.primary.withValues(alpha: 0.75))),
+            // 第三格就是主色本身：它是给人比对色相的样本，压到 75% 反而看不对。
+            Expanded(child: ColoredBox(color: scheme.primary)),
           ],
         ),
       ),

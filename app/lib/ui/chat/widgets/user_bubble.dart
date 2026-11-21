@@ -13,6 +13,7 @@ import '../media/generate_header.dart';
 import '../media/media_format.dart' show mediaParamsLine;
 import '../mention/mention_chip.dart';
 import '../secret_mask.dart';
+import 'chat_metrics.dart';
 import 'message_actions.dart';
 import 'quote_chip.dart';
 
@@ -88,7 +89,6 @@ class UserBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final surfaces = DshSurfaces.of(context);
     // 中性底上写字，颜色回到 onSurface；字号/行高照 vetta 的 14 / 1.6。
     final style = AppType.chatBody(context, color: Theme.of(context).colorScheme.onSurface).copyWith(
       fontSize: 14,
@@ -125,8 +125,12 @@ class UserBubble extends StatelessWidget {
         onLongPress: () => _menu(context),
         child: DecoratedBox(
           // vetta 的用户气泡不是"主题色胶囊"，而是**一个中性灰面**：
-          // 圆角 16、右下角收成 6、内距 14×10。它靠"低饱和 + 不对称圆角"
+          // 圆角、右下角收成 6、内距 14×10。它靠"低饱和 + 不对称圆角"
           // 与助手（无容器纯排版）形成层级对比，而不是靠颜色喊话。
+          //
+          // 圆角用 [AppShape.lg] = 20 而不是规格的 `rounded-2xl` = 16:
+          // 整站的气泡 / 审批卡都是这一档(触屏上放大一档,见 shapes.dart),
+          // 只把对话页的气泡收窄会让同屏两种气泡对不上。右下 6 照规格。
           decoration: ShapeDecoration(
             color: Theme.of(context).colorScheme.surfaceContainerHigh,
             shape: RoundedSuperellipseBorder(
@@ -156,14 +160,16 @@ class UserBubble extends StatelessWidget {
               if (attachments case final a?)
                 ConstrainedBox(
                   constraints: BoxConstraints(maxWidth: maxWidth),
-                  child: pendingLabel == null ? a : Opacity(opacity: 0.72, child: a),
+                  // 附件跟着气泡一起"待发送":和正文用同一档([ChatMetrics.pendingOpacity],
+                  // 规格 `data-[pending=true]:opacity-70`)。
+                  child: pendingLabel == null ? a : Opacity(opacity: ChatMetrics.pendingOpacity, child: a),
                 ),
               if (attachments != null && shown.trim().isNotEmpty) const SizedBox(height: 8),
               if (shown.trim().isNotEmpty)
                 ConstrainedBox(
                   constraints: BoxConstraints(maxWidth: maxWidth),
                   child: AnimatedOpacity(
-                    opacity: pendingLabel == null ? 1 : 0.72,
+                    opacity: pendingLabel == null ? 1 : ChatMetrics.pendingOpacity,
                     duration: AppMotion.of(context, AppMotion.quick),
                     child: bubble,
                   ),

@@ -21,7 +21,7 @@ import '../../workshop/workshop_repository.dart';
 import '../common/brief_notice.dart';
 import '../common/empty_view.dart';
 import '../common/fade_in.dart';
-import '../common/list_page_row.dart';
+import '../kit/kit_list.dart';
 import '../theme/app_icons.dart';
 import '../theme/theme.dart';
 import 'workshop_installed_sheet.dart';
@@ -181,25 +181,22 @@ class _WorkshopInstalledSliverState extends ConsumerState<WorkshopInstalledSlive
             final row = rows[i];
             return FadeSlideIn(
               index: i,
+              // 一张连续的分组卡：首末行 12 圆角、行间 0.5px（规格 §2.2 / §3.2）。
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Material(
-                  color: DshSurfaces.of(context).card.fill,
-                  clipBehavior: Clip.antiAlias,
-                  shape: RoundedSuperellipseBorder(
-                    borderRadius: BorderRadius.vertical(
-                      top: first ? AppShape.radiusLg.topLeft : Radius.zero,
-                      bottom: last ? AppShape.radiusLg.bottomLeft : Radius.zero,
-                    ),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.only(top: first ? 4 : 0, bottom: last ? 4 : 0),
-                    child: WorkshopInstalledTile(
-                      key: ValueKey(row.local.localId),
-                      row: row,
-                      removal: workshopInstalledRemovalOf(row, state.removal),
-                      onOpen: () => unawaited(_open(row)),
-                    ),
+                child: KitRowSurface(
+                  position: rows.length == 1
+                      ? KitRowPosition.single
+                      : first
+                      ? KitRowPosition.first
+                      : last
+                      ? KitRowPosition.last
+                      : KitRowPosition.middle,
+                  child: WorkshopInstalledTile(
+                    key: ValueKey(row.local.localId),
+                    row: row,
+                    removal: workshopInstalledRemovalOf(row, state.removal),
+                    onOpen: () => unawaited(_open(row)),
                   ),
                 ),
               ),
@@ -272,12 +269,13 @@ class WorkshopInstalledTile extends StatelessWidget {
     final (status, mark) = _status(l10n);
     // A row being removed, or already removed, has nothing to open.
     final settled = removal != WorkshopRemovalPhase.removing && removal != WorkshopRemovalPhase.succeeded;
-    return ListPageRow(
-      leading: WorkshopInstalledAvatar(row),
-      leadingWidth: 40,
+    // 行统一到 14/500 标题 + 12/70% 状态行（规格 theme-ui §3.1）；
+    // 状态色只用在那一行说明上，不去染标题。
+    return KitRow(
+      leading: WorkshopInstalledAvatar(row, size: 32),
       title: workshopInstalledTitle(row, Localizations.localeOf(context).languageCode),
-      subtitle: status,
-      subtitleColor: mark == _Mark.failed ? colors.danger : null,
+      note: status,
+      noteColor: mark == _Mark.failed ? colors.danger : null,
       trailing: switch (mark) {
         _Mark.none => null,
         _Mark.update => SizedBox.square(

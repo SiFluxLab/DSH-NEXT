@@ -17,6 +17,7 @@ import '../../l10n/l10n.dart';
 import '../../tavern/tavern_provider.dart';
 import '../common/app_sheet.dart';
 import '../common/brief_notice.dart';
+import '../common/empty_view.dart';
 import '../features/feature_kit.dart';
 import '../settings/settings_widgets.dart';
 import '../shell/page_frame.dart';
@@ -286,13 +287,12 @@ class _TavernBranchesPageState extends ConsumerState<TavernBranchesPage> {
         if (rows == null)
           const QuietSpinner()
         else if (rows.isEmpty)
+          // 空态统一走 EmptyView（图标砖 + 13/600 主文案），
+          // 不再自绘一行灰字：同一屏里两种空态是最容易被看出来的不一致。
           Padding(
             key: const ValueKey('tavern-branches-empty'),
             padding: const EdgeInsets.fromLTRB(28, 8, 28, 16),
-            child: Text(
-              l10n.tavernBranchesEmpty,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: DshColors.of(context).textTertiary),
-            ),
+            child: EmptyView(icon: AppIcons.history, title: l10n.tavernBranchesEmpty, compact: true),
           )
         else
           SettingsSection(

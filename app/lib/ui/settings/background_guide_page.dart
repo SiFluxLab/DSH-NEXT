@@ -11,11 +11,11 @@ import '../../state/android_features.dart';
 import '../../state/app_info.dart';
 import '../../state/notify_state.dart';
 import '../common/brief_notice.dart';
+import '../common/expand_reveal.dart';
 import '../shell/page_frame.dart';
 import '../theme/theme.dart';
 import 'settings_widgets.dart';
 import '../common/row_marks.dart';
-import '../common/smooth_size.dart';
 
 /// Platform-specific background guidance and opt-in native protection.
 class BackgroundGuidePage extends ConsumerWidget {
@@ -461,7 +461,6 @@ class _VendorRowState extends State<_VendorRow> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final duration = AppMotion.of(context, AppMotion.standard);
     final steps = Padding(
       padding: const EdgeInsets.fromLTRB(SettingsMetrics.inset, 0, SettingsMetrics.inset, 14),
       child: Column(
@@ -500,19 +499,11 @@ class _VendorRowState extends State<_VendorRow> {
             ),
           ),
         ),
-        if (duration == Duration.zero)
-          _open ? steps : const SizedBox.shrink()
-        else
-          SmoothSize(
-            duration: duration,
-            curve: AppMotion.collapseCurve,
-            alignment: Alignment.topCenter,
-            child: AnimatedOpacity(
-              opacity: _open ? 1 : 0,
-              duration: duration,
-              child: _open ? steps : const SizedBox(width: double.infinity),
-            ),
-          ),
+        // 折叠统一走 [ExpandReveal]（ClipRect + SizeTransition，内容先淡再收高）：
+        // 原来这里自己拼了一套 SmoothSize + AnimatedOpacity，收起时子内容先被换掉、
+        // 高度才慢慢缩——先"啪"地空一下再缩，正是 ExpandReveal 要消掉的那种滑。
+        // 系统关动画时它内部就取零时长，不用外面再判一次。
+        ExpandReveal(open: _open, child: steps),
       ],
     );
   }

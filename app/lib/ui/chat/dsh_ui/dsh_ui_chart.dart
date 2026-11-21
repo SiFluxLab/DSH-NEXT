@@ -9,6 +9,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../../l10n/l10n.dart';
+import '../../kit/kit.dart';
 import '../../theme/theme.dart';
 import 'dsh_ui_model.dart';
 import 'dsh_ui_plugin_styles.dart';
@@ -198,7 +199,7 @@ class _DshUiChartViewState extends State<DshUiChartView> with SingleTickerProvid
       category: small.copyWith(color: dsh.textTertiary),
       value: AppType.tabular(small.copyWith(color: theme.colorScheme.onSurfaceVariant)),
       label: theme.textTheme.bodySmall!.copyWith(color: theme.colorScheme.onSurface),
-      grid: theme.colorScheme.outlineVariant.withValues(alpha: 0.7),
+      grid: theme.colorScheme.outlineVariant.withValues(alpha: KitMuted.a70),
       baseline: theme.colorScheme.outlineVariant,
       guide: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.35),
       surface: context.dshUiCardSurface,

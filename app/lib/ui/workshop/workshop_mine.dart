@@ -21,8 +21,8 @@ import '../common/brief_notice.dart';
 import '../common/capsule_chip.dart';
 import '../common/empty_view.dart';
 import '../common/fade_in.dart';
-import '../common/list_page_row.dart';
 import '../common/status_chip.dart';
+import '../kit/kit_list.dart';
 import '../theme/app_icons.dart';
 import '../theme/theme.dart';
 import 'workshop_mine_access.dart';
@@ -167,12 +167,17 @@ class _WorkshopMineSliverState extends ConsumerState<WorkshopMineSliver> {
           SliverToBoxAdapter(
             child: uploadsOff
                 ? WorkshopNote(l10n.workshopErrorUploadOff)
-                : ListPageCard(
+                : KitRowCard(
+                    margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                     children: [
-                      ListPageRow(
-                        icon: AppIcons.add,
+                      KitRow(
+                        leading: Icon(
+                          AppIcons.add,
+                          size: KitRow.iconSize,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                         title: l10n.workshopMinePublish,
-                        subtitle: l10n.workshopMinePublishHint,
+                        note: l10n.workshopMinePublishHint,
                         chevron: true,
                         onTap: () => unawaited(_publish()),
                       ),
@@ -266,23 +271,20 @@ class _WorkshopMineSliverState extends ConsumerState<WorkshopMineSliver> {
               return FadeSlideIn(
                 key: ValueKey(item.id),
                 index: i,
+                // 一张连续的分组卡：首末行 12 圆角、行间 0.5px（规格 §2.2 / §3.2）。
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Material(
-                    color: DshSurfaces.of(context).card.fill,
-                    clipBehavior: Clip.antiAlias,
-                    shape: RoundedSuperellipseBorder(
-                      borderRadius: BorderRadius.vertical(
-                        top: first ? AppShape.radiusLg.topLeft : Radius.zero,
-                        bottom: last ? AppShape.radiusLg.bottomLeft : Radius.zero,
-                      ),
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.only(top: first ? 4 : 0, bottom: last ? 4 : 0),
-                      child: WorkshopSubmissionRow(
-                        submission: item,
-                        onTap: () => unawaited(showWorkshopSubmissionSheet(context, item, session: subs.session)),
-                      ),
+                  child: KitRowSurface(
+                    position: items.length == 1
+                        ? KitRowPosition.single
+                        : first
+                        ? KitRowPosition.first
+                        : last
+                        ? KitRowPosition.last
+                        : KitRowPosition.middle,
+                    child: WorkshopSubmissionRow(
+                      submission: item,
+                      onTap: () => unawaited(showWorkshopSubmissionSheet(context, item, session: subs.session)),
                     ),
                   ),
                 ),
@@ -358,11 +360,11 @@ class WorkshopSubmissionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final meta = submission.metadata;
-    return ListPageRow(
-      leading: WorkshopAvatar(meta),
-      leadingWidth: 40,
+    // 14/500 标题 + 12/70% 说明 + 32 方块 + 状态标签（规格 theme-ui §3.1，§7.1 的角标）。
+    return KitRow(
+      leading: WorkshopAvatar(meta, size: 32),
       title: workshopTitleOf(meta, Localizations.localeOf(context).languageCode),
-      subtitle: '${workshopKindText(l10n, meta.kind)} · ${meta.version}',
+      note: '${workshopKindText(l10n, meta.kind)} · ${meta.version}',
       trailing: StatusChip(
         tone: workshopStatusTone(submission.status),
         label: workshopStatusLabel(l10n, submission.status),

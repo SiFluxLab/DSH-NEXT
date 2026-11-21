@@ -20,6 +20,7 @@ import '../../../state/surface_palette_state.dart';
 import '../../../ui_config/ui_config.dart';
 import '../../common/expand_reveal.dart';
 import '../../common/pressable.dart';
+import '../../kit/kit.dart';
 import '../../shell/page_frame.dart';
 import '../../theme/app_icons.dart';
 import '../../theme/theme.dart';
@@ -955,7 +956,9 @@ class _WallpaperRow extends ConsumerWidget {
         title: l10n.pluginsFollowWallpaper,
         value: AccentDot(color: seed),
         onTap: () => set(!on),
-        trailing: Switch.adaptive(value: on, onChanged: set),
+        // 与这一页其它开关同一副皮：页面里已经全是 18.4×32 的 vetta 开关，
+        // 只这一行还是 M3 的 52 宽轨道，横看成两条不一样的东西。
+        trailing: KitSwitch(value: on, onChanged: set),
       ),
     );
   }

@@ -6,8 +6,9 @@ import 'package:flutter/material.dart';
 import '../../l10n/l10n.dart';
 import '../settings/index/spot_anchor.dart' show anchorSpot;
 import '../settings/index/spots.dart' show SettingSpot;
+import '../kit/kit.dart';
 import '../theme/theme.dart';
-import 'app_sheet.dart' show groupTitleStyle;
+import 'app_sheet.dart' show FlatPanel, groupTitleStyle;
 import 'overview_card.dart' show OverviewChevron;
 
 /// 列表页的行:
@@ -19,7 +20,8 @@ import 'overview_card.dart' show OverviewChevron;
 ///
 /// - 左边 32 宽的图形位:默认 20 号线性图标、次要色,**不带底色**;也可以
 ///   放状态点、头像这类自定义图形([leading]);
-/// - 单行最低 52、两行最低 64;左右可见内容离卡片边都是 16;
+/// - 单行最低 44、两行最低 56([Kit.rowHeight] / [Kit.rowHeightTwo]);左右可见
+///   内容离卡片边都是 16;
 /// - 右侧放元信息文字([meta])或任意组件([trailing]),最后是可选的 ›。
 class ListPageRow extends StatelessWidget {
   const ListPageRow({
@@ -145,7 +147,7 @@ class ListPageRow extends StatelessWidget {
     Widget row(double maxValueWidth) => InkWell(
       onTap: onTap,
       child: ConstrainedBox(
-        constraints: BoxConstraints(minHeight: two ? 56 : 44),
+        constraints: BoxConstraints(minHeight: two ? Kit.rowHeightTwo : Kit.rowHeight),
         child: Padding(
           padding: EdgeInsets.fromLTRB(
             horizontal,
@@ -186,7 +188,7 @@ class ListPageRow extends StatelessWidget {
                         style: theme.textTheme.bodySmall?.copyWith(
                           fontSize: 12,
                           height: 1.4,
-                          color: subtitleColor ?? colors.textTertiary.withValues(alpha: 0.85),
+                          color: subtitleColor ?? colors.textTertiary,
                         ),
                       ),
                     ],
@@ -237,8 +239,12 @@ class ListPageRow extends StatelessWidget {
   }
 }
 
-/// A card of [ListPageRow]s: card-tier glass, radius 20, rows touching (no
+/// A card of [ListPageRow]s: 实色面（[FlatPanel]）, radius 20, rows touching (no
 /// dividers), 4 above and below.
+///
+/// 卡片是"内容"，内容一律是平的：玻璃只留给顶栏、输入条、弹层这些真的浮在
+/// 内容之上的 chrome。原来这里是 `GlassTier.card` 的模糊玻璃——每张卡都要读一次
+/// 背后的画面，而它背后的东西从来没变过。
 class ListPageCard extends StatelessWidget {
   const ListPageCard({
     super.key,
@@ -272,9 +278,8 @@ class ListPageCard extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
               child: Semantics(header: true, child: Text(title, style: groupTitleStyle(context))),
             ),
-          GlassSurface(
-            tier: GlassTier.card,
-            borderRadius: AppShape.radiusLg,
+          FlatPanel(
+            radius: AppShape.lg,
             child: Material(
               type: MaterialType.transparency,
               clipBehavior: Clip.antiAlias,

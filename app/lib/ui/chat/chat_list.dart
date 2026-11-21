@@ -49,6 +49,7 @@ import 'widgets/assistant_message.dart';
 import 'widgets/attachments.dart';
 import 'widgets/background_task_notice.dart';
 import 'widgets/change_card.dart';
+import 'widgets/chat_metrics.dart';
 import 'widgets/command_row.dart';
 import 'widgets/notice_row.dart';
 import 'widgets/question_card.dart';
@@ -253,6 +254,16 @@ class _ChatListState extends ConsumerState<ChatList> with SingleTickerProviderSt
 
   /// Further than this is not a next line: a jump, as before.
   static const _glideReach = 240.0;
+
+  /// 「回到底部」的两道门槛(滞回:远离到 160 才出现,回到 24 才消失)。
+  ///
+  /// 规格给的是 500 / 80:那是 768 宽桌面上的量级,手机视口高 600–800,
+  /// 500 已经是整屏的大半,按钮几乎不会出现。这里保留 160 / 24——24 同时是
+  /// 列表自己的"贴底"带([_atBottom] 的默认值),两者必须一致,否则按钮会在
+  /// 明明贴底的时候还挂着。`test/chat/jump_hysteresis_test.dart` 钉住了这两
+  /// 个数,改它们要连测试一起改。
+  static const _jumpShowReach = 160.0;
+  static const _jumpHideReach = 24.0;
 
   bool get _glidable => _fluid && !_snapNext;
 
@@ -612,7 +623,7 @@ class _ChatListState extends ConsumerState<ChatList> with SingleTickerProviderSt
     // Show only after leaving the bottom area; once shown, keep it until
     // the list is pinned again. A single threshold reverses the fade on
     // every tiny scroll/layout oscillation around 160.
-    final far = !_atBottom(_showJump.value ? 24 : 160);
+    final far = !_atBottom(_showJump.value ? _jumpHideReach : _jumpShowReach);
     if (_showJump.value != far) _showJump.value = far;
     if (!far) _hasNew.value = false;
     _maybeLoadOlder(metrics);
@@ -674,18 +685,30 @@ class _ChatListState extends ConsumerState<ChatList> with SingleTickerProviderSt
     final previousKeys = _index;
     final previousSplit = _split;
     final previousOldest = _oldestRowSeq;
-    _oldestRowSeq = s.items
-        .map(
-          (item) => switch (item) {
-            UserChatItem(:final seq) => seq,
-            AssistantChatItem(:final seq) => seq,
-            ToolChatItem(:final seq) => seq,
-            NoticeChatItem(:final seq) => seq,
-          },
-        )
-        .whereType<int>()
-        .firstOrNull;
-    final oldestCommand = s.commands.map((command) => command.seq).whereType<int>().firstOrNull;
+    // 第一条带 seq 的条目。写成循环而不是 `map(...).whereType<int>().firstOrNull`:
+    // 流式期间每次派生都走这里,后者每个 delta 都要新建一个 Iterable 和几个
+    // 闭包;而 items 通常第一条就带 seq,循环几乎立刻跳出(结果一模一样)。
+    _oldestRowSeq = null;
+    for (final item in s.items) {
+      final seq = switch (item) {
+        UserChatItem(:final seq) => seq,
+        AssistantChatItem(:final seq) => seq,
+        ToolChatItem(:final seq) => seq,
+        NoticeChatItem(:final seq) => seq,
+      };
+      if (seq != null) {
+        _oldestRowSeq = seq;
+        break;
+      }
+    }
+    // 同上:第一条落盘的指令(写法保持无分配)。
+    int? oldestCommand;
+    for (final command in s.commands) {
+      if (command.seq case final seq?) {
+        oldestCommand = seq;
+        break;
+      }
+    }
     if (oldestCommand != null) _oldestRowSeq = math.min(_oldestRowSeq ?? oldestCommand, oldestCommand);
     // A page can restore an older turn boundary and fold existing items
     // without adding a message or command of its own.
@@ -1130,9 +1153,14 @@ class _ChatListState extends ConsumerState<ChatList> with SingleTickerProviderSt
   };
 
   /// 换轮 24、同一轮 8、相邻过程行 0、卡片 12、脚注 4(全是 4 的倍数)。
+  ///
+  /// 唯一按规格走的是"用户气泡 → 紧接的回复":规格的常规行距 `pb-5` = 20
+  /// ([ChatMetrics.rowGap])。这里原来只有 8,气泡的下内距已经是 10,两段
+  /// 不同来源的文字挤在一起;换成 20 之后气泡和它的回答才读得出"一问一答"。
   static double _gapBefore(ChatRow row, ChatRow? previous) {
     if (previous == null) return 0;
     if (_isUser(row)) return _isUser(previous) ? AppSpace.sm : AppSpace.xxl;
+    if (_isUser(previous)) return ChatMetrics.rowGap;
     if (_isProcess(row) && _isProcess(previous)) return 0;
     if (row is ApprovalRow || row is QuestionRow || row is ChangeCardRow || row is ArtifactCardRow) {
       return AppSpace.md;
@@ -1574,7 +1602,9 @@ class _JumpToBottom extends StatelessWidget {
     final quick = AppMotion.of(context, AppMotion.quick);
     final fluid = AppMotion.fluid(context);
 
-    final pill = GlassSurface(
+    // 两颗悬浮控件只在显隐 / 等待数变化时才建:这个 build 是列表 build 的
+    // 一部分,流式期间每次 delta 都会跑,没必要每帧重新配一遍玻璃、图标和文字。
+    Widget pill() => GlassSurface(
       key: const ValueKey('waiting'),
       tier: GlassTier.chrome,
       // 悬在滚动 / 流式内容上:每帧重采样背景太贵,这两颗悬浮胶囊直接不模糊。
@@ -1599,7 +1629,7 @@ class _JumpToBottom extends StatelessWidget {
       ),
     );
 
-    final circle = SizedBox.square(
+    Widget circle() => SizedBox.square(
       key: const ValueKey('jump'),
       dimension: _size,
       child: Stack(
@@ -1660,7 +1690,7 @@ class _JumpToBottom extends StatelessWidget {
                 duration: quick,
                 layoutBuilder: (current, previous) =>
                     Stack(alignment: Alignment.centerRight, children: [...previous, ?current]),
-                child: waiting > 0 ? pill : circle,
+                child: waiting > 0 ? pill() : circle(),
               ),
             ),
           ),

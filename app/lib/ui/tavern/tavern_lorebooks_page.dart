@@ -17,6 +17,7 @@ import '../common/app_sheet.dart';
 import '../common/brief_notice.dart';
 import '../common/sheet_title_bar.dart';
 import '../features/feature_kit.dart';
+import '../kit/kit.dart';
 import '../settings/settings_widgets.dart';
 import '../shell/page_frame.dart';
 import '../theme/app_icons.dart';
@@ -136,7 +137,10 @@ class TavernLorebooksPage extends ConsumerWidget {
                     key: ValueKey('tavern-lorebook-${book.id}'),
                     title: book.name,
                     subtitle: l10n.tavernLorebookEntries(book.entryCount),
-                    value: Text(global ? l10n.tavernLorebookGlobal : ''),
+                    // 「全局」是一个状态标签，不是一行数值：用 KitChip 的
+                    // 15% 主色底 + 10/600 字（规格 theme-ui §7.1 的卡片状态 chip），
+                    // 比一行小字更容易在列表里横向扫到。
+                    value: global ? KitChip(label: l10n.tavernLorebookGlobal) : null,
                     onTap: () => unawaited(
                       showTavernActions(context, [
                         // Its entries, to read and to change.

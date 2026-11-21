@@ -12,10 +12,10 @@ import '../../l10n/l10n.dart';
 import '../shell/adaptive/adaptive_layout.dart' show WindowClass;
 import '../theme/glass.dart';
 import '../theme/motion.dart';
-import '../theme/semantic_colors.dart';
 import '../theme/shapes.dart';
 import '../theme/sheet_recede.dart';
 import '../theme/surfaces.dart';
+import '../kit/kit.dart';
 import 'sheet_title_bar.dart';
 import 'sheet_dismissal.dart';
 
@@ -29,15 +29,12 @@ export 'sheet_dismissal.dart' show SheetDismissal, SheetDismissScope, SheetDragH
 const double kSheetGutter = SheetTitleBar.inset;
 
 /// 分组小标题的字:[SheetGroup]、`ListPageCard`、`SettingsSection` 共用一种。
-/// 分组标题：13 / 600。数字取自 open-vetta 的 `text-[13px] font-semibold` ——
-/// 它比正文字号小一档、靠字重和颜色区分层级，而不是靠变大。
-TextStyle? groupTitleStyle(BuildContext context) => Theme.of(context).textTheme.labelLarge?.copyWith(
-  fontSize: 13,
-  height: 1.3,
-  fontWeight: FontWeight.w600,
-  letterSpacing: 0.2,
-  color: DshColors.of(context).textTertiary,
-);
+///
+/// 一个"分组"在设置页是 15/600 的实色标题，在弹层里却缩成 13/600 的灰字，是
+/// 最容易被看出来的一种不一致，所以这里只转发 [KitSectionHeader.titleStyle]：
+/// 分组长什么样，由 kit 一处说了算（`SettingChrome` 的 `h2` = `text-[15px]
+/// font-semibold text-foreground`）。
+TextStyle? groupTitleStyle(BuildContext context) => KitSectionHeader.titleStyle(context);
 
 /// 标记"这里是 showAppSheet 弹出的弹层",让 [SheetGroup] 默认用弹层留白。
 class _InAppSheet extends InheritedWidget {
@@ -385,12 +382,9 @@ class SheetGroup extends StatelessWidget {
               shape: RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(AppShape.lg)),
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    for (final (index, child) in children.indexed) ...[if (index > 0) const SizedBox(height: 0.5), child],
-                  ],
-                ),
+                // 行与行之间画一条 0.5px 细线。0.5 的"缝"在这块面板上等于没画：
+                // 行自己没有底色，缝里露出来的还是面板的底面。
+                child: KitRowList(children: children),
               ),
             ),
           ),
@@ -418,7 +412,9 @@ class FlatPanel extends StatelessWidget {
       decoration: BoxDecoration(
         color: Color.alphaBlend(scheme.surfaceContainerLow, scheme.surface),
         borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.7), width: 0.5),
+        // 分区卡的边框是实色 1px（`border border-border`）：它的角色是"这里是一个
+        // 界定清楚的分区"，半透明边框留给输入框、菜单这类控件。
+        border: Border.all(color: scheme.outlineVariant, width: 1),
       ),
       child: Padding(padding: padding ?? EdgeInsets.zero, child: child),
     );

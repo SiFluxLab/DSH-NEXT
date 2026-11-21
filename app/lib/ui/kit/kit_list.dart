@@ -125,7 +125,9 @@ class KitRow extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: titleStyle),
-                  if (two) ...[
+                  // 这里重复写一次判空而不是用 [two]：只有写在集合 if 的条件里，
+                  // Dart 才会把 note 提升成非空。
+                  if (note != null && note.isNotEmpty) ...[
                     const SizedBox(height: 2),
                     Text(
                       note,
@@ -177,23 +179,25 @@ class KitRowSurface extends StatelessWidget {
       bottom: Radius.circular(last ? Kit.radiusPanel : 0),
     );
     final edge = BorderSide(color: scheme.outlineVariant, width: 1);
-    return Material(
-      type: MaterialType.transparency,
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedSuperellipseBorder(borderRadius: radius),
-      child: Ink(
-        decoration: BoxDecoration(
-          color: scheme.surfaceContainerLow,
-          borderRadius: radius,
-          // 外缘 1px 实线；组内上缘 0.5px；下缘只有末行有（否则行间会叠成 1.5px）。
-          border: Border(
-            top: first ? edge : BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.5), width: 0.5),
-            bottom: last ? edge : BorderSide.none,
-            left: edge,
-            right: edge,
+    // 底色与边线分两层画：`Border` 四边宽度不同时（上 1/中 0.5/下无）**不能**同时给
+    // `borderRadius`（Flutter 断言 "A borderRadius can only be given for uniform
+    // borders"），所以圆角交给外层 ClipRRect，内部只画直边的这幅框，四角由裁剪切出来。
+    return ClipRRect(
+      borderRadius: radius,
+      child: Material(
+        color: scheme.surfaceContainerLow,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            // 外缘 1px 实线；组内上缘 0.5px；下缘只有末行有（否则行间会叠成 1.5px）。
+            border: Border(
+              top: first ? edge : BorderSide(color: scheme.outlineVariant.withValues(alpha: 0.5), width: 0.5),
+              bottom: last ? edge : BorderSide.none,
+              left: edge,
+              right: edge,
+            ),
           ),
+          child: child,
         ),
-        child: child,
       ),
     );
   }

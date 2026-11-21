@@ -79,7 +79,11 @@ class _TabCell extends StatelessWidget {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
-        child: DecoratedBox(
+        // 选中格与翻页走同一段时长（180 = [AppMotion.flip]）：色块和页一起过去，
+        // 而不是色块先跳、页还在滑。时长从 token 取，系统要求减少动画时归零。
+        child: AnimatedContainer(
+          duration: AppMotion.of(context, AppMotion.flip),
+          curve: AppMotion.swift,
           decoration: BoxDecoration(
             color: selected ? scheme.surfaceContainerHigh : Colors.transparent,
             // 顶部那条线才是"当前页"的标记：它和光刃是同一套语言（光在顶沿）。

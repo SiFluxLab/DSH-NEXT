@@ -66,8 +66,10 @@ class DrawerFolderHeader extends StatelessWidget {
                       folder.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
+                      // 14/500：和会话行同一档标题（44 行、图标 18–20），
+                      // 文件夹头与会话行读起来才是一条列表而不是两层。
                       style: theme.textTheme.bodyLarge?.copyWith(
-                        fontSize: 15,
+                        fontSize: 14,
                         height: 1.4,
                         color: theme.colorScheme.onSurface,
                         fontWeight: FontWeight.w500,

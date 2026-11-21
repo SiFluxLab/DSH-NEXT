@@ -17,6 +17,9 @@ import '../../tavern/tavern_island_story.dart';
 import '../../tavern/tavern_islands.dart';
 import '../../tavern/tavern_provider.dart' show tavernPersonaSelectionProvider;
 import '../../tavern/tavern_settings.dart';
+import '../common/smooth_size.dart';
+import '../kit/kit.dart';
+import '../theme/theme.dart' show AppMotion;
 import '../web/web_view_guard.dart';
 import 'tavern_canvas_view.dart' show tavernCanvasLibrariesProvider, tavernLibraryNames;
 import 'tavern_toasts.dart';
@@ -325,8 +328,13 @@ class _TavernHtmlIslandState extends ConsumerState<TavernHtmlIsland> {
     _prepare();
     final controller = _controller;
     if (_gone || controller == null) return const SizedBox(height: TavernHtmlIsland.minHeight);
-    return AnimatedSize(
-      duration: const Duration(milliseconds: 160),
+    // 高度由网页自己报（[_height] 随内容长），这是"跟随式缩放"而不是布尔折叠：
+    // 没有一个是非的终态可以让 SizeTransition 从 0 长到 1，所以保留尺寸过渡，
+    // 但时长接到 token 上（160 = [AppMotion.quick]，不再是写死的一个数）。
+    // 用 [SmoothSize]：系统"移除动画"时时长为 0，裸 AnimatedSize 会在自己的
+    // performLayout 里再次标脏并断言（见 smooth_size.dart 的说明）。
+    return SmoothSize(
+      duration: KitMotion.of(context, AppMotion.quick),
       alignment: Alignment.topCenter,
       child: SizedBox(
         height: _height,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../kit/kit.dart';
 import '../theme/theme.dart';
 
 /// The one designed shape for empty, loading-failed and "not yet" states: a
@@ -51,8 +52,9 @@ class EmptyView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = DshColors.of(context);
-    // vetta 的空态是「图标砖 + 13px 主文案 + 11px 副文案」：
-    // 图标 40（砖 48、圆角 12、主色 10% 底），文字小、留白大，让空态**安静**。
+    // vetta 的空态是「图标砖 + 13px 主文案 + 11px 副文案」三段式：
+    // 砖 48、圆角 12、主色 10% 底，砖里的图标 24 再淡到 40%（`text-primary/40`）——
+    // 图案本身永远比砖更淡，空态才**安静**。文字小、留白大，不靠大字号撑场面。
     final badge = compact ? 40.0 : 48.0;
     Widget? graphic = art;
     if (graphic == null && icon != null) {
@@ -61,12 +63,12 @@ class EmptyView extends StatelessWidget {
         height: badge,
         decoration: BoxDecoration(
           color: theme.colorScheme.primary.withValues(alpha: 0.10),
-          borderRadius: BorderRadius.circular(compact ? 10 : 12),
+          borderRadius: BorderRadius.circular(compact ? AppShape.sm : Kit.radiusPanel),
         ),
         child: Icon(
           icon,
-          size: compact ? 18 : 22,
-          color: theme.colorScheme.primary.withValues(alpha: 0.6),
+          size: compact ? 18 : 24,
+          color: theme.colorScheme.primary.withValues(alpha: KitMuted.a40),
         ),
       );
     }
@@ -92,7 +94,7 @@ class EmptyView extends StatelessWidget {
             title,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: compact ? 13 : 14,
+              fontSize: Kit.textRow,
               fontWeight: FontWeight.w600,
               height: 1.3,
               color: theme.colorScheme.onSurface,
@@ -106,9 +108,11 @@ class EmptyView extends StatelessWidget {
                 message,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: compact ? 11 : 12,
+                  fontSize: Kit.textMeta,
                   height: 1.5,
-                  color: colors.textTertiary.withValues(alpha: 0.75),
+                  // 三级文字本来就是为"承载信息但不能抢"定的；再往下压透明度就
+                  // 掉到 4.5 对比度以下了，所以这里不再叠一层 75%。
+                  color: colors.textTertiary,
                 ),
               ),
             ),

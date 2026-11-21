@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 
 import '../../common/bleed.dart';
+import '../../kit/kit.dart';
 import '../../theme/app_icons.dart';
 import '../../theme/theme.dart';
 
@@ -109,7 +110,9 @@ class StreamThread extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = Theme.of(context).colorScheme.outlineVariant;
     return CustomPaint(
-      painter: _RailPainter(color.withValues(alpha: 0.8)),
+      // 竖线是「属于上面那一行」的暗示,用 mute 阶梯里现成的一档(80%),
+      // 不再就地写 0.8。
+      painter: _RailPainter(color.withValues(alpha: KitMuted.a80)),
       child: Padding(
         padding: const EdgeInsets.only(left: StreamRow.indent),
         child: child,

@@ -9,10 +9,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../l10n/l10n.dart';
 import '../../../state/drawer_view_state.dart';
 import '../../../state/session_attention_state.dart';
-import '../../common/list_page_row.dart';
 import '../../common/app_sheet.dart';
 import '../../common/capsule_chip.dart';
+import '../../kit/kit_list.dart';
 import '../../theme/app_icons.dart';
+import '../../theme/theme.dart';
 
 class DrawerFilterCapsule extends ConsumerWidget {
   const DrawerFilterCapsule({super.key});
@@ -69,35 +70,49 @@ class _FilterSheet extends ConsumerWidget {
     final scope = ref.watch(drawerScopeProvider);
     final counts = scope == null ? const <DrawerFilter, int>{} : _counts(ref, scope);
     final current = ref.watch(drawerFilterProvider);
+    final theme = Theme.of(context);
+    final colors = DshColors.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
-          child: Text(l10n.stateDrawerFilterTitle, style: Theme.of(context).textTheme.titleMedium),
+          child: Text(l10n.stateDrawerFilterTitle, style: theme.textTheme.titleMedium),
         ),
-        for (final f in DrawerFilter.values)
-          ListPageRow(
-            key: ValueKey('drawer-filter-${f.name}'),
-            title: f == DrawerFilter.all ? l10n.stateDrawerAll : f.label,
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if ((counts[f] ?? 0) > 0)
-                  Text('${counts[f]}', style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
-                if (f == current) ...[
-                  const SizedBox(width: 8),
-                  Icon(AppIcons.done, size: 18, color: Theme.of(context).colorScheme.primary),
-                ],
-              ],
-            ),
-            onTap: () {
-              ref.read(drawerFilterProvider.notifier).set(f);
-              Navigator.of(context).maybePop();
-            },
-          ),
-        const SizedBox(height: 8),
+        // 四个条件是一张 12 圆角的分区卡、行间 0.5px（规格 §2.2 / §3.2）；
+        // 每行 44 高、标题 14/500、计数 12/70%，和一个会话行的密度对齐。
+        KitRowCard(
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          children: [
+            for (final f in DrawerFilter.values)
+              KitRow(
+                key: ValueKey('drawer-filter-${f.name}'),
+                title: f == DrawerFilter.all ? l10n.stateDrawerAll : f.label,
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if ((counts[f] ?? 0) > 0)
+                      Text(
+                        '${counts[f]}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colors.textTertiary.withValues(alpha: 0.70),
+                        ),
+                      ),
+                    if (f == current) ...[
+                      const SizedBox(width: 8),
+                      Icon(AppIcons.done, size: 18, color: theme.colorScheme.primary),
+                    ],
+                  ],
+                ),
+                onTap: () {
+                  ref.read(drawerFilterProvider.notifier).set(f);
+                  Navigator.of(context).maybePop();
+                },
+              ),
+          ],
+        ),
       ],
     );
   }

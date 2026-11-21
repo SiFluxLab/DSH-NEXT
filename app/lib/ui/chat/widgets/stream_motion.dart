@@ -4,6 +4,7 @@
 import 'package:flutter/widgets.dart';
 
 import '../../theme/motion.dart';
+import '../../theme/optics.dart';
 
 /// 按压反馈:按下缩到 0.97,松手回到 1(不越过 1)。
 ///
@@ -79,7 +80,11 @@ class _StreamFadeInState extends State<StreamFadeIn> with SingleTickerProviderSt
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_controller != null || !widget.enabled || AppMotion.reduced(context)) {
+    // 两道闸门:系统移除动画(AppMotion.reduced)、光感里的"预见性动画"关掉
+    // (Optics.anticipation,静默档 / 省电 / 热降频)。后者是用户明确选的
+    // "我只要结果":新行直接呈现,不做淡入上移的错开——和 ui/common 里
+    // FadeSlideIn 的同一条取舍。
+    if (_controller != null || !widget.enabled || AppMotion.reduced(context) || !Optics.of(context).anticipation) {
       return;
     }
     final delay = Duration(milliseconds: 30 * widget.index.clamp(0, 7));

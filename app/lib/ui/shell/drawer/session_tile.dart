@@ -78,13 +78,20 @@ class SessionTile extends StatelessWidget {
       (_, _, true) => _UnreadDot(key: const ValueKey('unread'), color: scheme.onSurfaceVariant),
       _ => null,
     };
-    final label = [
-      title,
-      ?pending?.label,
-      if (pending == null && running) l10n.shellCurrentlyRunning,
-      if (pending == null && !running && unread) l10n.shellUnread,
-      if (pinned) l10n.shellPinned,
-    ].join(l10n.shellSemanticsSeparator);
+    // 大多数行什么都没有要念的：先走这条快路，别为一句等于标题的话
+    // 每行建一次 List、拼一次 String（列表每收到一次未读/待确认更新就会重建全部行）。
+    final label = pending == null && !running && !unread && !pinned
+        ? title
+        : [
+            title,
+            ?pending?.label,
+            if (pending == null && running) l10n.shellCurrentlyRunning,
+            if (pending == null && !running && unread) l10n.shellUnread,
+            if (pinned) l10n.shellPinned,
+          ].join(l10n.shellSemanticsSeparator);
+    // 选中底色不随动画帧变，只有透明度在动：颜色在 builder 外面算一次，
+    // 别让每一帧都去问一次主题。
+    final fill = sessionSelectionColor(context);
     return Semantics(
       selected: highlighted,
       checked: selecting ? selected : null,
@@ -106,7 +113,6 @@ class SessionTile extends StatelessWidget {
             duration: AppMotion.of(context, AppMotion.quick),
             curve: AppMotion.std,
             builder: (context, t, child) {
-              final fill = sessionSelectionColor(context);
               return Ink(
                 decoration: ShapeDecoration(
                   color: fill.withValues(alpha: fill.a * t),
@@ -125,11 +131,14 @@ class SessionTile extends StatelessWidget {
                     title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    // 14/500：列表标题只有这一档（规格 theme-ui §3.1 的 13/medium
+                    // 在手机触控密度上抬一档）。当前会话再加到 600，是规格里
+                    // 「激活行 font-semibold」的那一条 —— 层级靠字重，不靠字号。
                     style: theme.textTheme.bodyLarge?.copyWith(
-                      fontSize: 15,
+                      fontSize: 14,
                       height: 1.4,
                       color: scheme.onSurface,
-                      fontWeight: current && !selecting ? FontWeight.w600 : FontWeight.w400,
+                      fontWeight: current && !selecting ? FontWeight.w600 : FontWeight.w500,
                     ),
                   ),
                 ),

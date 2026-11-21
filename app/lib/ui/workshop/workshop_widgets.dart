@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/l10n.dart';
 import '../../state/workshop_dependencies.dart';
 import '../../workshop/workshop_models.dart';
+import '../kit/kit.dart';
 import '../plugins/plugin_widgets.dart' show PluginAvatar;
 import '../theme/app_icons.dart';
 import '../theme/theme.dart';
@@ -158,6 +159,10 @@ enum WorkshopGetState { get, update, installed, running }
 
 /// 获取 / 更新 / 已安装, or a small ring while this item is being installed.
 /// Every state opens the detail sheet; installing always goes through it.
+///
+/// 皮肤走 `KitButton` 的 `field` 变体（规格 theme-ui §4.2：行里的右控件是
+/// `bg-muted` + 12px 字 + 32 高；行本身才是可点的对象，控件不该抬成主操作）。
+/// 只有"正在安装"这一档自己画：它要一个 12 号进度环，而 KitButton 只有图标位。
 class WorkshopGetButton extends StatelessWidget {
   const WorkshopGetButton({super.key, required this.state, this.onPressed});
 
@@ -167,50 +172,49 @@ class WorkshopGetButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final colors = DshColors.of(context);
-    final dark = theme.brightness == Brightness.dark;
-    final installed = state == WorkshopGetState.installed;
-    final running = state == WorkshopGetState.running;
-    final track = dark ? Colors.white.withValues(alpha: 0.09) : scheme.onSurface.withValues(alpha: 0.06);
-    final fg = installed ? colors.textTertiary : scheme.primary;
+    final scheme = Theme.of(context).colorScheme;
     final label = switch (state) {
       WorkshopGetState.get => l10n.workshopGet,
       WorkshopGetState.update => l10n.commonUpdate,
       WorkshopGetState.installed => l10n.commonInstalled,
       WorkshopGetState.running => l10n.pluginsInstalling,
     };
-    return FilledButton.tonal(
-      style: FilledButton.styleFrom(
-        backgroundColor: installed ? Colors.transparent : track,
-        foregroundColor: fg,
-        minimumSize: const Size(68, 30),
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        visualDensity: VisualDensity.compact,
-        shape: const StadiumBorder(),
-        elevation: 0,
-        textStyle: theme.textTheme.labelLarge?.copyWith(fontSize: 13.5),
-      ),
-      onPressed: onPressed,
-      child: AnimatedSwitcher(
-        duration: AppMotion.of(context, AppMotion.quick),
+    if (state == WorkshopGetState.running) {
+      return Container(
+        height: Kit.hMd,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        decoration: BoxDecoration(
+          color: scheme.surfaceContainerHigh,
+          borderRadius: BorderRadius.circular(Kit.radiusControl),
+        ),
         child: Row(
-          key: ValueKey(label),
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (running) ...[
-              SizedBox.square(
-                dimension: 12,
-                child: CircularProgressIndicator(strokeWidth: 1.8, strokeCap: StrokeCap.round, color: fg),
+            SizedBox.square(
+              dimension: 12,
+              child: CircularProgressIndicator(strokeWidth: 1.8, strokeCap: StrokeCap.round, color: scheme.onSurface),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: Kit.textControl,
+                fontWeight: FontWeight.w500,
+                height: 1.2,
+                color: scheme.onSurface,
               ),
-              const SizedBox(width: 6),
-            ],
-            Text(label),
+            ),
           ],
         ),
-      ),
+      );
+    }
+    return KitButton(
+      label: label,
+      variant: KitButtonVariant.field,
+      // 已安装是"没有动作"的那一档：禁用态降 50%（KitButton 的规矩），
+      // 不加一个"不可装"的中间色。
+      enabled: state != WorkshopGetState.installed && onPressed != null,
+      onTap: onPressed,
     );
   }
 }

@@ -98,7 +98,14 @@ class _NoticeRowState extends State<NoticeRow> {
     final isError = item.kind == 'error';
     final lapsed = isError ? lapsedSubscription(item.failure, item.text) : null;
     final (icon, text) = _content(lapsed);
-    final style = StreamRow.detail(context)?.copyWith(height: 1.45, color: isError ? dsh.danger : null);
+    // 出错这一行**不整行变红**(规格 §5.3:对话内的错误卡刻意不用红色)。
+    // 红只留在一个小图标上:大面积红字会把注意力从"这轮说了什么"抢到
+    // "出事了"上,而真正要读的是错误本身。文字回到主色 85%
+    // (规格标题 `text-foreground/85`),其余行的次级灰不变。
+    final detail = StreamRow.detail(context)?.copyWith(height: 1.45);
+    final style = isError
+        ? detail?.copyWith(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.85))
+        : detail;
 
     // 一行最多一个键:登录失效、缺 Key 有自己的去处,其余用列表给的。
     final NoticeAction? action;
@@ -127,21 +134,10 @@ class _NoticeRowState extends State<NoticeRow> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox.square(
-                dimension: StreamRow.lead,
-                child: DecoratedBox(
-                  // 出错时图形块是 danger 浅底(和工具图标块同形),其余不铺底。
-                  decoration: ShapeDecoration(
-                    color: isError ? dsh.dangerContainer : null,
-                    shape: Squircle.border(StreamRow.lead * 0.32),
-                  ),
-                  child: Icon(
-                    icon,
-                    size: isError ? StreamRow.lead * 0.6 : 16,
-                    color: isError ? dsh.onDangerContainer : dsh.textTertiary,
-                  ),
-                ),
-              ),
+              // 图形格不铺底(规格的错误卡没有红块):出错只让图标自己是
+              // danger 色,和右边 85% 的主色文字形成"标记 + 内容"两层,
+              // 而不是把整行涂红。其余行照旧三级灰。
+              StreamLead(child: Icon(icon, size: 16, color: isError ? dsh.danger : dsh.textTertiary)),
               const SizedBox(width: StreamRow.gap),
               Expanded(
                 // 文字首行与 24 的图形格竖直居中。
