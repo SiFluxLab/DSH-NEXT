@@ -5,40 +5,76 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../l10n/l10n.dart';
 import '../common/list_page_row.dart' show ListPageRow;
 import '../common/overview_card.dart' show OverviewChevron;
-import '../kit/kit.dart';
 import '../common/segmented_pill.dart';
-
-export '../common/segmented_pill.dart' show PillSegment, SegmentedPill;
-import '../../l10n/l10n.dart';
+import '../kit/kit.dart';
 import '../theme/theme.dart';
 import 'index/spot_anchor.dart';
 import 'index/spots.dart';
+import 'settings_polish.dart';
 
+export '../common/segmented_pill.dart' show PillSegment, SegmentedPill;
 export 'index/spot_anchor.dart' show SpotAnchor, SpotKey;
 export 'index/spots.dart' show SettingSpot, SettingsIndex, SettingsPageId, Spots;
+export 'settings_polish.dart'
+    show
+        FadingHint,
+        HitText,
+        SettingsChoice,
+        SettingsDangerSheet,
+        SettingsLoss,
+        SettingsValueText,
+        confirmSettingsDanger,
+        copySettingsValue,
+        settingsRowOrigin,
+        showSettingsPicker,
+        showSettingsNotice;
 
-/// Page-level group spacing: groups sit 24 apart,
-/// flush with the 16 page gutter.
-// 页面左右 20（vetta 的 20 档留白），分组之间 24（`mb-6`）。
-const kSettingsGroupMargin = EdgeInsets.fromLTRB(20, 0, 20, 28);
+/// Page-level group spacing: groups sit [SettingsMetrics.grid] (24) apart and
+/// the cards sit on the page's 16 gutter.
+///
+/// 为什么是 16 而不是 20:这一页顶上第一件东西是搜索胶囊(16),第二件是账号
+/// 概览卡(16),分组卡却是 20 —— 竖着扫一眼就能看见那 4px 的锯齿。留白该慷慨,
+/// 但**同一列里只允许一条竖线**;所以分组卡回到 16,和胶囊、概览卡、二级页的
+/// `ListPageCard` 站在同一条线上。分组之间 24(`mb-6`):一眼能分清"换组了",
+/// 又不会让人以为翻到了另一页。
+const kSettingsGroupMargin = EdgeInsets.fromLTRB(16, 0, 16, 24);
 
 /// The measured geometry every settings-style row shares. Change it here and in
 /// `test/settings/settings_geometry_test.dart` together.
 ///
 /// ```
-/// |16| (32) |12| 标题 / 副标题 …… 值 |4| ›   |16 到字形|
+/// |16| (32) |12| 标题 / 副标题 …… 值 |16|
 /// |16| (32) |12| 标题 …………………………  [ 开关轨道 ] |16|
 /// |16| 标签 ………………………………………………………… 值 |16|
 /// ```
+///
+/// **右缘只有一条**:值、开关轨道、箭头墨迹、分段胶囊的右端都停在离卡边
+/// [inset] 的地方。以前值行留 12(照抄了箭头行的 12,而箭头自己还要往右挪
+/// 3),于是一列值比下面一列开关多出 4px —— 单看没问题,一屏并列就是"没对齐"。
+/// 需要 12 的只有"最后是箭头"的行,理由在 [trailingPad]。
+///
+/// **24 网格**:卡在 16,组标题在 16 + 8 = 24,行内的图标位从 16 起、宽 32、
+/// 到 48(2×24),标题从 60 起 —— 竖线落在 24 的倍数上,横线落在 48 的两档
+/// 行高上,整页才读得出一个网格。
 abstract final class SettingsMetrics {
   /// Card edge → icon disc / plain label on the left, and → switch track,
   /// chevron ink, segmented pill or a bare value on the right.
   static const inset = 16.0;
 
+  /// 网格:分组之间、组标题到卡、以及其他"看得出节奏"的间距都取它的倍数。
+  static const grid = 24.0;
+
+  /// 组标题 → 卡:半格(12),由 [KitSectionHeader] 自己的下留白给。
+  static const titleGap = grid / 2;
+
   /// Right padding of a row ending in a chevron: the chevron is nudged out by
   /// [OverviewChevron.nudge] so its ink ends at [inset].
+  ///
+  /// 只有"最后是箭头"的行才用这个数;其它行(值、开关、任意控件)右缘都是
+  /// [inset]。
   static const trailingPad = ListPageRow.trailingPad;
 
   /// Right padding of a row ending in a [KitSwitch].
@@ -119,6 +155,14 @@ class SettingsLineIcon extends StatelessWidget {
 /// Single-line rows are at least [SettingsMetrics.rowHeight] (44) tall, rows
 /// with a subtitle [SettingsMetrics.rowHeightTwoLine] (56); the whole row is the
 /// tap target (a soft highlight, no ripple).
+///
+/// 三件"小而必要"的事在这一层一次做完,二级页不必各写一遍:
+/// - **右缘只一条**:值、开关轨道、箭头墨迹、任意控件都停在离卡边
+///   [SettingsMetrics.inset] 处(箭头行除外,原因见 [SettingsMetrics.trailingPad]);
+/// - **值先缩字号再省略**([SettingsValueText]):纯文字的值不会把行撑成两行,
+///   也不会把标题挤成一两个字;
+/// - **长按复制这一项的当前值**:值本来就是"这一项现在是什么",复制它比让用户
+///   截图、手抄都省事;触感只给这一下(它是一次提交),底部一句「已复制」。
 class SettingsTile extends StatelessWidget {
   const SettingsTile({
     super.key,
@@ -126,14 +170,17 @@ class SettingsTile extends StatelessWidget {
     this.title,
     this.spot,
     this.subtitle,
+    this.subtitleWidget,
     this.value,
     this.trailing,
     this.onTap,
+    this.onLongPress,
     this.tint = 0,
     this.danger = false,
     this.chevron,
     this.tinted = true,
     this.titleMaxLines,
+    this.copyText,
   }) : assert(title != null || spot != null);
 
   /// Null for a plain row that lines up with [InfoRow]s.
@@ -147,12 +194,19 @@ class SettingsTile extends StatelessWidget {
   final SettingSpot? spot;
   final String? subtitle;
 
+  /// 代替 [subtitle] 的那一行。给 [FadingHint] 用:开关拨过去以后,说明**原地**
+  /// 换成另一句话,而整行的高度不变。
+  final Widget? subtitleWidget;
+
   /// Current value, right-aligned in the secondary colour.
   final Widget? value;
 
   /// Replaces the chevron (switches, spinners).
   final Widget? trailing;
   final VoidCallback? onTap;
+
+  /// 覆盖默认的长按(默认是"复制当前值",见类注释)。
+  final VoidCallback? onLongPress;
   final int tint;
   final bool danger;
 
@@ -165,6 +219,9 @@ class SettingsTile extends StatelessWidget {
 
   /// Lines the title may take, cut with an ellipsis; null: as many as it needs.
   final int? titleMaxLines;
+
+  /// 长按要复制的文字;省略时取 [value] 里的纯文字。
+  final String? copyText;
 
   @override
   Widget build(BuildContext context) {
@@ -185,23 +242,38 @@ class SettingsTile extends StatelessWidget {
     final showChevron = chevron ?? (onTap != null && trailing == null);
     final icon = this.icon;
     final title = this.title ?? spot!.title(context.l10n);
+    final subtitleWidget = this.subtitleWidget;
+    final two = subtitleWidget != null || subtitle != null;
+    // 长按复制:值行本来就有"这一项现在是什么"。值不是纯文字(状态胶囊、图标 +
+    // 文字)时,调用方可以用 [copyText] 补一份可复制的文字。
+    final copyable = copyText ?? (value is Text ? (value! as Text).data : null);
+    final longPress =
+        onLongPress ??
+        (copyable == null || copyable.trim().isEmpty ? null : () => copySettingsValue(context, copyable));
+    // 值先缩字号、再省略。只有纯文字的值得走这条阶梯;胶囊、图标 + 文字这类
+    // 控件自己知道该多宽。
+    Widget valueWidget(Widget raw) => switch (raw) {
+      final Text text when text.data != null => SettingsValueText(text.data!, style: text.style),
+      _ => raw,
+    };
     return anchorSpot(
       spot,
       InkWell(
         onTap: onTap,
+        onLongPress: longPress,
         splashFactory: rowSplash(context),
         highlightColor: scheme.onSurface.withValues(alpha: 0.05),
         child: ConstrainedBox(
-          constraints: BoxConstraints(
-            minHeight: subtitle == null ? SettingsMetrics.rowHeight : SettingsMetrics.rowHeightTwoLine,
-          ),
+          constraints: BoxConstraints(minHeight: two ? SettingsMetrics.rowHeightTwoLine : SettingsMetrics.rowHeight),
           child: Padding(
+            // 右缘:开关让出它自己的命中区;最后是箭头时按箭头的墨迹算;其余
+            // 一律 [SettingsMetrics.inset] —— 值与控件因此共用同一条竖线。
             padding: EdgeInsets.fromLTRB(
               SettingsMetrics.inset,
               6,
               switchRow
                   ? SettingsMetrics.switchPad
-                  : showChevron || trailing != null
+                  : showChevron
                   ? SettingsMetrics.trailingPad
                   : SettingsMetrics.inset,
               6,
@@ -217,13 +289,18 @@ class SettingsTile extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      // 危险项**只**给图标与标题上色:整行铺一层红底会让人以为
+                      // 这一行已经被判了刑,而它其实只是一枚按钮。
                       Text(
                         title,
                         maxLines: titleMaxLines,
                         overflow: titleMaxLines == null ? null : TextOverflow.ellipsis,
                         style: settingsTitleStyle(context)?.copyWith(color: danger ? colors.danger : scheme.onSurface),
                       ),
-                      if (subtitle case final sub?) ...[
+                      if (subtitleWidget != null) ...[
+                        const SizedBox(height: 2),
+                        subtitleWidget,
+                      ] else if (subtitle case final sub?) ...[
                         const SizedBox(height: 1),
                         Text(sub, style: theme.textTheme.bodySmall?.copyWith(color: colors.textTertiary)),
                       ],
@@ -239,17 +316,14 @@ class SettingsTile extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (value case final value?)
+                        if (value case final raw?)
                           Flexible(
                             child: DefaultTextStyle.merge(
                               style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
-                              child: value,
+                              child: valueWidget(raw),
                             ),
                           ),
-                        if (trailing != null) ...[
-                          if (value != null) const SizedBox(width: 8),
-                          trailing,
-                        ],
+                        if (trailing != null) ...[if (value != null) const SizedBox(width: 8), trailing],
                         if (showChevron) ...[
                           if (value != null || trailing != null) const SizedBox(width: 4),
                           const OverviewChevron(),
@@ -329,28 +403,34 @@ class InfoRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: SettingsMetrics.rowHeight),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: SettingsMetrics.inset, vertical: 6),
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(label, style: settingsTitleStyle(context)?.copyWith(color: scheme.onSurface)),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  value,
-                  textAlign: TextAlign.end,
-                  style: mono
-                      ? AppType.monoLabel(color: scheme.onSurfaceVariant).copyWith(height: 1.6)
-                      : AppType.tabular(theme.textTheme.bodyMedium!.copyWith(color: scheme.onSurfaceVariant)),
+    return InkWell(
+      // 只读的事实也能长按复制(版本号、ID、路径):这是"看一眼再用"的东西,
+      // 手动抄一遍最容易错。和 [SettingsTile] 同一个入口、同一句「已复制」。
+      onLongPress: value.trim().isEmpty ? null : () => copySettingsValue(context, value),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: SettingsMetrics.rowHeight),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: SettingsMetrics.inset, vertical: 6),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(label, style: settingsTitleStyle(context)?.copyWith(color: scheme.onSurface)),
+                const SizedBox(width: 16),
+                // 值同样是"先缩字号、再省略"([SettingsValueText]):一条长版本号
+                // 或一串 SHA 不该在这里换成两行,把标签挤成两个字。
+                Expanded(
+                  child: SettingsValueText(
+                    value,
+                    style: mono
+                        ? AppType.monoLabel(color: scheme.onSurfaceVariant).copyWith(height: 1.6)
+                        : AppType.tabular(theme.textTheme.bodyMedium!.copyWith(color: scheme.onSurfaceVariant)),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -407,7 +487,16 @@ class SettingsSection extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (title case final title?)
-            Semantics(header: true, child: KitSectionHeader(title: title, note: note)),
+            // 组标题落在 24 的竖线上(卡 16 + 8):和 `ListPageCard`、
+            // `SheetGroup` 的组标题同一个左缘。KitSectionHeader 自己还带 2,
+            // 所以这里补 6,加起来正好 8。
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              child: Semantics(
+                header: true,
+                child: KitSectionHeader(title: title, note: note),
+              ),
+            ),
           // 分区卡：实色面 + 实线边框 + 圆角 12（vetta 的 `rounded-xl border border-border bg-card`）。
           // 行与行之间是一条 0.5px 细线（[KitRowList]），不再是 2px 的"缝"——缝会读出
           // "一堆小卡片"，细线才读作"一张卡里的多行"。
@@ -438,7 +527,12 @@ class SettingsSection extends StatelessWidget {
 /// [value] is 0–1 and lands on [steps] even steps (no tick marks: the track stays one quiet
 /// line); [label] reads a value, a percent unless told otherwise. [onChanged] follows the
 /// finger, [onChangeEnd] is the value let go on.
-class SettingsSliderTile extends StatelessWidget {
+///
+/// 小巧思:**标题那一行可以左右滑**,每滑过 24dp 走一格并「嗒」一声(极轻的刻度
+/// 触感)。讨喜在哪:滑杆的拇指只有 20 宽,想从 30% 挪到 35% 常常要来回蹭;滑
+/// 整个标题行则是指哪走哪,还不用瞄准。手势只挂在标题行上,滑杆自己的拖动一点
+/// 不受影响(两者不在同一个手势区里,不会抢)。
+class SettingsSliderTile extends StatefulWidget {
   const SettingsSliderTile({
     super.key,
     required this.title,
@@ -464,13 +558,42 @@ class SettingsSliderTile extends StatelessWidget {
   /// `0.3` as `30%`.
   static String percent(double v) => '${(v * 100).round()}%';
 
-  double _snap(double v) => (v * steps).round() / steps;
+  /// 滑过多少像素算一格。
+  static const stepPixels = 24.0;
+
+  @override
+  State<SettingsSliderTile> createState() => _SettingsSliderTileState();
+}
+
+class _SettingsSliderTileState extends State<SettingsSliderTile> {
+  /// 一次滑动里最后落到的值:松手(或手势被取消)时交给 [SettingsSliderTile.onChangeEnd]。
+  double? _stepped;
+
+  double _snap(double v) => (v * widget.steps).round() / widget.steps;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final v = value.clamp(0.0, 1.0);
+    final v = widget.value.clamp(0.0, 1.0);
+    final step = 1 / widget.steps;
+    // 一格 +1:到顶到不了就什么都不做(不夹到 1 再"确认"一次没变的值)。
+    void stepBy(bool forward) {
+      final next = (_snap(v) + (forward ? step : -step)).clamp(0.0, 1.0);
+      final landed = _snap(next);
+      if (landed == _snap(v)) return;
+      _stepped = landed;
+      HapticFeedback.selectionClick();
+      widget.onChanged(landed);
+    }
+
+    void settle() {
+      final last = _stepped;
+      if (last == null) return;
+      _stepped = null;
+      widget.onChangeEnd(last);
+    }
+
     return MergeSemantics(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(SettingsMetrics.inset, 14, SettingsMetrics.inset, 14),
@@ -479,17 +602,26 @@ class SettingsSliderTile extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             ExcludeSemantics(
-              child: Row(
-                children: [
-                  Expanded(child: Text(title, style: settingsTitleStyle(context))),
-                  const SizedBox(width: 12),
-                  Text(label(v), style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant)),
-                ],
+              child: _StepDrag(
+                stepPixels: SettingsSliderTile.stepPixels,
+                onStep: stepBy,
+                onEnd: settle,
+                child: Row(
+                  children: [
+                    Expanded(child: Text(widget.title, style: settingsTitleStyle(context))),
+                    const SizedBox(width: 12),
+                    // 值走等宽数字:31% → 36% 时不该左右抖一下。
+                    Text(
+                      widget.label(v),
+                      style: AppType.tabular(theme.textTheme.bodyMedium!.copyWith(color: scheme.onSurfaceVariant)),
+                    ),
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 10),
             Semantics(
-              label: title,
+              label: widget.title,
               child: Slider(
                 value: v,
                 // No inset for the thumb's halo: the track ends where the text does.
@@ -497,19 +629,66 @@ class SettingsSliderTile extends StatelessWidget {
                 activeColor: scheme.onSurfaceVariant,
                 inactiveColor: scheme.onSurface.withValues(alpha: 0.1),
                 // What the value is, not the step it would land on: a saved 37% reads 37%.
-                semanticFormatterCallback: label,
+                semanticFormatterCallback: widget.label,
                 onChanged: (raw) {
                   final next = _snap(raw);
                   if (next == _snap(v)) return;
                   HapticFeedback.selectionClick();
-                  onChanged(next);
+                  widget.onChanged(next);
                 },
-                onChangeEnd: (raw) => onChangeEnd(_snap(raw)),
+                onChangeEnd: (raw) => widget.onChangeEnd(_snap(raw)),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// 横向拖动按格计步:每走 [stepPixels] 记一格,方向按书写方向算(RTL 里往右是
+/// 减)。它只包住标题行,不吃滑杆的手势。
+class _StepDrag extends StatefulWidget {
+  const _StepDrag({required this.stepPixels, required this.onStep, required this.onEnd, required this.child});
+
+  final double stepPixels;
+
+  /// true = 往"更大"的方向走一格。
+  final ValueChanged<bool> onStep;
+  final VoidCallback onEnd;
+  final Widget child;
+
+  @override
+  State<_StepDrag> createState() => _StepDragState();
+}
+
+class _StepDragState extends State<_StepDrag> {
+  /// 还没走满一格的余量;一次手势结束就归零。
+  double _carry = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final rtl = Directionality.of(context) == TextDirection.rtl;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onHorizontalDragStart: (_) => _carry = 0,
+      onHorizontalDragUpdate: (details) {
+        _carry += details.delta.dx * (rtl ? -1 : 1);
+        while (_carry.abs() >= widget.stepPixels) {
+          final forward = _carry > 0;
+          _carry += forward ? -widget.stepPixels : widget.stepPixels;
+          widget.onStep(forward);
+        }
+      },
+      onHorizontalDragEnd: (_) {
+        _carry = 0;
+        widget.onEnd();
+      },
+      onHorizontalDragCancel: () {
+        _carry = 0;
+        widget.onEnd();
+      },
+      child: widget.child,
     );
   }
 }

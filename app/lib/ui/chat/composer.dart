@@ -19,6 +19,7 @@ import 'widgets/composer_aura.dart';
 import '../common/expand_reveal.dart';
 import '../common/smooth_size.dart';
 import '../fx/voice_glow/voice_beam.dart';
+import '../kit/kit.dart';
 import '../pets/pet_perch.dart';
 import '../settings/voice_settings_page.dart';
 import '../theme/app_icons.dart';

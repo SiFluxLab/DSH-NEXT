@@ -4,9 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/l10n.dart';
 import '../../runtime/runtime_bridge.dart';
 import '../../runtime/runtime_state.dart';
-import '../common/app_sheet.dart';
 import '../common/brief_notice.dart';
-import '../common/list_page_row.dart';
 import 'settings_widgets.dart';
 
 /// Direct launch (off by default) and tawcroot launch (on by default), at most one on; a
@@ -32,53 +30,6 @@ class _DirectEngineSettingsState extends ConsumerState<DirectEngineSettings> {
     // Safe mode launches compatibly by design: not a sign the runtime needs it.
     // After Direct failed to launch, native reports the switch off until the
     // user turns it on again (a new try).
-    final fallback = status.directEngineFallbackReason;
-    final directFailed = fallback == 'directFailed';
-    // A tawcroot start's fallback is the tawcroot switch's to explain.
-    final runtimeNeedsCompatible =
-        !status.tawcEngineEnabled &&
-        fallback != null &&
-        fallback != 'safeRecovery' &&
-        !directFailed &&
-        !fallback.startsWith('tawcroot');
-    final tawcFailed = fallback == 'tawcrootFailed';
-    final ztFailed = fallback == 'yinglongFailed';
-    final ztEnabled =
-        runtime.loaded && stopped && !_saving && (status.yinglongEngineAvailable || status.yinglongEngineEnabled);
-    final ztHint = !status.yinglongEngineAvailable
-        ? l10n.yinglongEngineUnavailable
-        : ztFailed && !status.yinglongEngineEnabled
-        ? l10n.yinglongEngineFailedHint
-        : !stopped
-        ? l10n.phoneDirectStopFirst
-        : status.inSafeMode
-        ? l10n.phoneDirectSafeHint
-        : l10n.yinglongEngineHint;
-    final tawcEnabled =
-        runtime.loaded && stopped && !_saving && (status.tawcEngineAvailable || status.tawcEngineEnabled);
-    final tawcHint = !status.tawcEngineAvailable
-        ? l10n.phoneTawcUnavailable
-        : tawcFailed && !status.tawcEngineEnabled
-        ? l10n.phoneTawcFailedHint
-        : status.tawcEngineEnabled && fallback != null && fallback != 'safeRecovery'
-        ? l10n.phoneDirectCompatibleHint
-        : !stopped
-        ? l10n.phoneDirectStopFirst
-        : status.inSafeMode
-        ? l10n.phoneDirectSafeHint
-        : l10n.phoneTawcHint;
-    final hint = !status.directEngineAvailable
-        ? l10n.phoneDirectNeedsRuntime
-        : directFailed && !status.directEngineEnabled
-        ? l10n.phoneDirectFailedHint
-        : runtimeNeedsCompatible
-        ? l10n.phoneDirectCompatibleHint
-        : !stopped
-        ? l10n.phoneDirectStopFirst
-        : status.inSafeMode
-        ? l10n.phoneDirectSafeHint
-        : l10n.phoneDirectHint;
-
     return SettingsSection(
       title: l10n.phoneDeveloperOptions,
       children: [
@@ -93,50 +44,54 @@ class _DirectEngineSettingsState extends ConsumerState<DirectEngineSettings> {
         // 兼容启动：**只有两种**——Zero Trap（默认）与 TawcRoot。
         // 之前是三枚独立开关（direct / 应龙 / tawc），互斥关系靠"至多开一个"的约定维持，
         // 用户看不懂"为什么开了一个会关掉另一个"。改成单选的入口行。
-        SettingsTile(
-          key: const ValueKey('launch-engine'),
-          title: l10n.launchEngine,
-          subtitle: status.yinglongEngineEnabled ? l10n.launchEngineZeroTrapHint : tawcHint,
-          value: status.yinglongEngineEnabled ? l10n.launchEngineZeroTrap : l10n.launchEngineTawc,
-          chevron: true,
-          onTap: enabled ? _pickEngine : null,
+        // 行自己包一层 Builder:面板要知道"从哪一行长出来",所以得拿到这一行的
+        // context(它的 RenderBox),而不是整张卡的。
+        Builder(
+          builder: (rowContext) => SettingsTile(
+            key: const ValueKey('launch-engine'),
+            title: l10n.launchEngine,
+            // 换引擎时说明**原地**换一句(120ms 淡入),行高不变:手指还在这一行
+            // 上,页面不该跟着跳一下。
+            subtitleWidget: FadingHint(
+              status.yinglongEngineEnabled ? l10n.launchEngineZeroTrapHint : l10n.phoneTawcHint,
+            ),
+            value: Text(status.yinglongEngineEnabled ? l10n.launchEngineZeroTrap : l10n.launchEngineTawc),
+            chevron: true,
+            onTap: enabled ? () => _pickEngine(rowContext) : null,
+          ),
         ),
       ],
     );
   }
 
-  Future<void> _pickEngine() async {
+  /// [rowContext] 是这一行自己的 context:面板从它长出来、收起时缩回它。
+  Future<void> _pickEngine(BuildContext rowContext) async {
     final l10n = context.l10n;
-    final zt = statusOf(ref);
-    final pick = await showAppSheet<String>(
+    final zt = ref.read(localRuntimeProvider).status.yinglongEngineEnabled;
+    final pick = await showSettingsPicker<String>(
       context,
-      builder: (sheet) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListPageRow(
-            title: l10n.launchEngineZeroTrap,
-            subtitle: l10n.launchEngineZeroTrapHint,
-            trailing: zt ? const Icon(Icons.check, size: 18) : null,
-            onTap: () => Navigator.of(sheet).pop('zt'),
-          ),
-          ListPageRow(
-            title: l10n.launchEngineTawc,
-            subtitle: l10n.phoneTawcHint,
-            trailing: zt ? null : const Icon(Icons.check, size: 18),
-            onTap: () => Navigator.of(sheet).pop('tawc'),
-          ),
-        ],
-      ),
+      title: l10n.launchEngine,
+      selected: zt ? 'zt' : 'tawc',
+      // 量不到(行还没布局/已回收)时传 null:面板只淡入,不做"长出"。
+      origin: settingsRowOrigin(rowContext),
+      choices: [
+        SettingsChoice('zt', l10n.launchEngineZeroTrap, note: l10n.launchEngineZeroTrapHint),
+        SettingsChoice('tawc', l10n.launchEngineTawc, note: l10n.phoneTawcHint),
+      ],
     );
     if (pick == null) return;
     setState(() => _saving = true);
     try {
       final bridge = ref.read(runtimeBridgeProvider);
       if (pick == 'zt') {
-        if (ref.read(runtimeStatusProvider).value?.tawcEngineEnabled ?? false) await bridge.setTawcEngine(false);
+        if (ref.read(localRuntimeProvider).status.tawcEngineEnabled) {
+          await bridge.setTawcEngine(false);
+        }
         await bridge.setYinglongEngine(true);
       } else {
-        if (ref.read(runtimeStatusProvider).value?.yinglongEngineEnabled ?? false) await bridge.setYinglongEngine(false);
+        if (ref.read(localRuntimeProvider).status.yinglongEngineEnabled) {
+          await bridge.setYinglongEngine(false);
+        }
         await bridge.setTawcEngine(true);
       }
     } catch (_) {
@@ -145,9 +100,6 @@ class _DirectEngineSettingsState extends ConsumerState<DirectEngineSettings> {
       if (mounted) setState(() => _saving = false);
     }
   }
-
-  bool statusOf(WidgetRef ref) =>
-      ref.read(runtimeStatusProvider).value?.yinglongEngineEnabled ?? true;
 
   Future<void> _change(bool value) async {
     setState(() => _saving = true);

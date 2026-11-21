@@ -83,15 +83,19 @@ class _DrawerEntranceState extends State<DrawerEntrance> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
-    return _EntranceScope(run: _run, child: widget.child);
+    return _EntranceScope(run: _run, total: _run.duration ?? AppMotion.standard, child: widget.child);
   }
 }
 
 /// 把"这次入场跑到哪了"传给下面每一个 [DrawerStagger]。
 class _EntranceScope extends InheritedWidget {
-  const _EntranceScope({required this.run, required super.child});
+  const _EntranceScope({required this.run, required this.total, required super.child});
 
   final Animation<double> run;
+
+  /// 整段入场时长。Animation 本身没有 duration（只有 AnimationController 有），
+  /// 之前写 `run.duration` 直接编译不过；把值随 scope 带下来最省事也最准确。
+  final Duration total;
 
   @override
   bool updateShouldNotify(_EntranceScope oldWidget) => run != oldWidget.run;
@@ -112,11 +116,12 @@ class DrawerStagger extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final run = context.dependOnInheritedWidgetOfExactType<_EntranceScope>()?.run;
+    final scope = context.dependOnInheritedWidgetOfExactType<_EntranceScope>();
+    final run = scope?.run;
     // 第 9 项往后直接给出来：错峰超过 8 项就成了"半个列表还没出现"，
     // 那时人已经在看内容了，不需要再慢慢浮出来。
-    if (run == null || index >= AppMotion.staggerLimit) return child;
-    final step = AppMotion.stagger.inMicroseconds / run.duration!.inMicroseconds;
+    if (run == null || scope == null || index >= AppMotion.staggerLimit) return child;
+    final step = AppMotion.stagger.inMicroseconds / math.max(1, scope.total.inMicroseconds);
     final start = (index * step).clamp(0.0, 1.0 - _span);
     return AnimatedBuilder(
       animation: run,

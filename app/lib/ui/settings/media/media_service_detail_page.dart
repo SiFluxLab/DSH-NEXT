@@ -433,27 +433,26 @@ class _MediaServiceDetailBody extends ConsumerWidget {
     String title,
   ) async {
     final l10n = context.l10n;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialog) => AlertDialog(
-        title: Text(l10n.mediaSettingsDeleteTitle(title)),
-        content: Text(l10n.mediaSettingsDeleteBody),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(dialog, false), child: Text(l10n.commonCancel)),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: DshColors.of(dialog).danger,
-              foregroundColor: DshColors.of(dialog).onDanger,
-            ),
-            onPressed: () => Navigator.pop(dialog, true),
-            child: Text(l10n.commonDelete),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true || !context.mounted) return;
     final defaultsField = FieldRef(ns, const ['defaults']);
     final nextDefaults = mediaDefaultsClearedFor(settings.valueOf(defaultsField), service.id);
+    // 确认面板里先摆出**这一条**的具体内容:名称、协议、地址、模型,外加"会留下的
+    // 那把 Key"。值全部取自当场的数据,不写"可能会失去"这种猜出来的话。
+    // 记号含义:减号 = 会删除,对勾 = 会保留(见 SettingsDangerSheet)。
+    final confirmed = await confirmSettingsDanger(
+      context,
+      title: l10n.mediaSettingsDeleteTitle(title),
+      body: l10n.mediaSettingsDeleteBody,
+      action: l10n.commonDelete,
+      lost: [
+        SettingsLoss(l10n.mediaSettingsServiceId, service.id),
+        SettingsLoss(l10n.mediaSettingsProvider, service.provider),
+        SettingsLoss(l10n.mediaSettingsBaseUrl, service.baseUrl),
+        if (service.models.isNotEmpty) SettingsLoss(l10n.mediaSettingsModels, service.models.join(' · ')),
+        if (nextDefaults != null) SettingsLoss(l10n.mediaSettingsDefaultModel, title),
+      ],
+      kept: [SettingsLoss(l10n.mediaSettingsApiKey, service.keyRef)],
+    );
+    if (!confirmed || !context.mounted) return;
     final editor = ref.read(engineSettingsProvider.notifier).edit(settings);
     final fields = [
       FieldRef(ns, const ['services']),

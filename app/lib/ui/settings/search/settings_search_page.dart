@@ -6,6 +6,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -24,15 +25,19 @@ import '../../common/app_sheet.dart' show groupTitleStyle;
 import '../../common/ask_ai.dart';
 import '../../common/capsule_chip.dart';
 import '../../common/list_page_row.dart';
+import '../../common/overview_card.dart' show OverviewChevron;
 import '../../common/search_capsule.dart';
 import '../../features/all_features_page.dart' show dshWebOpenerProvider;
 import '../../features/feature_catalog.dart';
 import '../../engine_settings/engine_settings_page.dart' show isPluginForm, namespaceTitle;
 import '../../features/feature_widgets.dart' show FeatureMessage;
+import '../../kit/kit.dart';
 import '../../plugins/config/plugin_config_entries.dart';
 import '../../shell/page_frame.dart';
 import '../../theme/app_icons.dart';
+import '../../theme/theme.dart';
 import '../index/settings_pages.dart';
+import '../settings_polish.dart' show HitText;
 import 'settings_search.dart';
 
 /// The last searches that led somewhere, newest first ([limit] at most), kept
@@ -105,6 +110,10 @@ class _SettingsSearchPageState extends ConsumerState<SettingsSearchPage> {
   static final _zh = lookupL10n(AppLocale.zhCN);
   static final _en = lookupL10n(AppLocale.en);
 
+  /// 回车要打开的那一条(就是这一帧的第一条结果)。在 build 里算,因为可用性
+  /// 判断要 `ref.watch`;回调只负责执行。
+  VoidCallback? _enter;
+
   @override
   void dispose() {
     _field.dispose();
@@ -171,18 +180,50 @@ class _SettingsSearchPageState extends ConsumerState<SettingsSearchPage> {
     );
     final hits = query.trim().isEmpty ? const <SearchHit>[] : search(androidFeatures: androidFeatures);
     final session = ref.watch(currentSessionProvider);
+    // 回车直达:按下的那一下应当等于点第一条。这里顺手把"第一条为什么打不开"
+    // 也一起算好(和结果行显示的原因同一份判断),免得两处说法不一致。
+    String? reasonFor(SettingSpot spot) =>
+        unavailableReason(ref, spot.condition, l10n) ??
+        (spot.isEntry ? null : unavailableReason(ref, SettingsIndex.page(spot.page).condition, l10n));
+    final first = hits.isEmpty ? null : hits.first;
+    if (first == null) {
+      _enter = null;
+    } else {
+      final spot = first.spot;
+      _enter = spot != null
+          ? () => _openSpot(spot, available: reasonFor(spot) == null)
+          : () => _openFeature(first.feature!);
+    }
     return AppPage(
       title: l10n.searchSettingsHint,
       hero: Padding(
         padding: const EdgeInsets.fromLTRB(16, 6, 16, 20),
-        child: SearchCapsule(
-          key: const ValueKey('settings-search-field'),
-          controller: _field,
-          focusNode: _focus,
-          autofocus: true,
-          hint: l10n.searchSettingsHint,
-          onChanged: (_) => setState(() {}),
-          onClear: _clear,
+        // 硬键盘(平板、桌面预览、外接键盘)的回车由这一层接住:焦点还在输入框里,
+        // 键事件会从它往上冒到这里。输入法的「搜索」键走的是 EditableText 的
+        // onSubmitted,而 SearchCapsule 没有暴露它 —— 见报告里的未做项。
+        child: Focus(
+          canRequestFocus: false,
+          skipTraversal: true,
+          onKeyEvent: (node, event) {
+            if (event is! KeyDownEvent) return KeyEventResult.ignored;
+            final key = event.logicalKey;
+            if (key != LogicalKeyboardKey.enter && key != LogicalKeyboardKey.numpadEnter) {
+              return KeyEventResult.ignored;
+            }
+            final enter = _enter;
+            if (enter == null) return KeyEventResult.ignored;
+            enter();
+            return KeyEventResult.handled;
+          },
+          child: SearchCapsule(
+            key: const ValueKey('settings-search-field'),
+            controller: _field,
+            focusNode: _focus,
+            autofocus: true,
+            hint: l10n.searchSettingsHint,
+            onChanged: (_) => setState(() {}),
+            onClear: _clear,
+          ),
         ),
       ),
       slivers: [
@@ -205,10 +246,11 @@ class _SettingsSearchPageState extends ConsumerState<SettingsSearchPage> {
                       children: [
                         for (final hit in group)
                           if (hit.spot case final spot?)
-                            _SpotResult(hit: hit, spot: spot, onOpen: _openSpot)
+                            _SpotResult(hit: hit, spot: spot, query: query, onOpen: _openSpot)
                           else
-                            ListPageRow(
+                            _HitRow(
                               title: hit.feature!.title,
+                              query: query,
                               subtitle: [l10n.hubSettingsAllFeatures, hit.section!.title].join(' › '),
                               onTap: hit.feature!.needsSession && session == null
                                   ? null
@@ -282,10 +324,13 @@ final _pluginSpotsProvider = Provider.autoDispose<List<SettingSpot>>((ref) {
 });
 
 class _SpotResult extends ConsumerWidget {
-  const _SpotResult({required this.hit, required this.spot, required this.onOpen});
+  const _SpotResult({required this.hit, required this.spot, required this.query, required this.onOpen});
 
   final SearchHit hit;
   final SettingSpot spot;
+
+  /// 用户打的那几个字:标题里命中的一段要标出来。
+  final String query;
   final void Function(SettingSpot spot, {required bool available}) onOpen;
 
   @override
@@ -295,11 +340,88 @@ class _SpotResult extends ConsumerWidget {
     final reason =
         unavailableReason(ref, spot.condition, l10n) ??
         (spot.isEntry ? null : unavailableReason(ref, SettingsIndex.page(spot.page).condition, l10n));
-    return ListPageRow(
+    return _HitRow(
       title: spot.titleOn(harmony: ref.watch(operatingSystemProvider) == 'ohos')(l10n),
-      titleNote: hit.synonym,
+      query: query,
+      note: hit.synonym,
       subtitle: reason ?? SettingsIndex.path(spot, l10n).join(' › '),
       onTap: () => onOpen(spot, available: reason == null),
+    );
+  }
+}
+
+/// 一条结果:**命中处高亮**。
+///
+/// 为什么不用 `ListPageRow`:它的标题是一整段字符串,而这里要把用户打的那几个
+/// 字单独染一下色。行高、左缘 16、右缘箭头、12/70% 的副标题一律照搬列表页的
+/// 规格,所以看起来仍是同一张卡里的同一种行 —— 只是标题里多了一处强调。
+class _HitRow extends StatelessWidget {
+  const _HitRow({required this.title, required this.query, required this.subtitle, this.note, this.onTap});
+
+  final String title;
+  final String query;
+  final String subtitle;
+
+  /// 命中的同义词,跟在标题后面(三级色)。
+  final String? note;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = DshColors.of(context);
+    final two = subtitle.isNotEmpty;
+    final chevron = onTap != null;
+    return InkWell(
+      onTap: onTap,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: two ? Kit.rowHeightTwo : Kit.rowHeight),
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            ListPageRow.horizontal,
+            10,
+            chevron ? ListPageRow.trailingPad : ListPageRow.horizontal,
+            10,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    HitText(
+                      title,
+                      query: query,
+                      suffix: note,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        fontSize: 14,
+                        height: 1.35,
+                        fontWeight: FontWeight.w500,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                    if (two) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontSize: 12,
+                          height: 1.4,
+                          color: colors.textTertiary,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (chevron) ...[const SizedBox(width: 4), const OverviewChevron()],
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

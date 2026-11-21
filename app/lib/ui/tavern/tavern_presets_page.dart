@@ -17,7 +17,6 @@ import '../bots/bot_format.dart' show shortTime;
 import '../common/app_sheet.dart';
 import '../common/brief_notice.dart';
 import '../common/sheet_title_bar.dart';
-import '../features/feature_kit.dart';
 import '../settings/settings_widgets.dart';
 import '../shell/page_frame.dart';
 import '../kit/kit.dart';
