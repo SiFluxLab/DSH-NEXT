@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/l10n.dart';
+import '../../state/attachments.dart' show formatBytes;
 import '../../state/workshop_catalog_state.dart';
 import '../../state/workshop_install_state.dart';
 import '../../workshop/workshop_models.dart';
@@ -16,7 +17,7 @@ import '../common/capsule_chip.dart';
 import '../common/empty_view.dart';
 import '../common/fade_in.dart';
 import '../common/search_capsule.dart';
-import '../kit/kit_list.dart';
+import '../plugins/list_chrome.dart';
 import '../theme/app_icons.dart';
 import 'workshop_item_sheet.dart';
 import 'workshop_text.dart';
@@ -64,13 +65,24 @@ class _WorkshopBrowseSliverState extends ConsumerState<WorkshopBrowseSliver> {
     final items = state.visibleItems;
     final snapshot = state.snapshot;
     final filtering = state.query.trim().isNotEmpty || state.kind != WorkshopKindFilter.all;
+    // 组标题就是当前筛的那一类：列表里看到什么，标题就说什么，不另起一个"全部作品"。
+    final groupTitle = switch (state.kind) {
+      WorkshopKindFilter.all => l10n.workshopKindAll,
+      WorkshopKindFilter.pet => l10n.workshopKindPet,
+      WorkshopKindFilter.companion => l10n.workshopKindCompanion,
+    };
 
-    // Nothing to draw yet, and nothing cached: one quiet ring.
+    // Nothing to draw yet, and nothing cached: six cards where the list will be.
+    // 骨架而不是转圈：列表到位时是"填满"，版面不跳（见 [ListSkeleton]）。
     if (state.loading && snapshot == null) {
-      return const SliverToBoxAdapter(
-        child: Padding(
-          padding: EdgeInsets.only(top: 64),
-          child: Center(child: SizedBox.square(dimension: 22, child: CircularProgressIndicator(strokeWidth: 2))),
+      return SliverToBoxAdapter(
+        child: ListSkeleton(
+          rows: 6,
+          avatar: 40,
+          lines: 3,
+          trailing: 84,
+          label: l10n.remoteLoading,
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         ),
       );
     }
@@ -147,49 +159,51 @@ class _WorkshopBrowseSliverState extends ConsumerState<WorkshopBrowseSliver> {
                       icon: AppIcons.workshop,
                       title: l10n.workshopEmptyTitle,
                       message: l10n.workshopEmptyMessage,
-                      actionLabel: widget.onSubmit == null ? null : l10n.workshopTabMine,
-                      onAction: widget.onSubmit,
+                      // 空态只给一个动作，而且它会在停留 3s 后自己"呼吸"一次
+                      // （[EmptyAction]）——一个安静的画面里，唯一的出口值得被注意到一次。
+                      action: widget.onSubmit == null ? null : EmptyAction(
+                        label: l10n.workshopTabMine,
+                        onPressed: widget.onSubmit,
+                      ),
                     ),
             ),
           )
-        else
+        else ...[
+          // 组标题 + 右侧计数：计数在后台变了会滚一次（不是直接换字）。
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
+              child: WorkshopGroupHeader(title: groupTitle, count: items.length),
+            ),
+          ),
           SliverList.builder(
             itemCount: items.length,
             itemBuilder: (context, i) {
-              final first = i == 0;
-              final last = i == items.length - 1;
               final item = items[i];
+              // 一张作品一张卡，卡与卡之间 12（卡自己带 margin）；点击进详情，
+              // 长按抬升 2px 只是"我按住的是这一张"的确认，不带菜单。
               return FadeSlideIn(
                 index: i,
-                // 目录是一张连续的分组卡：首末行圆角 12、行间 0.5px、外缘 1px 实线
-                // （规格 page-composition §2.2 与 theme-ui §3.2）。整张卡不能在懒加载
-                // 里一次画出来，所以按行拼。
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: KitRowSurface(
-                    position: items.length == 1
-                        ? KitRowPosition.single
-                        : first
-                        ? KitRowPosition.first
-                        : last
-                        ? KitRowPosition.last
-                        : KitRowPosition.middle,
-                    child: WorkshopItemRow(
-                      key: ValueKey(item.entry.metadata.identity),
-                      item: item,
-                      onReport: widget.onReport,
-                    ),
+                  child: WorkshopItemRow(
+                    key: ValueKey(item.entry.metadata.identity),
+                    item: item,
+                    onReport: widget.onReport,
                   ),
                 ),
               );
             },
           ),
+          const SliverToBoxAdapter(child: SizedBox(height: 12)),
+        ],
       ],
     );
   }
 }
 
-/// One catalogue row: square · title / author · one line · the capsule.
+/// One catalogue card: square · title 13.5/600 · 作者 · description (two lines)
+/// · 标签行 · 右下角版本与大小 · the capsule.
 class WorkshopItemRow extends ConsumerWidget {
   const WorkshopItemRow({super.key, required this.item, this.onReport});
 
@@ -198,6 +212,7 @@ class WorkshopItemRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final meta = item.entry.metadata;
     final locale = Localizations.localeOf(context).languageCode;
     final running = ref.watch(
@@ -205,12 +220,15 @@ class WorkshopItemRow extends ConsumerWidget {
     );
     final description = meta.description.trim();
     void open() => unawaited(showWorkshopItemSheet(context, item, onReport: onReport));
-    // 14/500 标题 + 12/70% 说明 + 32 的条目方块 + 行尾 field 控件：一行就是一条
-    // 列表行（规格 theme-ui §3.1 / page-composition §7.8）。
-    return KitRow(
-      leading: WorkshopEntryAvatar(item.entry, size: 32),
+    return WorkshopCard(
+      avatar: WorkshopEntryAvatar(item.entry, size: 40),
       title: workshopTitleOf(meta, locale),
-      note: [meta.author, if (description.isNotEmpty) description.split('\n').first].join(' · '),
+      line: l10n.workshopByAuthor(meta.author),
+      description: description.isEmpty ? null : description,
+      chips: workshopTagChips(context, meta),
+      // 元信息只写**真实存在**的两件事：发行版本与包大小（同一份 metadata 给的）。
+      // 不写"下载量""评分"——工坊没有这两个数，编一个出来就是假数据。
+      meta: '${meta.version} · ${formatBytes(meta.size)}',
       trailing: WorkshopGetButton(
         state: running
             ? WorkshopGetState.running

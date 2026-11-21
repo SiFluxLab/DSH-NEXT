@@ -26,7 +26,7 @@ import '../common/expand_reveal.dart';
 import '../common/feature_tile.dart';
 import '../common/fade_in.dart';
 import '../common/list_page_row.dart';
-import '../features/feature_kit.dart' show QuietSpinner;
+import '../kit/kit.dart';
 import '../session/workspace_files.dart' show FilePreviewPage, formatBytes;
 import '../settings/settings_widgets.dart' show SettingsTile;
 import '../theme/app_icons.dart';
@@ -568,7 +568,9 @@ class _FolderSliver extends ConsumerWidget {
           ),
         );
       }
-      return const SliverToBoxAdapter(child: QuietSpinner());
+      // 第一次读这个目录：占位的行与真实的文件行同一副骨架（无卡框、方块 20、
+      // 单行），到位时不跳；不是转圈（见 [ListSkeleton]）。
+      return SliverToBoxAdapter(child: KitSkeleton(rows: 8, semanticLabel: l10n.remoteLoading));
     }
     final entries = dir.entries;
     if (entries.isEmpty) {
@@ -778,7 +780,8 @@ class _SearchSliver extends ConsumerWidget {
           ),
         );
       }
-      return const SliverToBoxAdapter(child: QuietSpinner());
+      // 搜索也和目录同一个骨架：结果到位时是"填满"，不是"换掉"。
+      return SliverToBoxAdapter(child: KitSkeleton(rows: 8, semanticLabel: l10n.remoteLoading));
     }
     if (list.isEmpty) {
       return SliverToBoxAdapter(

@@ -13,6 +13,7 @@ import '../features/feature_kit.dart';
 import '../shell/page_frame.dart';
 import '../theme/app_icons.dart';
 import 'installed_tab.dart';
+import 'list_chrome.dart';
 import 'market_tab.dart';
 
 enum PluginsTab { installed, market }
@@ -104,6 +105,8 @@ class _PluginsScreenState extends ConsumerState<PluginsScreen> {
         ),
       ],
       slivers: [
+        // 与工坊同一件小东西：下拉刷新时页顶那条光谱细线上移 8px 并亮起。
+        SliverToBoxAdapter(child: PullLightBand(active: _refreshing)),
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -166,19 +169,24 @@ class PluginsErrorCard extends StatelessWidget {
       icon: AppIcons.error,
       title: title,
       message: message,
-      actionLabel: l10n.commonRetry,
-      onAction: onRetry,
+      // 失败只给一个动作：重试。它会在停留 3s 后自己呼吸一次（[EmptyAction]）。
+      action: EmptyAction(label: l10n.commonRetry, onPressed: onRetry),
       padding: const EdgeInsets.fromLTRB(32, 24, 32, 8),
     );
   }
 }
 
-/// Loading: a small quiet ring with one line.
+/// Loading: six cards' worth of placeholders, not a ring.
+///
+/// 两页（已安装 / 市场）都用这一个：它们在等的是同一种东西——"图标 + 名字 +
+/// 一行说明 + 右缘胶囊"的行，所以占位也应该是同一种形状，页面之间切换时
+/// 版面不跳（见 [ListSkeleton]）。
 class PluginsLoading extends StatelessWidget {
   const PluginsLoading(this.text, {super.key});
 
   final String text;
 
   @override
-  Widget build(BuildContext context) => QuietSpinner(label: text);
+  Widget build(BuildContext context) =>
+      ListSkeleton(rows: 6, avatar: 40, lines: 2, trailing: 76, label: text);
 }

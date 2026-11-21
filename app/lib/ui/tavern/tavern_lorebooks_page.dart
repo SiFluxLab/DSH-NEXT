@@ -117,7 +117,8 @@ class TavernLorebooksPage extends ConsumerWidget {
       ],
       children: [
         if (library == null)
-          const QuietSpinner()
+          // 第一读：六行占位（不是转圈），列表到位时版面不跳。
+          KitSkeleton(rows: 6, rowHeight: Kit.rowHeightTwo, semanticLabel: l10n.remoteLoading)
         else if (library.books.isEmpty)
           EmptyView(
             key: const ValueKey('tavern-lorebooks-empty'),

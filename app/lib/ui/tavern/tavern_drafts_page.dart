@@ -15,7 +15,7 @@ import '../../tavern/tavern_provider.dart';
 import '../bots/bot_format.dart' show shortTime;
 import '../common/brief_notice.dart';
 import '../common/empty_view.dart';
-import '../features/feature_kit.dart' show QuietSpinner;
+import '../kit/kit.dart';
 import '../settings/settings_widgets.dart';
 import '../shell/page_frame.dart';
 import '../theme/app_icons.dart';
@@ -130,10 +130,8 @@ class _TavernDraftsPageState extends ConsumerState<TavernDraftsPage> {
       ],
       children: [
         if (drafts.isLoading && !drafts.hasValue)
-          const Padding(
-            padding: EdgeInsets.only(top: 48),
-            child: Center(child: QuietSpinner()),
-          )
+          // 第一读：六行占位（不是转圈），列表到位时版面不跳。
+          KitSkeleton(rows: 6, rowHeight: Kit.rowHeightTwo, semanticLabel: l10n.remoteLoading)
         else if (shown.isEmpty)
           Padding(
             key: const ValueKey('tavern-drafts-empty'),

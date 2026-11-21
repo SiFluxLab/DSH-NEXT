@@ -19,7 +19,7 @@ import '../common/app_sheet.dart';
 import '../common/brief_notice.dart';
 import '../common/search_capsule.dart';
 import '../common/sheet_title_bar.dart';
-import '../features/feature_kit.dart';
+import '../kit/kit.dart';
 import '../shell/page_frame.dart';
 import '../theme/theme.dart';
 
@@ -105,7 +105,8 @@ class _TavernSearchPageState extends ConsumerState<TavernSearchPage> {
           ),
         ),
         if (hits == null)
-          const QuietSpinner()
+          // 第一读：六行占位（结果到位时是"填满"，不是"换掉"）。
+          KitSkeleton(rows: 6, rowHeight: Kit.rowHeightTwo, semanticLabel: l10n.remoteLoading)
         else if (_asked.isEmpty)
           Padding(
             padding: const EdgeInsets.fromLTRB(28, 4, 28, 16),

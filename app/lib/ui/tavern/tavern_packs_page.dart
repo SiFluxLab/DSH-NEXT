@@ -13,7 +13,7 @@ import '../../tavern/tavern_packs.dart';
 import '../../tavern/tavern_provider.dart';
 import '../common/brief_notice.dart';
 import '../common/empty_view.dart';
-import '../features/feature_kit.dart' show QuietSpinner;
+import '../kit/kit.dart';
 import '../settings/settings_widgets.dart';
 import '../shell/page_frame.dart';
 import '../theme/app_icons.dart';
@@ -100,10 +100,8 @@ class _TavernPacksPageState extends ConsumerState<TavernPacksPage> {
           ],
         ),
         if (packs.isLoading && !packs.hasValue)
-          const Padding(
-            padding: EdgeInsets.only(top: 48),
-            child: Center(child: QuietSpinner()),
-          )
+          // 第一读：六行占位（不是转圈）。
+          KitSkeleton(rows: 6, rowHeight: Kit.rowHeightTwo, semanticLabel: l10n.remoteLoading)
         else if (byPack.isEmpty)
           Padding(
             key: const ValueKey('tavern-packs-empty'),

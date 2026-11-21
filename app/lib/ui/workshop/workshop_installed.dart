@@ -21,7 +21,8 @@ import '../../workshop/workshop_repository.dart';
 import '../common/brief_notice.dart';
 import '../common/empty_view.dart';
 import '../common/fade_in.dart';
-import '../kit/kit_list.dart';
+import '../kit/kit.dart';
+import '../plugins/list_chrome.dart';
 import '../theme/app_icons.dart';
 import '../theme/theme.dart';
 import 'workshop_installed_sheet.dart';
@@ -119,11 +120,9 @@ class _WorkshopInstalledSliverState extends ConsumerState<WorkshopInstalledSlive
     if (rows.isEmpty) {
       // Nothing read yet: one quiet ring.
       if (state.loading) {
-        return const SliverToBoxAdapter(
-          child: Padding(
-            padding: EdgeInsets.only(top: 64),
-            child: Center(child: SizedBox.square(dimension: 22, child: CircularProgressIndicator(strokeWidth: 2))),
-          ),
+        // 本机记录还没读完：骨架屏占住将要出现的位置（不是转圈）。
+        return SliverToBoxAdapter(
+          child: ListSkeleton(rows: 6, avatar: 40, lines: 2, trailing: 0, label: l10n.remoteLoading),
         );
       }
       return SliverToBoxAdapter(
@@ -135,15 +134,16 @@ class _WorkshopInstalledSliverState extends ConsumerState<WorkshopInstalledSlive
               icon: AppIcons.failed,
               title: l10n.workshopInstalledLoadFailedTitle,
               message: workshopErrorLine(l10n, code),
-              actionLabel: l10n.commonRetry,
-              onAction: state.refreshing ? null : _reload,
+              // 刷新失败只给一个动作：重试（[EmptyAction] 会在停留 3s 后呼吸一次）。
+              action: EmptyAction(label: l10n.commonRetry, onPressed: state.refreshing ? null : _reload),
             ),
             null => EmptyView(
               icon: AppIcons.workshop,
               title: l10n.workshopInstalledEmptyTitle,
               message: l10n.workshopInstalledEmptyMessage,
-              actionLabel: widget.onBrowse == null ? null : l10n.workshopInstalledEmptyAction,
-              onAction: widget.onBrowse,
+              action: widget.onBrowse == null
+                  ? null
+                  : EmptyAction(label: l10n.workshopInstalledEmptyAction, onPressed: widget.onBrowse),
             ),
           },
         ),
@@ -176,28 +176,19 @@ class _WorkshopInstalledSliverState extends ConsumerState<WorkshopInstalledSlive
         SliverList.builder(
           itemCount: rows.length,
           itemBuilder: (context, i) {
-            final first = i == 0;
-            final last = i == rows.length - 1;
             final row = rows[i];
+            // 一张已安装的资源一张卡，卡与卡之间 12：每条的"状态行"可能是
+            // 一句很长的话（撤回、来源不同、包损坏），分组卡里那种单行密行
+            // 放不下，而状态正是这一页要看的东西。
             return FadeSlideIn(
               index: i,
-              // 一张连续的分组卡：首末行 12 圆角、行间 0.5px（规格 §2.2 / §3.2）。
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: KitRowSurface(
-                  position: rows.length == 1
-                      ? KitRowPosition.single
-                      : first
-                      ? KitRowPosition.first
-                      : last
-                      ? KitRowPosition.last
-                      : KitRowPosition.middle,
-                  child: WorkshopInstalledTile(
-                    key: ValueKey(row.local.localId),
-                    row: row,
-                    removal: workshopInstalledRemovalOf(row, state.removal),
-                    onOpen: () => unawaited(_open(row)),
-                  ),
+                child: WorkshopInstalledTile(
+                  key: ValueKey(row.local.localId),
+                  row: row,
+                  removal: workshopInstalledRemovalOf(row, state.removal),
+                  onOpen: () => unawaited(_open(row)),
                 ),
               ),
             );
@@ -267,15 +258,23 @@ class WorkshopInstalledTile extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final colors = DshColors.of(context);
     final (status, mark) = _status(l10n);
+    final local = row.local;
     // A row being removed, or already removed, has nothing to open.
     final settled = removal != WorkshopRemovalPhase.removing && removal != WorkshopRemovalPhase.succeeded;
-    // 行统一到 14/500 标题 + 12/70% 状态行（规格 theme-ui §3.1）；
-    // 状态色只用在那一行说明上，不去染标题。
-    return KitRow(
-      leading: WorkshopInstalledAvatar(row, size: 32),
+    // 标签行只放这台手机上**确实知道**的事：类型来自安装回执。回执读不出来
+    // （WorkshopInstallationIssue）就没有类型可写——空着，不猜一个出来。
+    final chips = <Widget>[
+      if (local is WorkshopInstalled) KitChip(label: workshopKindText(l10n, local.receipt.kind)),
+      if (mark == _Mark.update) KitChip(label: l10n.workshopInstalledStatusUpdate, color: scheme.primary),
+    ];
+    // 状态行是这一页的主体（撤回、来源不同、包损坏都要说清楚），所以给它
+    // 12/70% 那一行而不是压在标题下面的一行元信息；颜色只给失败那一档。
+    return WorkshopCard(
+      avatar: WorkshopInstalledAvatar(row, size: 40),
       title: workshopInstalledTitle(row, Localizations.localeOf(context).languageCode),
-      note: status,
-      noteColor: mark == _Mark.failed ? colors.danger : null,
+      line: status,
+      lineColor: mark == _Mark.failed ? colors.danger : null,
+      chips: chips,
       trailing: switch (mark) {
         _Mark.none => null,
         _Mark.update => SizedBox.square(
@@ -288,10 +287,9 @@ class WorkshopInstalledTile extends StatelessWidget {
         _Mark.failed => Icon(AppIcons.warning, size: 18, color: colors.danger),
         _Mark.removing => const SizedBox.square(
           dimension: 16,
-          child: CircularProgressIndicator(strokeWidth: 1.8, strokeCap: StrokeCap.round),
+          child: CircularProgressIndicator(strokeWidth: 2, strokeCap: StrokeCap.round),
         ),
       },
-      chevron: settled,
       onTap: settled ? onOpen : null,
     );
   }

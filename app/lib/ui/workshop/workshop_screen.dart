@@ -20,6 +20,7 @@ import '../../workshop/workshop_models.dart';
 import '../kit/kit.dart';
 import '../../state/ui_kit_state.dart';
 import '../common/segmented_pill.dart';
+import '../plugins/list_chrome.dart';
 import '../shell/page_frame.dart';
 import '../theme/app_icons.dart';
 import 'workshop_browse.dart';
@@ -106,6 +107,10 @@ class _WorkshopScreenState extends ConsumerState<WorkshopScreen> {
             ),
           ],
           slivers: [
+            // 下拉刷新的光带：刷新一开始，页顶那条光谱细线往上让 8px 并亮起来
+            // （同一套输入框流光色，见 [PullLightBand]）。它高度固定 8px，
+            // 所以上升不会挤动下面的页签与列表。
+            SliverToBoxAdapter(child: PullLightBand(active: _refreshing)),
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),

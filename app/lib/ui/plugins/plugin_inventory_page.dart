@@ -24,6 +24,7 @@ import '../common/segmented_pill.dart';
 import '../common/search_capsule.dart';
 import '../common/status_chip.dart';
 import '../engine_settings/engine_settings_page.dart';
+import '../kit/kit.dart';
 import '../features/feature_kit.dart';
 import '../features/feature_widgets.dart';
 import '../shell/page_frame.dart';
@@ -193,7 +194,8 @@ class _PluginInventoryPageState extends ConsumerState<PluginInventoryPage> {
                 action: (l10n.commonRetry, () => ref.invalidate(pluginInventoryProvider)),
               )
             else if (snapshot == null)
-              const FeatureLoading()
+              // 第一读：六行占位（kit 的 [KitSkeleton]），与真的条目行同一副骨架。
+              KitSkeleton(rows: 6, rowHeight: Kit.rowHeightTwo, semanticLabel: l10n.remoteLoading)
             else if (scope == _Scope.global)
               ..._groups(snapshot.global)
             else if (preset != null)

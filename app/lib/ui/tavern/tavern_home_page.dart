@@ -22,6 +22,7 @@ import '../features/feature_kit.dart';
 import '../kit/kit.dart';
 import '../kit/kit_list.dart';
 import '../modes/mode_switch.dart';
+import '../plugins/list_chrome.dart';
 import '../settings/settings_widgets.dart';
 import '../shell/page_frame.dart';
 import '../theme/app_icons.dart';
@@ -212,7 +213,8 @@ class _TavernHomePageState extends ConsumerState<TavernHomePage> {
           ),
         )
       else if (list == null)
-        const SliverToBoxAdapter(child: QuietSpinner())
+        // 第一读：六行占位，不是转圈（[KitSkeleton]）。
+        SliverToBoxAdapter(child: KitSkeleton(rows: 6, semanticLabel: l10n.remoteLoading))
       else if (all!.isEmpty)
         SliverFillRemaining(
           hasScrollBody: false,
@@ -310,7 +312,9 @@ class _TavernHomePageState extends ConsumerState<TavernHomePage> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 itemCount: chats.length.clamp(0, 8),
                 separatorBuilder: (_, _) => const SizedBox(width: 12),
-                itemBuilder: (context, i) => _ContinueCard(chat: chats[i], character: byId[chats[i].characterId]),
+                // 按住抬升 2px：卡片按住时"离桌面远一点"，松手回弹（[PressLift]）。
+                itemBuilder: (context, i) =>
+                    PressLift(child: _ContinueCard(chat: chats[i], character: byId[chats[i].characterId])),
               ),
             ),
           ),
@@ -337,10 +341,12 @@ class _TavernHomePageState extends ConsumerState<TavernHomePage> {
               childAspectRatio: 0.62,
             ),
             itemCount: list.length,
-            itemBuilder: (context, i) => _CharacterTile(
-              character: list[i],
-              picked: _picked?.contains(list[i].id),
-              onPick: () => _toggle(list[i].id),
+            itemBuilder: (context, i) => PressLift(
+              child: _CharacterTile(
+                character: list[i],
+                picked: _picked?.contains(list[i].id),
+                onPick: () => _toggle(list[i].id),
+              ),
             ),
           ),
         ),
@@ -432,7 +438,8 @@ class _TavernHomePageState extends ConsumerState<TavernHomePage> {
         sliver: SliverList.separated(
           itemCount: shown.length,
           separatorBuilder: (_, _) => const SizedBox(height: 12),
-          itemBuilder: (context, i) => _ChatRow(chat: shown[i], character: byId[shown[i].characterId]),
+          itemBuilder: (context, i) =>
+              PressLift(child: _ChatRow(chat: shown[i], character: byId[shown[i].characterId])),
         ),
       ),
     ];
@@ -453,40 +460,42 @@ class _TavernHomePageState extends ConsumerState<TavernHomePage> {
                 key: const ValueKey('tavern-library-presets'),
                 icon: AppIcons.article,
                 title: l10n.tavernPresets,
-                value: Text(switch (ref.watch(tavernPresetsProvider).value?.length ?? 0) {
-                  0 => l10n.tavernPersonaNotSet,
-                  final n => l10n.tavernPresetCount(n),
-                }),
+                // 计数用 [RollingCount]：导入一个预设回来时数字滚一次，而不是
+                // "刚才是不是 3"的怀疑。0 仍然写「未设置」那句话。
+                value: RollingCount(
+                  ref.watch(tavernPresetsProvider).value?.length ?? 0,
+                  format: (n) => n == 0 ? l10n.tavernPersonaNotSet : l10n.tavernPresetCount(n),
+                ),
                 onTap: () => unawaited(Navigator.of(context).push(TavernPresetsPage.route())),
               ),
               SettingsTile(
                 key: const ValueKey('tavern-library-lorebooks'),
                 icon: AppIcons.lorebook,
                 title: l10n.tavernLorebooks,
-                value: Text(switch (ref.watch(tavernLorebooksProvider).value?.books.length ?? 0) {
-                  0 => l10n.tavernPersonaNotSet,
-                  final n => l10n.tavernLorebookCount(n),
-                }),
+                value: RollingCount(
+                  ref.watch(tavernLorebooksProvider).value?.books.length ?? 0,
+                  format: (n) => n == 0 ? l10n.tavernPersonaNotSet : l10n.tavernLorebookCount(n),
+                ),
                 onTap: () => unawaited(Navigator.of(context).push(TavernLorebooksPage.route())),
               ),
               SettingsTile(
                 key: const ValueKey('tavern-library-regex'),
                 icon: AppIcons.code,
                 title: l10n.tavernRegex,
-                value: Text(switch (ref.watch(tavernRegexProvider).value?.length ?? 0) {
-                  0 => l10n.tavernPersonaNotSet,
-                  final n => l10n.tavernRegexCount(n),
-                }),
+                value: RollingCount(
+                  ref.watch(tavernRegexProvider).value?.length ?? 0,
+                  format: (n) => n == 0 ? l10n.tavernPersonaNotSet : l10n.tavernRegexCount(n),
+                ),
                 onTap: () => unawaited(Navigator.of(context).push(TavernRegexPage.route())),
               ),
               SettingsTile(
                 key: const ValueKey('tavern-library-scripts'),
                 icon: AppIcons.terminal,
                 title: l10n.tavernScripts,
-                value: Text(switch (tavernScriptCount(ref.watch(tavernGlobalScriptsProvider).value ?? const [])) {
-                  0 => l10n.tavernPersonaNotSet,
-                  final n => l10n.tavernScriptCount(n),
-                }),
+                value: RollingCount(
+                  tavernScriptCount(ref.watch(tavernGlobalScriptsProvider).value ?? const []),
+                  format: (n) => n == 0 ? l10n.tavernPersonaNotSet : l10n.tavernScriptCount(n),
+                ),
                 onTap: () => unawaited(Navigator.of(context).push(TavernScriptsPage.route())),
               ),
               SettingsTile(
@@ -510,10 +519,10 @@ class _TavernHomePageState extends ConsumerState<TavernHomePage> {
                 key: const ValueKey('tavern-library-quick-replies'),
                 icon: AppIcons.reply,
                 title: l10n.tavernQuickReplies,
-                value: Text(switch (ref.watch(tavernQuickRepliesProvider).length) {
-                  0 => l10n.tavernPersonaNotSet,
-                  final n => l10n.tavernQuickReplyCount(n),
-                }),
+                value: RollingCount(
+                  ref.watch(tavernQuickRepliesProvider).length,
+                  format: (n) => n == 0 ? l10n.tavernPersonaNotSet : l10n.tavernQuickReplyCount(n),
+                ),
                 onTap: () => unawaited(Navigator.of(context).push(TavernQuickRepliesPage.route())),
               ),
               SettingsTile(
@@ -583,10 +592,9 @@ class _ChatRow extends ConsumerWidget {
                         name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        // 14/500：列表标题只有这一档（规格 theme-ui §3.1 的 13/medium
-                        // 在手机触控密度上抬一档），字重比 titleSmall 的 600 轻一档，
-                        // 让右侧那行元信息不跟标题抢注意力。
-                        style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w500),
+                        // 卡片标题 13.5/600：层级靠字重不靠字号（App Store 那一档），
+                        // 同屏的元信息因此不用抢位置也不会被标题压住。
+                        style: cardTitleStyle(theme),
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -596,7 +604,8 @@ class _ChatRow extends ConsumerWidget {
                         context.l10n.tavernMessageCount(chat.messageCount),
                         shortTime(chat.updatedAt),
                       ].join(' · '),
-                      style: AppType.tabular(theme.textTheme.labelSmall!.copyWith(color: dsh.textTertiary)),
+                      // 元信息 11/60%：卡里最小的一层。
+                      style: cardMetaStyle(context),
                     ),
                   ],
                 ),
@@ -605,11 +614,8 @@ class _ChatRow extends ConsumerWidget {
                   plainPreviewLines(chat.lastText ?? '', 2),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  // 12/70%：规格 §7.8 的二级文字档，用透明度而不是另一个灰阶。
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: dsh.textTertiary.withValues(alpha: 0.70),
-                    height: 1.4,
-                  ),
+                  // 说明 12/70%：与卡片的另外三层同一份实现（cardNoteStyle）。
+                  style: cardNoteStyle(context),
                 ),
               ],
             ),
@@ -754,7 +760,6 @@ class _CharacterTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final dsh = DshColors.of(context);
     final l10n = context.l10n;
     final favorite = ref.watch(tavernShelfProvider.select((s) => s.favorites.contains(character.id)));
     return Semantics(
@@ -829,20 +834,32 @@ class _CharacterTile extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 8),
-            // 14/500 标题 + 12/70% 标签行（规格 theme-ui §3.1 / page-composition §7.8）。
+            // 标题 13.5/600（卡片那一档）；下面一行是标签（[KitChip]）——
+            // 一排小胶囊比一行用顿号连起来的字更容易一眼扫过。
             Text(
               character.name,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w500),
+              style: cardTitleStyle(theme),
             ),
-            const SizedBox(height: 2),
-            Text(
-              character.tags.isEmpty ? (character.creator ?? '') : character.tags.take(3).join(' · '),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 12, height: 1.4, color: dsh.textTertiary.withValues(alpha: 0.70)),
-            ),
+            const SizedBox(height: 4),
+            // 网格里的卡很窄：标签放不下时末尾渐隐（[ChipRowFade]），而不是把
+            // 最后一枚切一半。标签用中性色——卡里该抢眼的只有名字。
+            if (character.tags.isNotEmpty)
+              ChipRowFade(
+                chips: [
+                  for (final tag in character.tags.take(2))
+                    KitChip(label: tag, color: theme.colorScheme.onSurfaceVariant),
+                ],
+                surface: theme.colorScheme.surfaceContainerLow,
+              )
+            else if ((character.creator ?? '').isNotEmpty)
+              Text(
+                character.creator!,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: cardNoteStyle(context),
+              ),
           ],
         ),
       ),
@@ -860,7 +877,6 @@ class _ContinueCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final dsh = DshColors.of(context);
     final name = chat.kind == TavernChatKind.group ? chat.title : character?.name ?? chat.title;
     return SizedBox(
       width: 256,
@@ -893,14 +909,11 @@ class _ContinueCard extends ConsumerWidget {
                           name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w500),
+                          style: cardTitleStyle(theme),
                         ),
                       ),
                       const SizedBox(width: 6),
-                      Text(
-                        shortTime(chat.updatedAt),
-                        style: AppType.tabular(theme.textTheme.labelSmall!.copyWith(color: dsh.textTertiary)),
-                      ),
+                      Text(shortTime(chat.updatedAt), style: cardMetaStyle(context)),
                     ],
                   ),
                   const SizedBox(height: 4),
@@ -908,10 +921,7 @@ class _ContinueCard extends ConsumerWidget {
                     plainPreviewLines(chat.lastText ?? '', 4),
                     maxLines: 4,
                     overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: dsh.textTertiary.withValues(alpha: 0.70),
-                      height: 1.4,
-                    ),
+                    style: cardNoteStyle(context),
                   ),
                 ],
               ),

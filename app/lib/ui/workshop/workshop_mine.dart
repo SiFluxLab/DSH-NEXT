@@ -23,6 +23,7 @@ import '../common/empty_view.dart';
 import '../common/fade_in.dart';
 import '../common/status_chip.dart';
 import '../kit/kit_list.dart';
+import '../plugins/list_chrome.dart';
 import '../theme/app_icons.dart';
 import '../theme/theme.dart';
 import 'workshop_mine_access.dart';
@@ -143,8 +144,10 @@ class _WorkshopMineSliverState extends ConsumerState<WorkshopMineSliver> {
                   icon: AppIcons.offline,
                   title: l10n.workshopMineLoadFailed,
                   message: workshopExceptionText(l10n, error),
-                  actionLabel: l10n.commonRetry,
-                  onAction: subs.busy ? null : () => unawaited(_refresh()),
+                  action: EmptyAction(
+                    label: l10n.commonRetry,
+                    onPressed: subs.busy ? null : () => unawaited(_refresh()),
+                  ),
                 ),
               ),
             ),
@@ -239,8 +242,10 @@ class _WorkshopMineSliverState extends ConsumerState<WorkshopMineSliver> {
                   icon: AppIcons.offline,
                   title: l10n.workshopMineLoadFailed,
                   message: workshopExceptionText(l10n, error),
-                  actionLabel: l10n.commonRetry,
-                  onAction: subs.busy ? null : () => unawaited(_refresh()),
+                  action: EmptyAction(
+                    label: l10n.commonRetry,
+                    onPressed: subs.busy ? null : () => unawaited(_refresh()),
+                  ),
                 ),
               ),
               null => const _Ring(top: 40),
@@ -255,37 +260,43 @@ class _WorkshopMineSliverState extends ConsumerState<WorkshopMineSliver> {
                       icon: AppIcons.workshop,
                       title: l10n.workshopMineEmptyTitle,
                       message: uploadsOff ? l10n.workshopErrorUploadOff : l10n.workshopMineEmptyMessage,
-                      actionLabel: uploadsOff ? null : l10n.workshopMinePublish,
-                      onAction: uploadsOff ? null : () => unawaited(_publish()),
+                      action: uploadsOff
+                          ? null
+                          : EmptyAction(label: l10n.workshopMinePublish, onPressed: () => unawaited(_publish())),
                     )
                   : EmptyView(icon: AppIcons.search, title: l10n.workshopMineEmptyFiltered),
             ),
           )
         else ...[
+          // 组标题 + 计数（计数变化时滚一次）。这里数的是**已经读到**的条目，
+          // 翻页后继续往后加，不假装它是全部。
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(18, 4, 18, 0),
+              // 标题跟着筛选走（与上面那排胶囊同一句话），而不是重复页签名：
+              // 列表里看到的是"待审核"，标题就写"待审核"。
+              child: WorkshopGroupHeader(
+                title: switch (subs.status) {
+                  null => l10n.workshopKindAll,
+                  final status => workshopStatusLabel(l10n, status),
+                },
+                count: items.length,
+              ),
+            ),
+          ),
           SliverList.builder(
             itemCount: items.length,
             itemBuilder: (context, i) {
-              final first = i == 0;
-              final last = i == items.length - 1;
               final item = items[i];
+              // 一条投稿一张卡，卡与卡之间 12。
               return FadeSlideIn(
                 key: ValueKey(item.id),
                 index: i,
-                // 一张连续的分组卡：首末行 12 圆角、行间 0.5px（规格 §2.2 / §3.2）。
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: KitRowSurface(
-                    position: items.length == 1
-                        ? KitRowPosition.single
-                        : first
-                        ? KitRowPosition.first
-                        : last
-                        ? KitRowPosition.last
-                        : KitRowPosition.middle,
-                    child: WorkshopSubmissionRow(
-                      submission: item,
-                      onTap: () => unawaited(showWorkshopSubmissionSheet(context, item, session: subs.session)),
-                    ),
+                  child: WorkshopSubmissionRow(
+                    submission: item,
+                    onTap: () => unawaited(showWorkshopSubmissionSheet(context, item, session: subs.session)),
                   ),
                 ),
               );
@@ -295,17 +306,23 @@ class _WorkshopMineSliverState extends ConsumerState<WorkshopMineSliver> {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: Center(
-                  child: subs.operation == WorkshopSubmissionsOperation.more
-                      ? const Padding(
-                          padding: EdgeInsets.all(14),
-                          child: SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2)),
-                        )
-                      : TextButton(
+                child: subs.operation == WorkshopSubmissionsOperation.more
+                    // 翻页也在等，但等的还是卡片：两张骨架，列表不会因为
+                    // "换成一个转圈"在这个高度上跳一下。
+                    ? ListSkeleton(
+                        rows: 2,
+                        avatar: 40,
+                        lines: 2,
+                        trailing: 0,
+                        label: l10n.remoteLoading,
+                        padding: EdgeInsets.zero,
+                      )
+                    : Center(
+                        child: TextButton(
                           onPressed: subs.busy ? null : () => unawaited(_more()),
                           child: Text(l10n.workshopMineLoadMore),
                         ),
-                ),
+                      ),
               ),
             ),
         ],
@@ -349,7 +366,8 @@ class _AccountLine extends ConsumerWidget {
   }
 }
 
-/// One submission: square · title / kind · version · the status chip.
+/// One submission: square · title 13.5/600 · kind · version · 状态标签
+/// （审核状态仍然用 [StatusChip]：它带语气色，是"状态"不是"标签"）。
 class WorkshopSubmissionRow extends StatelessWidget {
   const WorkshopSubmissionRow({super.key, required this.submission, this.onTap});
 
@@ -360,11 +378,11 @@ class WorkshopSubmissionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final meta = submission.metadata;
-    // 14/500 标题 + 12/70% 说明 + 32 方块 + 状态标签（规格 theme-ui §3.1，§7.1 的角标）。
-    return KitRow(
-      leading: WorkshopAvatar(meta, size: 32),
+    return WorkshopCard(
+      avatar: WorkshopAvatar(meta, size: 40),
       title: workshopTitleOf(meta, Localizations.localeOf(context).languageCode),
-      note: '${workshopKindText(l10n, meta.kind)} · ${meta.version}',
+      line: '${workshopKindText(l10n, meta.kind)} · ${meta.version}',
+      chips: workshopTagChips(context, meta),
       trailing: StatusChip(
         tone: workshopStatusTone(submission.status),
         label: workshopStatusLabel(l10n, submission.status),
@@ -374,7 +392,7 @@ class WorkshopSubmissionRow extends StatelessWidget {
   }
 }
 
-/// The quiet ring of a first read.
+/// The first read of the list: six cards' worth of placeholders.
 class _Ring extends StatelessWidget {
   const _Ring({this.top = 64});
 
@@ -383,6 +401,6 @@ class _Ring extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: EdgeInsets.only(top: top),
-    child: const Center(child: SizedBox.square(dimension: 22, child: CircularProgressIndicator(strokeWidth: 2))),
+    child: ListSkeleton(rows: 6, avatar: 40, lines: 2, trailing: 0, label: context.l10n.remoteLoading),
   );
 }

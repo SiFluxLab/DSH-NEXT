@@ -16,7 +16,7 @@ import '../bots/bot_format.dart' show shortTime;
 import '../common/app_sheet.dart';
 import '../common/empty_view.dart';
 import '../common/sheet_title_bar.dart';
-import '../features/feature_kit.dart' show QuietSpinner;
+import '../kit/kit.dart';
 import '../settings/settings_widgets.dart';
 import '../shell/page_frame.dart';
 import '../theme/app_icons.dart';
@@ -133,10 +133,7 @@ class _TavernRunsPageState extends ConsumerState<TavernRunsPage> {
           title: l10n.tavernRuns,
           children: [
             if (runs == null && !snapshot.hasError)
-              const Padding(
-                padding: EdgeInsets.only(top: 48),
-                child: Center(child: QuietSpinner()),
-              )
+              KitSkeleton(rows: 6, rowHeight: Kit.rowHeightTwo, semanticLabel: l10n.remoteLoading)
             else if (runs == null || runs.isEmpty)
               Padding(
                 key: const ValueKey('tavern-runs-empty'),

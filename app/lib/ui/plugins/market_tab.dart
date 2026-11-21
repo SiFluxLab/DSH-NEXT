@@ -12,6 +12,7 @@ import '../common/list_page_row.dart';
 import '../common/search_capsule.dart';
 import '../features/feature_kit.dart';
 import '../theme/app_icons.dart';
+import 'list_chrome.dart';
 import '../theme/theme.dart';
 import 'market_widgets.dart';
 import 'plugin_detail_sheet.dart';
@@ -145,11 +146,14 @@ class _MarketSliverState extends ConsumerState<MarketSliver> {
               child: Row(
                 children: [
                   Expanded(
-                    child: Text(
-                      (official.value?.entries.isNotEmpty ?? false)
-                          ? l10n.marketCombinedCount(results.length)
-                          : l10n.pluginsMarketCount(results.length),
-                      style: AppType.tabular(theme.textTheme.bodySmall!.copyWith(color: colors.textTertiary)),
+                    // 结果数在筛选、搜索、目录刷新之间会变：滚一次比直接换字更能
+                    // 说明"它变了"（见 [RollingCount]）。数字用等宽数字，滚动时不抖宽。
+                    child: RollingCount(
+                      results.length,
+                      format: (official.value?.entries.isNotEmpty ?? false)
+                          ? l10n.marketCombinedCount
+                          : l10n.pluginsMarketCount,
+                      style: theme.textTheme.bodySmall!.copyWith(color: colors.textTertiary),
                     ),
                   ),
                   if (hidden > 0 || filter.showWebOnly)
@@ -204,18 +208,25 @@ class _MarketSliverState extends ConsumerState<MarketSliver> {
         index: i,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Material(
-            color: DshSurfaces.of(context).card.fill,
-            clipBehavior: Clip.antiAlias,
-            shape: RoundedSuperellipseBorder(
-              borderRadius: BorderRadius.vertical(
-                top: first ? AppShape.radiusLg.topLeft : Radius.zero,
-                bottom: last ? AppShape.radiusLg.bottomLeft : Radius.zero,
+          // 卡片按住时抬升 2px（长按抬升，松手回弹）：这一页的卡是一整块连续面，
+          // 抬起的那张会自己在阴影里浮起来，而列表不会因此重新排版。
+          child: PressLift(
+            // 影子跟着卡的圆角走：这一页的卡是 20 圆角（AppShape.lg），
+            // 用默认的 12 会让影子在四个角上"露出来"。
+            radius: AppShape.lg,
+            child: Material(
+              color: DshSurfaces.of(context).card.fill,
+              clipBehavior: Clip.antiAlias,
+              shape: RoundedSuperellipseBorder(
+                borderRadius: BorderRadius.vertical(
+                  top: first ? AppShape.radiusLg.topLeft : Radius.zero,
+                  bottom: last ? AppShape.radiusLg.bottomLeft : Radius.zero,
+                ),
               ),
-            ),
-            child: Padding(
-              padding: EdgeInsets.only(top: first ? 4 : 0, bottom: last ? 4 : 0),
-              child: MarketCard(key: ValueKey(entries[i].name), entry: entries[i]),
+              child: Padding(
+                padding: EdgeInsets.only(top: first ? 4 : 0, bottom: last ? 4 : 0),
+                child: MarketCard(key: ValueKey(entries[i].name), entry: entries[i]),
+              ),
             ),
           ),
         ),
@@ -326,6 +337,12 @@ class _CategoryChip extends StatelessWidget {
   );
 }
 
+/// 卡片里的标题：13.5/600。比 [pluginRowTitle]（15/600）小半档、轻一点——
+/// 市场这一屏同时有官方推荐卡和全部列表，标题统一在卡这一档，读起来才是一组
+/// 同级的"应用"，而不是"推荐是大字、全部是小字"。
+TextStyle? marketCardTitle(BuildContext context) =>
+    Theme.of(context).textTheme.titleSmall?.copyWith(fontSize: 13.5, fontWeight: FontWeight.w600, height: 1.4);
+
 /// One market entry, app-store style: icon · name / author · one line ·
 /// the 获取 capsule, inside the lazily built segmented card.
 class MarketCard extends ConsumerWidget {
@@ -368,7 +385,7 @@ class MarketCard extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: pluginRowTitle(context)),
+                    Text(title, maxLines: 2, overflow: TextOverflow.ellipsis, style: marketCardTitle(context)),
                     if (line.isNotEmpty) ...[
                       const SizedBox(height: 2),
                       Text(
@@ -381,7 +398,9 @@ class MarketCard extends ConsumerWidget {
                     ],
                     if (badges.isNotEmpty) ...[
                       const SizedBox(height: 6),
-                      Wrap(spacing: 4, runSpacing: 4, children: badges),
+                      // 标签行只占一行，放不下时末尾渐隐（不是硬切）——
+                      // 官方卡常有三枚标签，换成两行会把右缘的胶囊挤歪。
+                      ChipRowFade(chips: badges, surface: DshSurfaces.of(context).card.fill),
                     ],
                   ],
                 ),
@@ -398,7 +417,7 @@ class MarketCard extends ConsumerWidget {
       leading: PluginAvatar(name: plugin.name, title: title, icon: plugin.icon),
       leadingWidth: 40,
       title: title,
-      titleStyle: pluginRowTitle(context),
+      titleStyle: marketCardTitle(context),
       badge: badges.isEmpty ? null : Row(mainAxisSize: MainAxisSize.min, spacing: 4, children: badges),
       subtitle: line.isEmpty ? null : line,
       subtitleColor: failed != null ? colors.danger : null,

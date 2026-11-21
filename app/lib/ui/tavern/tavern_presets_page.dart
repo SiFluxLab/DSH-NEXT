@@ -20,6 +20,7 @@ import '../common/sheet_title_bar.dart';
 import '../features/feature_kit.dart';
 import '../settings/settings_widgets.dart';
 import '../shell/page_frame.dart';
+import '../kit/kit.dart';
 import '../theme/app_icons.dart';
 import '../theme/theme.dart';
 import 'tavern_chat_files.dart';
@@ -264,7 +265,8 @@ class TavernPresetsPage extends ConsumerWidget {
       ],
       children: [
         if (presets == null)
-          const QuietSpinner()
+          // 第一读：六行占位（不是转圈）。
+          KitSkeleton(rows: 6, rowHeight: Kit.rowHeightTwo, semanticLabel: l10n.remoteLoading)
         else ...[
           SettingsSection(
             // Only the built-in one so far: what can be added, under it.

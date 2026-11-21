@@ -14,7 +14,7 @@ import '../../l10n/l10n.dart';
 import '../../tavern/tavern_provider.dart';
 import '../common/app_sheet.dart';
 import '../common/brief_notice.dart';
-import '../features/feature_kit.dart';
+import '../kit/kit.dart';
 import '../settings/settings_widgets.dart';
 import '../shell/page_frame.dart';
 import '../theme/app_icons.dart';
@@ -221,7 +221,7 @@ class TavernGroupPage extends ConsumerWidget {
       title: l10n.tavernGroupSettings,
       children: [
         if (group == null)
-          const QuietSpinner()
+          KitSkeleton(rows: 5, rowHeight: Kit.rowHeightTwo, semanticLabel: l10n.remoteLoading)
         else ...[
           SettingsSection(
             children: [

@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 
 import '../../l10n/l10n.dart';
 import '../../state/plugins_state.dart';
+import '../common/haptics.dart';
+import '../kit/kit.dart';
 import '../theme/app_icons.dart';
 import '../theme/theme.dart';
 import '../common/brief_notice.dart';
@@ -144,14 +146,37 @@ class PluginBadge extends StatelessWidget {
 enum PluginBadgeTone { neutral, official, featured, warning, danger }
 
 /// The app-store capsule at the end of a market row: 获取 / 更新 / 已安装,
-/// or a small ring with 安装中 while an install runs. Every state opens the
-/// detail sheet ([onPressed]); installing always goes through it.
-class PluginInstallButton extends StatelessWidget {
+/// or a **16px ring** while an install runs. Every state opens the detail sheet
+/// ([onPressed]); installing always goes through it.
+///
+/// 环 16：和工坊的获取胶囊同一档（那边也是 16）。两处安装进度长得不一样，
+/// 用户会以为其中一个是"别的东西"。
+///
+/// 装完那一下给一次 `mediumImpact`：这是提交类动作落定的声音。
+/// 只认 "job 在跑 → 不跑了且已安装" 这一步，别的重建（列表刷新、切页签、
+/// 别的插件装完）都不震。
+class PluginInstallButton extends StatefulWidget {
   const PluginInstallButton({super.key, required this.status, this.job, this.onPressed});
 
   final MarketInstallStatus status;
   final PluginInstallJob? job;
   final VoidCallback? onPressed;
+
+  @override
+  State<PluginInstallButton> createState() => _PluginInstallButtonState();
+}
+
+class _PluginInstallButtonState extends State<PluginInstallButton> {
+  @override
+  void didUpdateWidget(PluginInstallButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final was = oldWidget.job?.isActive ?? false;
+    final now = widget.job?.isActive ?? false;
+    if (was && !now && widget.status == MarketInstallStatus.installed) {
+      // 唯一出口，见 ui/common/haptics.dart：这里是"装好了"的提交类落定。
+      Haptics.commit();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -160,13 +185,13 @@ class PluginInstallButton extends StatelessWidget {
     final scheme = theme.colorScheme;
     final colors = DshColors.of(context);
     final dark = theme.brightness == Brightness.dark;
-    final running = job?.isActive ?? false;
-    final installed = !running && status == MarketInstallStatus.installed;
+    final running = widget.job?.isActive ?? false;
+    final installed = !running && widget.status == MarketInstallStatus.installed;
     final track = dark ? Colors.white.withValues(alpha: 0.09) : scheme.onSurface.withValues(alpha: 0.06);
     final fg = installed ? colors.textTertiary : scheme.primary;
     final label = running
         ? l10n.pluginsInstalling
-        : switch (status) {
+        : switch (widget.status) {
             MarketInstallStatus.installed => l10n.commonInstalled,
             MarketInstallStatus.updateAvailable => l10n.commonUpdate,
             MarketInstallStatus.notInstalled => l10n.pluginsGet,
@@ -183,17 +208,17 @@ class PluginInstallButton extends StatelessWidget {
         elevation: 0,
         textStyle: theme.textTheme.labelLarge?.copyWith(fontSize: 13.5),
       ),
-      onPressed: onPressed,
+      onPressed: widget.onPressed,
       child: AnimatedSwitcher(
-        duration: AppMotion.of(context, AppMotion.quick),
+        duration: KitMotion.of(context, AppMotion.quick),
         child: Row(
           key: ValueKey(label),
           mainAxisSize: MainAxisSize.min,
           children: [
             if (running) ...[
               SizedBox.square(
-                dimension: 12,
-                child: CircularProgressIndicator(strokeWidth: 1.8, strokeCap: StrokeCap.round, color: fg),
+                dimension: 16,
+                child: CircularProgressIndicator(strokeWidth: 2, strokeCap: StrokeCap.round, color: fg),
               ),
               const SizedBox(width: 6),
             ],

@@ -19,6 +19,7 @@ import '../common/app_sheet.dart';
 import '../common/discard_guard.dart';
 import '../common/sheet_title_bar.dart';
 import '../features/feature_kit.dart';
+import '../kit/kit.dart';
 import '../providers/provider_widgets.dart';
 import '../settings/settings_widgets.dart';
 import '../shell/page_frame.dart';
@@ -99,7 +100,7 @@ class TavernPersonasPage extends ConsumerWidget {
       ],
       children: [
         if (personas == null)
-          const QuietSpinner()
+          KitSkeleton(rows: 6, rowHeight: Kit.rowHeightTwo, semanticLabel: l10n.remoteLoading)
         else if (personas.isEmpty)
           EmptyView(
             icon: AppIcons.profile,

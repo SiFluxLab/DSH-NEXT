@@ -15,6 +15,7 @@ import '../features/feature_kit.dart';
 import '../features/feature_widgets.dart';
 import '../theme/app_icons.dart';
 import '../theme/theme.dart';
+import 'list_chrome.dart';
 import 'plugin_actions.dart';
 import 'plugin_detail_sheet.dart';
 import 'plugin_widgets.dart';
@@ -213,8 +214,9 @@ class BundleTile extends ConsumerWidget {
 
     Widget? trailing;
     if (running) {
+      // 与获取胶囊里的进度环同一档 16：两处"在装"必须长得一样。
       trailing = const SizedBox.square(
-        dimension: 18,
+        dimension: 16,
         child: CircularProgressIndicator(strokeWidth: 2, strokeCap: StrokeCap.round),
       );
     } else if (!readOnly && bundle.isOnDemand) {
@@ -288,7 +290,7 @@ class _PendingTile extends ConsumerWidget {
               child: Text(l10n.commonCancel),
             )
           : const SizedBox.square(
-              dimension: 18,
+              dimension: 16,
               child: CircularProgressIndicator(strokeWidth: 2, strokeCap: StrokeCap.round),
             ),
     );
@@ -307,8 +309,8 @@ class _EmptyInstalled extends StatelessWidget {
       art: const FeatureTile(FeatureKind.plugins, size: FeatureTile.empty),
       title: l10n.pluginsNoThirdParty,
       message: l10n.pluginsPluginsDescription,
-      actionLabel: l10n.pluginsBrowseMarket,
-      onAction: onBrowse,
+      // 空态只有一个动作，而且它会在停留 3s 后自己呼吸一次（[EmptyAction]）。
+      action: EmptyAction(label: l10n.pluginsBrowseMarket, onPressed: onBrowse),
       padding: const EdgeInsets.fromLTRB(32, 24, 32, 8),
     );
   }

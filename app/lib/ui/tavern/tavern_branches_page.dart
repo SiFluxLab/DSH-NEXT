@@ -18,6 +18,7 @@ import '../../tavern/tavern_provider.dart';
 import '../common/app_sheet.dart';
 import '../common/brief_notice.dart';
 import '../features/feature_kit.dart';
+import '../kit/kit.dart';
 import '../settings/settings_widgets.dart';
 import '../shell/page_frame.dart';
 import '../theme/app_icons.dart';
@@ -284,7 +285,7 @@ class _TavernBranchesPageState extends ConsumerState<TavernBranchesPage> {
       title: l10n.tavernBranches,
       children: [
         if (rows == null)
-          const QuietSpinner()
+          KitSkeleton(rows: 6, semanticLabel: l10n.remoteLoading)
         else if (rows.isEmpty)
           // 空态统一走 EmptyView（图标砖 + 13/600 主文案），
           // 不再自绘一行灰字：同一屏里两种空态是最容易被看出来的不一致。
