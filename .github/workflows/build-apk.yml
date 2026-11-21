@@ -233,27 +233,6 @@ jobs:
                       /usr/local/lib/android/sdk/ndk/29* || true
           df -h / | tail -1
 
-      # plugins.gradle.org times out from these runners every few runs; the mirrors
-      # answer the same coordinates and are tried first.
-      - name: Gradle mirrors
-        shell: bash
-        run: |
-          mkdir -p ~/.gradle
-          cat > ~/.gradle/init.gradle <<'EOF'
-          def mirrors = ['https://maven.aliyun.com/repository/gradle-plugin',
-                         'https://maven.aliyun.com/repository/public',
-                         'https://maven.aliyun.com/repository/google']
-          settingsEvaluated { settings ->
-            settings.pluginManagement.repositories {
-              mirrors.each { m -> maven { url m } }
-            }
-          }
-          allprojects {
-            buildscript.repositories { mirrors.each { m -> maven { url m } } }
-            repositories { mirrors.each { m -> maven { url m } } }
-          }
-          EOF
-
       - name: pub get
         working-directory: app
         run: flutter pub get
