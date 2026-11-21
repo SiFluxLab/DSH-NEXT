@@ -28089,6 +28089,9 @@ class L10nEn extends L10n {
   String get sceneQuietHint => 'No blur, no blade, no animations, refresh rate left to the system';
   String get phoneAccentCobalt => 'Cobalt';
   String get phoneAccentIris => 'Iris';
+  String get opticsEffective => 'In effect';
+  String get opticsOn => 'on';
+  String get opticsOff => 'off';
   String get workshopTitle => 'Workshop';
 
   @override

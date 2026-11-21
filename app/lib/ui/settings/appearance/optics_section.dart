@@ -18,6 +18,20 @@ String opticsPresetLabel(L10n l10n, OpticsPreset preset) => switch (preset) {
   OpticsPreset.silent => l10n.opticsSilent,
 };
 
+/// 「当前生效」：把最终值写出来。用户关掉某项后能确认它真的关掉了，
+/// 系统偏好把它压低时也能看见原因。
+String _effectiveLine(L10n l10n, Optics optics) {
+  String onOff(bool v) => v ? l10n.opticsOn : l10n.opticsOff;
+  return [
+    '${l10n.opticsBlade} ${onOff(optics.blade > 0)}',
+    '${l10n.opticsPrism} ${onOff(optics.prism > 0)}',
+    '${l10n.opticsAnticipation} ${onOff(optics.anticipation)}',
+    '${l10n.opticsAfterglow} ${onOff(optics.afterglow)}',
+    '${l10n.opticsInkFade} ${onOff(optics.inkFade)}',
+    'blur ${optics.blurSigma.toStringAsFixed(0)}',
+  ].join(' · ');
+}
+
 String opticsPresetHint(L10n l10n, OpticsPreset preset) => switch (preset) {
   OpticsPreset.full => l10n.opticsFullHint,
   OpticsPreset.focus => l10n.opticsFocusHint,
@@ -41,6 +55,12 @@ class OpticsSection extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
           child: _BladePreview(optics: optics),
+        ),
+        SettingsTile(
+          key: const ValueKey('optics-effective'),
+          title: l10n.opticsEffective,
+          subtitle: _effectiveLine(l10n, optics),
+          chevron: false,
         ),
         SettingsSegmentTile<OpticsPreset>(
           key: const ValueKey('optics-preset'),

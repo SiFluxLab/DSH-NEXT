@@ -18,5 +18,8 @@
   "opticsAfterglowHint": "A faint rim of light for waiting-on-you, aborted and finished-in-background states, instead of a dialog",
   "opticsInkFade": "Ink fade",
   "opticsInkFadeHint": "Streamed text arrives from light to solid in five steps; existing text never re-animates",
-  "opticsFollowPreset": "Follow the preset"
+  "opticsFollowPreset": "Follow the preset",
+  "opticsEffective": "In effect",
+  "opticsOn": "on",
+  "opticsOff": "off"
 }

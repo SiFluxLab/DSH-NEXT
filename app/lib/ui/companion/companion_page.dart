@@ -3092,7 +3092,12 @@ class _CompanionPageState extends ConsumerState<CompanionPage> implements Compan
       onProbe: _onProbe,
     );
     return Scaffold(
-      backgroundColor: const Color(0xFF0D2F55),
+      // 舞台的底不再是一块写死的深海蓝：取当前表面配色的背景，再叠一层很淡的主色，
+      // 这样切黑曜/暖炭时整页（含舞台边缘）是同一套色温；舞台内部的天空仍是场景自己的事。
+      backgroundColor: Color.alphaBlend(
+        Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+        DshSurfaces.of(context).backdropBottom,
+      ),
       resizeToAvoidBottomInset: false,
       body: Stack(
         fit: StackFit.expand,

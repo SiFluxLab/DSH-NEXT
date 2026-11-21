@@ -26651,6 +26651,9 @@ class L10nZh extends L10n {
   String get sceneQuietHint => '不做模糊、不画光刃、关动画，刷新率交给系统';
   String get phoneAccentCobalt => '钴蓝';
   String get phoneAccentIris => '鸢尾';
+  String get opticsEffective => '当前生效';
+  String get opticsOn => '开';
+  String get opticsOff => '关';
   String get workshopTitle => '创意工坊';
 
   @override

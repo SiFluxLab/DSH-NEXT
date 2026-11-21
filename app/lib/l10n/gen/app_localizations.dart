@@ -48854,6 +48854,24 @@ abstract class L10n {
   /// **'鸢尾'**
   String get phoneAccentIris;
 
+  /// No description provided for @opticsEffective.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前生效'**
+  String get opticsEffective;
+
+  /// No description provided for @opticsOn.
+  ///
+  /// In zh, this message translates to:
+  /// **'开'**
+  String get opticsOn;
+
+  /// No description provided for @opticsOff.
+  ///
+  /// In zh, this message translates to:
+  /// **'关'**
+  String get opticsOff;
+
   /// No description provided for @workshopTitle.
   ///
   /// In zh, this message translates to:

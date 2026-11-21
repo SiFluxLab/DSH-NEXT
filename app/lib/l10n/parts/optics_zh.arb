@@ -18,5 +18,8 @@
   "opticsAfterglowHint": "等待你决定、异常中止、后台任务完成时，屏幕边缘给一层极淡的光，不弹窗",
   "opticsInkFade": "流光文字",
   "opticsInkFadeHint": "流式输出的新字由淡到实，五级过渡，旧字不动",
-  "opticsFollowPreset": "跟随所选档位"
+  "opticsFollowPreset": "跟随所选档位",
+  "opticsEffective": "当前生效",
+  "opticsOn": "开",
+  "opticsOff": "关"
 }
