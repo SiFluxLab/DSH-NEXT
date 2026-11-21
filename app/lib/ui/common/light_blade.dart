@@ -9,8 +9,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../theme/motion.dart';
-import '../theme/optics.dart';
 import '../theme/theme.dart';
 
 class LightBlade extends StatefulWidget {

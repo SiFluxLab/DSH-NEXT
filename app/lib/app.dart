@@ -20,7 +20,6 @@ import 'ui/common/keyboard_motion.dart';
 import 'ui/common/side_insets.dart';
 import 'ui/launch/launch_overlay.dart';
 import 'ui/shell/root_gate.dart';
-import 'ui/theme/optics.dart';
 import 'ui/theme/theme.dart';
 import 'ui_config/ui_config_state.dart';
 import 'usage/usage_stats.dart';
