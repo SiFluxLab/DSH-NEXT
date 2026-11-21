@@ -21,7 +21,7 @@ export 'index/spots.dart' show SettingSpot, SettingsIndex, SettingsPageId, Spots
 
 /// Page-level group spacing: groups sit 24 apart,
 /// flush with the 16 page gutter.
-const kSettingsGroupMargin = EdgeInsets.fromLTRB(16, 0, 16, 24);
+const kSettingsGroupMargin = EdgeInsets.fromLTRB(16, 0, 16, 20);
 
 /// The measured geometry every settings-style row shares. Change it here and in
 /// `test/settings/settings_geometry_test.dart` together.
@@ -49,13 +49,14 @@ abstract final class SettingsMetrics {
 
   /// Where titles start in rows with an icon.
   static const textStart = inset + icon + iconGap;
-  static const rowHeight = 52.0;
-  static const rowHeightTwoLine = 64.0;
+  static const rowHeight = 48.0;
+  static const rowHeightTwoLine = 58.0;
 }
 
-/// Title style of every settings row (15 / 1.4).
+/// 行标题：14 / 500。vetta 的列表是 `text-[13px]`、标题只多一个 `font-semibold`；
+/// 手机上 13 偏小，这里取 14 并把字重降到 500，密度接近而可读性保住。
 TextStyle? settingsTitleStyle(BuildContext context) =>
-    Theme.of(context).textTheme.bodyLarge?.copyWith(fontSize: 15, height: 1.4);
+    Theme.of(context).textTheme.bodyLarge?.copyWith(fontSize: 14, height: 1.35, fontWeight: FontWeight.w500);
 
 /// Round tinted icon for a settings row. [tint] picks one of the 8 fixed identity
 /// pairs (pastel container + deep glyph). On hub pages every row of a group uses

@@ -29,8 +29,15 @@ export 'sheet_dismissal.dart' show SheetDismissal, SheetDismissScope, SheetDragH
 const double kSheetGutter = SheetTitleBar.inset;
 
 /// 分组小标题的字:[SheetGroup]、`ListPageCard`、`SettingsSection` 共用一种。
-TextStyle? groupTitleStyle(BuildContext context) =>
-    Theme.of(context).textTheme.labelLarge?.copyWith(color: DshColors.of(context).textTertiary);
+/// 分组标题：13 / 600。数字取自 open-vetta 的 `text-[13px] font-semibold` ——
+/// 它比正文字号小一档、靠字重和颜色区分层级，而不是靠变大。
+TextStyle? groupTitleStyle(BuildContext context) => Theme.of(context).textTheme.labelLarge?.copyWith(
+  fontSize: 13,
+  height: 1.3,
+  fontWeight: FontWeight.w600,
+  letterSpacing: 0.2,
+  color: DshColors.of(context).textTertiary,
+);
 
 /// 标记"这里是 showAppSheet 弹出的弹层",让 [SheetGroup] 默认用弹层留白。
 class _InAppSheet extends InheritedWidget {
@@ -364,20 +371,24 @@ class SheetGroup extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
               child: Semantics(header: true, child: Text(label, style: groupTitleStyle(context))),
             ),
-          GlassSurface(
-            tier: GlassTier.card,
-            borderRadius: AppShape.radiusLg,
+          // **内容是平的，只有 chrome 才是玻璃。**
+          //
+          // 这一条取自 open-vetta 的页面：卡片是"实色面 + 0.5px 细线 + 圆角 12"，
+          // 没有模糊、没有外投影。玻璃留给顶栏、输入条、弹层这些真正"浮在内容上"
+          // 的东西——两者混在一起时，页面会显得脏而不是通透。
+          FlatPanel(
+            radius: AppShape.lg,
             child: Material(
-              // 水波画在玻璃之上,而不是被半透明填充盖住。
+              // 水波画面之上,而不是被面板填充盖住。
               type: MaterialType.transparency,
               clipBehavior: Clip.antiAlias,
-              shape: const RoundedSuperellipseBorder(borderRadius: AppShape.radiusLg),
+              shape: RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(AppShape.lg)),
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
+                padding: const EdgeInsets.symmetric(vertical: 2),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    for (final (index, child) in children.indexed) ...[if (index > 0) const SizedBox(height: 2), child],
+                    for (final (index, child) in children.indexed) ...[if (index > 0) const SizedBox(height: 0.5), child],
                   ],
                 ),
               ),
@@ -385,6 +396,31 @@ class SheetGroup extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// 内容面板：实色面 + 0.5px 细线 + 圆角。不模糊、不投影。
+///
+/// 颜色取 `surfaceContainerLow` 并在其上叠一层极淡的 surface，让它在渐变页面上
+/// 仍然读作"一张纸"，而不是一块半透明色块。
+class FlatPanel extends StatelessWidget {
+  const FlatPanel({super.key, required this.child, this.radius = 12, this.padding});
+
+  final Widget child;
+  final double radius;
+  final EdgeInsetsGeometry? padding;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Color.alphaBlend(scheme.surfaceContainerLow, scheme.surface),
+        borderRadius: BorderRadius.circular(radius),
+        border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.7), width: 0.5),
+      ),
+      child: Padding(padding: padding ?? EdgeInsets.zero, child: child),
     );
   }
 }

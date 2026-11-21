@@ -162,11 +162,39 @@ class _AppPageState extends State<AppPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Semantics(header: true, namesRoute: true, child: Text(widget.title, style: theme.textTheme.headlineLarge)),
+            // 大标题照 vetta 的做法：26 / 700、字距收紧，并且用一层**从前景色到 70% 前景色**
+            // 的对角渐变做文字填充——它让标题有方向感，而不是一块死色。
+            Semantics(
+              header: true,
+              namesRoute: true,
+              child: ShaderMask(
+                blendMode: BlendMode.srcIn,
+                shaderCallback: (rect) => LinearGradient(
+                  begin: AlignmentDirectional.topStart,
+                  end: AlignmentDirectional.bottomEnd,
+                  colors: [
+                    theme.colorScheme.onSurface,
+                    theme.colorScheme.onSurface.withValues(alpha: 0.72),
+                  ],
+                ).createShader(rect),
+                child: Text(
+                  widget.title,
+                  style: theme.textTheme.headlineLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.55,
+                    height: 1.18,
+                  ),
+                ),
+              ),
+            ),
             if (widget.subtitle case final subtitle?) ...[
               const SizedBox(height: 4),
               DefaultTextStyle.merge(
-                style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontSize: 12,
+                  height: 1.45,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
                 child: subtitle,
               ),
             ],
