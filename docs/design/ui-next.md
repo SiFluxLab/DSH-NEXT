@@ -152,3 +152,22 @@
 > 中文注意：负字距只用在 display / headline（大字号、字少），正文与列表不加，
 > 否则中文会显得挤。
 
+## 9. 改动索引（谁改了什么，去哪儿看）
+
+| 想看的效果 | 代码入口 | 用户入口 |
+|---|---|---|
+| 三档光感 / 四个单项开关 | `ui/theme/optics.dart`、`ui/common/light_blade.dart` | 设置 › 外观 › 光感与动效 |
+| 一键场景（光感+动画+玻璃+刷新率） | `state/scene_preset.dart` | 设置 › 外观 › 一键设置 |
+| 表面配色（黑曜 / 暖炭） | `ui/theme/surface_palette.dart`、`ui/theme/surfaces.dart` | 设置 › 外观 › 表面配色 |
+| 玻璃的模糊与镜面强度 | `ui/theme/glass.dart`（读 `Optics`） | 同上 |
+| 背景辉光在静默档消失 | `ui/theme/backdrop.dart` | 静默省电档 |
+| 顶栏光刃的四种状态 | `state/blade_state.dart`、`ui/common/app_blade.dart` | 光感 › 光刃 |
+| 等待决定 / 异常中止的余晖 | `ui/common/app_blade.dart`（`EdgeAfterglow`） | 光感 › 边缘余晖 |
+| 流式正文的湿墨尾迹、流光光标 | `ui/chat/widgets/assistant_message.dart`、`ui/common/streaming_cursor.dart` | 光感 › 流光文字 |
+| 列表入场编排 | `ui/common/fade_in.dart`（受 `anticipation` 控制） | 光感 › 预见性动画 |
+| 大字号负字距 | `ui/theme/typography.dart` | 全局 |
+| 钴蓝 / 鸢尾强调色 | `ui/theme/accent.dart`（`derive`） | 设置 › 外观 › 配色 |
+| 绘制预算检查 | `tool/optics_audit.py` → `docs/design/optics-audit.md` | 跑脚本 |
+
+**判断标准**：任何一项都能在设置里被单独关掉，且关掉之后**帧数更省、外观更朴素**——
+如果一个开关关掉没有任何区别，那它就不该存在。
