@@ -17,7 +17,7 @@ import '../../state/builtin_plugins_state.dart';
 import '../../state/workshop_dependencies.dart';
 import '../../state/workshop_installed_state.dart';
 import '../../workshop/workshop_models.dart';
-import '../../kit/kit.dart';
+import '../kit/kit.dart';
 import '../../state/ui_kit_state.dart';
 import '../common/segmented_pill.dart';
 import '../shell/page_frame.dart';
