@@ -1,7 +1,5 @@
 package dev.sifluxlab.dshnext.icons
 
-import dev.sifluxlab.dshnext.icons.LauncherIcons.FROST
-import dev.sifluxlab.dshnext.icons.LauncherIcons.INK
 import dev.sifluxlab.dshnext.icons.LauncherIcons.MIST
 import dev.sifluxlab.dshnext.icons.LauncherIcons.MIST_ALT
 import dev.sifluxlab.dshnext.icons.LauncherIcons.NIGHT
@@ -58,21 +56,21 @@ class LauncherIconsTest {
 
     @Test fun theOriginalGoesOnceItsTaskIsSafelyInTheBackground() {
         val device = Device()
-        val plan = LauncherIcons.plan(FROST, device.stateOf, originalInUse = true)
+        val plan = LauncherIcons.plan(NIGHT, device.stateOf, originalInUse = true)
         assertTrue(plan.deferred)
         assertTrue(plan.disable.isEmpty())
         device.apply(plan)
-        assertEquals(listOf(ORIGINAL, alias(FROST)), device.on())
+        assertEquals(listOf(ORIGINAL, alias(NIGHT)), device.on())
         // The picker and new shortcuts use the choice while the old entry is waiting.
-        assertEquals(FROST, LauncherIcons.current(device.stateOf, FROST))
-        assertEquals(FROST, LauncherIcons.current(device.stateOf, null))
-        assertEquals(alias(FROST), LauncherIcons.aliasFor(FROST, device.stateOf))
+        assertEquals(NIGHT, LauncherIcons.current(device.stateOf, NIGHT))
+        assertEquals(NIGHT, LauncherIcons.current(device.stateOf, null))
+        assertEquals(alias(NIGHT), LauncherIcons.aliasFor(NIGHT, device.stateOf))
         // Home: it is now safe to disable the original, without a three-second delay.
-        val settled = LauncherIcons.plan(FROST, device.stateOf, originalInUse = false)
+        val settled = LauncherIcons.plan(NIGHT, device.stateOf, originalInUse = false)
         assertTrue(settled.enable.isEmpty())
         assertEquals("[LauncherMist=$STATE_DISABLED]", settled.disable.toString())
         device.apply(settled)
-        assertEquals(listOf(alias(FROST)), device.on())
+        assertEquals(listOf(alias(NIGHT)), device.on())
     }
 
     private fun task(
@@ -123,18 +121,18 @@ class LauncherIconsTest {
     @Test fun rapidChoicesSettleOnlyTheLatestPickAndMistCanCancelTheWait() {
         val device = Device()
         val tasks = listOf(task(ORIGINAL, 1))
-        for (pick in listOf(NIGHT, FROST, INK)) {
+        for (pick in listOf(NIGHT)) {
             device.apply(LauncherIcons.plan(pick, device.stateOf, keep(tasks, resumed = 1)))
             assertEquals(listOf(ORIGINAL, alias(pick)), device.on())
         }
-        val chosen = INK
+        val chosen = NIGHT
         device.apply(LauncherIcons.plan(
             LauncherIcons.current(device.stateOf, chosen), device.stateOf, keep(tasks, visible = false),
         ))
-        assertEquals(listOf(alias(INK)), device.on())
+        assertEquals(listOf(alias(NIGHT)), device.on())
 
         val fresh = Device()
-        for (pick in listOf(NIGHT, FROST, MIST)) {
+        for (pick in listOf(NIGHT, MIST)) {
             fresh.apply(LauncherIcons.plan(pick, fresh.stateOf, keep(tasks, resumed = 1)))
         }
         fresh.apply(LauncherIcons.plan(MIST, fresh.stateOf, keep(tasks, visible = false)))
@@ -231,11 +229,11 @@ class LauncherIconsTest {
 
     @Test fun pickingMistWhileTheOriginalWaitsKeepsTheOriginal() {
         val device = Device()
-        device.apply(LauncherIcons.plan(INK, device.stateOf, originalInUse = true))
+        device.apply(LauncherIcons.plan(NIGHT, device.stateOf, originalInUse = true))
         val back = LauncherIcons.plan(MIST, device.stateOf, originalInUse = true)
         assertSame(ORIGINAL, back.target)
         assertTrue(back.enable.isEmpty())
-        assertEquals("[LauncherInk=$STATE_DEFAULT]", back.disable.toString())
+        assertEquals("[LauncherNight=$STATE_DEFAULT]", back.disable.toString())
         assertFalse(back.deferred)
         device.apply(back)
         assertEquals(listOf(ORIGINAL), device.on())
@@ -253,7 +251,7 @@ class LauncherIconsTest {
         assertEquals(listOf(MIST_ALT), device.on())
         assertEquals(MIST, LauncherIcons.current(device.stateOf, null))
         // Away from 雾蓝 again: its twin goes back to the manifest's "off", nothing is DISABLED.
-        val again = LauncherIcons.plan(INK, device.stateOf, originalInUse = true)
+        val again = LauncherIcons.plan(NIGHT, device.stateOf, originalInUse = true)
         assertEquals("[LauncherMistAlt=$STATE_DEFAULT]", again.disable.toString())
         assertFalse(again.deferred)
     }
@@ -286,44 +284,23 @@ class LauncherIconsTest {
         }
     }
 
-    @Test fun anInterruptedSwitchIsSettledTowardsTheLastPick() {
-        // Killed between "enable frost" and "disable night": two entries, the pick remembered.
-        val device = Device()
-        device.states[ORIGINAL.className] = STATE_DISABLED
-        device.states[alias(NIGHT).className] = STATE_ENABLED
-        device.states[alias(FROST).className] = STATE_ENABLED
-        assertEquals(FROST, LauncherIcons.current(device.stateOf, FROST))
-        device.apply(LauncherIcons.plan(FROST, device.stateOf, originalInUse = false))
-        assertEquals(listOf(alias(FROST)), device.on())
-    }
-
     @Test fun rebootRollbackToManifestDefaultsRestoresTheSavedChoiceWithoutClosingItsOldTask() {
         val device = Device()
-        device.apply(LauncherIcons.plan(FROST, device.stateOf, originalInUse = true))
-        // chosen=frost was synchronously persisted, but PM had not flushed its alias settings.
+        device.apply(LauncherIcons.plan(NIGHT, device.stateOf, originalInUse = true))
+        // chosen=night was synchronously persisted, but PM had not flushed its alias settings.
         device.states.clear()
         assertEquals(listOf(ORIGINAL), device.on())
-        assertEquals(MIST, LauncherIcons.current(device.stateOf, FROST))
-        val restart = LauncherIcons.settlePlan(device.stateOf, FROST, originalInUse = true)
-        assertEquals(alias(FROST), restart.target)
+        assertEquals(MIST, LauncherIcons.current(device.stateOf, NIGHT))
+        val restart = LauncherIcons.settlePlan(device.stateOf, NIGHT, originalInUse = true)
+        assertEquals(alias(NIGHT), restart.target)
         assertTrue(restart.deferred)
         assertTrue(restart.disable.isEmpty())
         device.apply(restart) { assertTrue(device.on().isNotEmpty()) }
-        assertEquals(listOf(ORIGINAL, alias(FROST)), device.on())
-        assertEquals(FROST, LauncherIcons.current(device.stateOf, FROST))
+        assertEquals(listOf(ORIGINAL, alias(NIGHT)), device.on())
+        assertEquals(NIGHT, LauncherIcons.current(device.stateOf, NIGHT))
         // Home finishes the repair using the same persisted choice.
-        device.apply(LauncherIcons.settlePlan(device.stateOf, FROST, originalInUse = false))
-        assertEquals(listOf(alias(FROST)), device.on())
-    }
-
-    @Test fun rollbackToAnOlderNonDefaultEntryAlsoRestoresTheLatestChoice() {
-        val device = Device()
-        device.apply(LauncherIcons.plan(NIGHT, device.stateOf, originalInUse = false))
-        val repair = LauncherIcons.settlePlan(device.stateOf, FROST, originalInUse = false)
-        assertEquals("[LauncherFrost=$STATE_ENABLED]", repair.enable.toString())
-        assertEquals("[LauncherNight=$STATE_DEFAULT]", repair.disable.toString())
-        device.apply(repair) { assertTrue(device.on().isNotEmpty()) }
-        assertEquals(listOf(alias(FROST)), device.on())
+        device.apply(LauncherIcons.settlePlan(device.stateOf, NIGHT, originalInUse = false))
+        assertEquals(listOf(alias(NIGHT)), device.on())
     }
 
     @Test fun aSavedMistChoiceOverridesAnOlderEntryIncludingTheFixtureReset() {
@@ -343,9 +320,9 @@ class LauncherIconsTest {
     @Test fun oldInstallsAndUnknownSavedValuesKeepTheirExistingIcon() {
         for (chosen in listOf(null, "", "rainbow")) {
             val device = Device()
-            device.apply(LauncherIcons.plan(INK, device.stateOf, originalInUse = false))
+            device.apply(LauncherIcons.plan(NIGHT, device.stateOf, originalInUse = false))
             val plan = LauncherIcons.settlePlan(device.stateOf, chosen, originalInUse = false)
-            assertEquals(alias(INK), plan.target)
+            assertEquals(alias(NIGHT), plan.target)
             assertTrue(plan.isEmpty)
             val fresh = LauncherIcons.settlePlan(Device().stateOf, chosen, originalInUse = false)
             assertSame(ORIGINAL, fresh.target)
@@ -356,14 +333,14 @@ class LauncherIconsTest {
     @Test fun planningOrFailingToEnableDoesNotReportTheSavedIconAsAlreadyCurrent() {
         val device = Device()
         device.apply(LauncherIcons.plan(NIGHT, device.stateOf, originalInUse = false))
-        val plan = LauncherIcons.settlePlan(device.stateOf, FROST, originalInUse = false)
-        assertEquals(alias(FROST), plan.target)
+        val plan = LauncherIcons.settlePlan(device.stateOf, NIGHT, originalInUse = false)
+        assertEquals(alias(NIGHT), plan.target)
         // PM throws before the enable step is applied; the persisted intent is not a success.
-        assertEquals(NIGHT, LauncherIcons.current(device.stateOf, FROST))
-        val retry = LauncherIcons.settlePlan(device.stateOf, FROST, originalInUse = false)
+        assertEquals(NIGHT, LauncherIcons.current(device.stateOf, NIGHT))
+        val retry = LauncherIcons.settlePlan(device.stateOf, NIGHT, originalInUse = false)
         assertEquals(plan.enable.toString(), retry.enable.toString())
         device.apply(retry)
-        assertEquals(FROST, LauncherIcons.current(device.stateOf, FROST))
+        assertEquals(NIGHT, LauncherIcons.current(device.stateOf, NIGHT))
     }
 
     @Test fun noEntryAtAllIsRepairedWithTheSavedChoice() {
@@ -384,9 +361,9 @@ class LauncherIconsTest {
 
     @Test fun userDisabledCountsAsOff() {
         val device = Device()
-        device.states[alias(INK).className] = 3 // COMPONENT_ENABLED_STATE_DISABLED_USER
-        assertFalse(LauncherIcons.isOn(alias(INK), 3))
-        assertEquals(MIST, LauncherIcons.current(device.stateOf, INK))
+        device.states[alias(NIGHT).className] = 3 // COMPONENT_ENABLED_STATE_DISABLED_USER
+        assertFalse(LauncherIcons.isOn(alias(NIGHT), 3))
+        assertEquals(MIST, LauncherIcons.current(device.stateOf, NIGHT))
     }
 
     @Test(expected = IllegalArgumentException::class)
@@ -395,7 +372,7 @@ class LauncherIconsTest {
     }
 
     @Test fun everyVariantHasExactlyOneAliasBesidesTheOriginal() {
-        assertEquals(listOf(MIST, NIGHT, FROST, INK), LauncherIcons.variants)
+        assertEquals(listOf(MIST, NIGHT), LauncherIcons.variants)
         for (variant in LauncherIcons.variants) {
             assertEquals(1, LauncherIcons.aliases.count { it.variant == variant && it !== ORIGINAL })
         }

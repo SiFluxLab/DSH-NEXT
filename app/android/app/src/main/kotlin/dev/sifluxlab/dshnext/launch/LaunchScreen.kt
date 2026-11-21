@@ -138,8 +138,6 @@ object LaunchScreen {
     /** The launcher icon's own resource for a 桌面图标 [variant] (LauncherIcons.mipmapOf). */
     private fun mipmapOf(variant: String): Int = when (LauncherIcons.mipmapOf(variant)) {
         "ic_launcher_night" -> R.mipmap.ic_launcher_night
-        "ic_launcher_frost" -> R.mipmap.ic_launcher_frost
-        "ic_launcher_ink" -> R.mipmap.ic_launcher_ink
         else -> R.mipmap.ic_launcher
     }
 

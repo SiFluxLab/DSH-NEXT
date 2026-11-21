@@ -25,7 +25,7 @@ import dev.sifluxlab.dshnext.shortcuts.ShortcutsPlugin
 /**
  * 桌面图标: MethodChannel `dsh/launcher_icon`. The rules are [LauncherIcons]'s.
  *
- * - `state` → `{current: mist | night | frost | ink, mask: [x0, y0, x1, y1, …]?}`: the icon on the
+ * - `state` → `{current: mist | night, mask: [x0, y0, x1, y1, …]?}`: the icon on the
  *   launcher, and the system's adaptive-icon mask as a closed outline in 0…1 (null if unknown) so
  *   the picker cuts its previews like the launcher does.
  * - `set {id}` → `{current}`: switches the launcher entry (DONT_KILL_APP; new one first), moving

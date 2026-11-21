@@ -26,11 +26,9 @@ internal object LauncherIcons {
 
     const val MIST = "mist"
     const val NIGHT = "night"
-    const val FROST = "frost"
-    const val INK = "ink"
 
     /** In the picker's order; [MIST] is the default. */
-    val variants = listOf(MIST, NIGHT, FROST, INK)
+    val variants = listOf(MIST, NIGHT)
 
     /** The mipmap a variant's launcher entry uses (its alias's android:icon; LaunchThemesTest checks). */
     fun mipmapOf(variant: String): String = if (variant == MIST) "ic_launcher" else "ic_launcher_$variant"
@@ -51,8 +49,6 @@ internal object LauncherIcons {
         ORIGINAL,
         MIST_ALT,
         Alias(NIGHT, "$PKG.LauncherNight", enabledByManifest = false),
-        Alias(FROST, "$PKG.LauncherFrost", enabledByManifest = false),
-        Alias(INK, "$PKG.LauncherInk", enabledByManifest = false),
     )
 
     /** Whether [alias] is a launcher entry when its stored setting is [state]. */
