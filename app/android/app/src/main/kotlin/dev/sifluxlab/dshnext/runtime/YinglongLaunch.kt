@@ -182,7 +182,9 @@ object YinglongLaunch {
         if (ztBind.isNotEmpty()) zt["ZT_BIND"] = ztBind
 
         val cmd = arrayListOf(loader, "--library-path", libraries, node)
-        shim.preload?.let { cmd += "--import=$it" }
+        // shim 里那句 --import 受条件保护：boot cache 要等 dsh 自己跑过一次才生成。
+        // 运行时里没有这个文件时必须跳过，否则 node 以 ERR_MODULE_NOT_FOUND 退出 1。
+        shim.preload?.takeIf { File(root, it.trimStart('/')).exists() }?.let { cmd += "--import=$it" }
         cmd += shim.entry
         cmd += web
 

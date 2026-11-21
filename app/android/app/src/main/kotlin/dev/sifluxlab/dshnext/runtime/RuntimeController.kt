@@ -206,7 +206,8 @@ class RuntimeController private constructor(private val app: Context) : DshProce
         return DirectLaunch.Preference(
             saved = if (prefs.contains(K_ZT_ENGINE)) prefs.getBoolean(K_ZT_ENGINE, false) else available,
             available = available,
-            failedRuntime = prefs.getString(K_ZT_FAILED, null),
+            // 失败标记不再从偏好恢复：每次冷启动都从"没失败过"开始。
+            failedRuntime = null,
             runtime = runCatching { manifest.runtimeVersion }.getOrNull(),
         )
     }
@@ -677,10 +678,14 @@ class RuntimeController private constructor(private val app: Context) : DshProce
                     process = null
                     PhoneControl.get(app).onEngineStopped()
                     if (launched?.zt == true && stopGen < gen && !resetting) {
-                        // An 应龙 start that threw: fall back to PRoot for this runtime, as tawcroot does.
+                        // An 应龙 start that threw: fall back to PRoot, but only for this run.
+                        //
+                        // 以前把这个标记写进偏好，键是 runtime 版本——结果是我们修好了应龙，
+                        // 只要 runtime 没变，App 就再也不试它，每次都要用户去设置里关开一次。
+                        // 现在只记在本进程里：冷启动必然重试一次，失败当次回退，不进偏好。
                         val runtime = manifest.runtimeVersion
-                        if (prefs.getString(K_ZT_FAILED, null) != runtime) {
-                            prefs.edit().putString(K_ZT_FAILED, runtime).apply()
+                        if (ztFailedThisRun != runtime) {
+                            ztFailedThisRun = runtime
                             log("[dsh-app] yinglong launch failed (${e.message ?: e.javaClass.simpleName}); starting again with compatible launch", "system")
                             error = null
                             setPhase(Phase.STARTING)
@@ -1167,9 +1172,9 @@ class RuntimeController private constructor(private val app: Context) : DshProce
             healthyAt = null
             log("[dsh-app] DSH exited with code $code", "system")
             if (source.zt && readyAt == null && !expected && stopGen < runGen) {
-                // 应龙 never got DSH up: PRoot from now on with this runtime, no failure card,
-                // no strike. A new runtime, or turning 应龙 on again, gives it another try.
-                prefs.edit().putString(K_ZT_FAILED, manifest.runtimeVersion).apply()
+                // 应龙 never got DSH up: PRoot for the rest of this run, no failure card.
+                // 只记在进程内——下次冷启动会再试一次（见上面同样理由）。
+                ztFailedThisRun = manifest.runtimeVersion
                 log("[dsh-app] yinglong launch failed (exit $code${source.startupError?.let { ": $it" } ?: ""}); starting again with compatible launch", "system")
                 error = null
                 setPhase(Phase.STARTING)
