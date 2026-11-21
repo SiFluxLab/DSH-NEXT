@@ -47,13 +47,15 @@ const _obsidianDark = SurfaceTones(
 );
 
 const _obsidianLight = SurfaceTones(
-  background: Color(0xFFF4F7FB),
-  surface1: Color(0xFFFFFFFF),
-  surface2: Color(0xFFEDF2F9),
-  surface3: Color(0xFFE1E9F4),
-  foreground: Color(0xFF14171E),
-  secondary: Color(0xFF4A5160),
-  muted: Color(0xFF6B7280),
+  // prism light（crystal）：纯白底 + 三段近乎中性的阶梯，不偏蓝。
+  // 之前那套 #F4F7FB 偏冷，叠上玻璃会整体发灰。
+  background: Color(0xFFFFFFFF),
+  surface1: Color(0xFFFAFAFA),
+  surface2: Color(0xFFF2F2F2),
+  surface3: Color(0xFFEAEAEA),
+  foreground: Color(0xFF0B0B0F),
+  secondary: Color(0xFF3F3F46),
+  muted: Color(0xFF8A8A93),
 );
 
 const _warmDark = SurfaceTones(

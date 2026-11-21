@@ -41,3 +41,47 @@ abstract final class Spectral {
 
 /// 加色混合：光叠在背景上应该"变亮"，而不是"盖住"。用 plus 才能在浅色底上也像光。
 const kLightBlend = BlendMode.plus;
+/// 颗粒：prism 的 `grainAlpha: 0.022`。
+///
+/// 它的光带不是"平滑渐变"，而是**有噪点**的——那层细颗粒让光看起来在空气里，
+/// 而不是贴在玻璃上。做法是在光带上撒极淡的白点，alpha 0.02 左右，肉眼几乎不觉，
+/// 但去掉就会立刻回到"UI 特效"。
+abstract final class Grain {
+  /// 来源：prism 的 `grainAlpha`（0.022）。比它再高就会显脏。
+  static const alpha = 0.022;
+
+  /// 沿弧线撒点。用确定性的伪随机，保证同一帧重绘不会闪。
+  static void along(
+    Canvas canvas,
+    Path path,
+    PathMetrics metrics, {
+    required double alphaScale,
+    int count = 220,
+    Color tint = const Color(0xFFFFFFFF),
+  }) {
+    if (count <= 0 || alphaScale <= 0) return;
+    final paint = Paint()..style = PaintingStyle.fill;
+    var seed = 0x9E3779B9;
+    double next() {
+      // xorshift32：便宜且分布够用，不需要 Random 对象。
+      seed ^= (seed << 13) & 0xFFFFFFFF;
+      seed ^= seed >> 17;
+      seed ^= (seed << 5) & 0xFFFFFFFF;
+      return (seed & 0xFFFFFF) / 0xFFFFFF;
+    }
+
+    for (final metric in metrics) {
+      for (var i = 0; i < count; i++) {
+        final at = next() * metric.length;
+        final tangent = metric.getTangentForOffset(at);
+        if (tangent == null) continue;
+        // 垂直方向散开 ±1.6px，落在笔画宽度之内，看起来像"光里的尘"
+        final offset = (next() - 0.5) * 3.2;
+        final normal = Offset(-tangent.vector.dy, tangent.vector.dx);
+        final p = tangent.position + normal * offset;
+        paint.color = tint.withValues(alpha: alpha * alphaScale * (0.4 + 0.6 * next()));
+        canvas.drawCircle(p, 0.6 + 0.5 * next(), paint);
+      }
+    }
+  }
+}

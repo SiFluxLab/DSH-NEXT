@@ -123,26 +123,29 @@ class AppAccent {
 
   // ══ 预设 ══════════════════════════════════════════════════════════════
 
-  /// 默认:雾蓝。DeepSeek 色相,低彩度。
+  /// 默认档：**obsidian-prism 的原配色**。
+  ///
+  /// 深色取它的 accent `#5B89D6` + 辉光 `#7AA7F8`（低饱和钢蓝，不是鲜蓝——
+  /// 鲜蓝在近黑底上就是"塑料"）；浅色取它 light 档的 `#2563EB` 与气泡 `#EAF1FB`。
   static const mist = AppAccent(
     id: 'mist',
-    seed: Color(0xFF4B67B4),
-    pressed: Color(0xFF3D569D),
-    container: Color(0xFFDEE8FF),
-    onContainer: Color(0xFF213262),
-    bubble: Color(0xFFD9E4FD),
-    glow: Color(0xFF7AA7F8),
-    seedDark: Color(0xFF6E9AE8),
-    pressedDark: Color(0xFF5B89D6),
-    onSeedDark: Color(0xFF121C34),
-    containerDark: Color(0xFF2E3C5F),
-    onContainerDark: Color(0xFFD8E1F6),
-    bubbleDark: Color(0xFF293144),
-    glowDark: Color(0xFF51679D),
+    seed: Color(0xFF2563EB),
+    pressed: Color(0xFF1D4ED8),
+    container: Color(0xFFDCE7FB),
+    onContainer: Color(0xFF10306E),
+    bubble: Color(0xFFEAF1FB),
+    glow: Color(0xFF669DF6),
+    seedDark: Color(0xFF5B89D6),
+    pressedDark: Color(0xFF4A76C5),
+    onSeedDark: Color(0xFF0B1220),
+    containerDark: Color(0xFF1B2740),
+    onContainerDark: Color(0xFFD6E2F7),
+    bubbleDark: Color(0xFF212633),
+    glowDark: Color(0xFF7AA7F8),
     tintHue: NeutralTones.baseHue,
     tintChroma: 1,
-    haze: Color(0xFFD5CBEB),
-    hazeDark: Color(0xFF514765),
+    haze: Color(0xFFCBD9F2),
+    hazeDark: Color(0xFF3A4560),
   );
 
   /// 黛青:墨蓝偏青(238°),比雾蓝沉一档(L 0.47),彩度收到 0.085。
