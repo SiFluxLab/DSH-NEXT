@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import '../common/app_sheet.dart';
 import '../common/list_page_row.dart' show ListPageRow;
 import '../common/overview_card.dart' show OverviewChevron;
+import '../kit/kit.dart';
 import '../common/segmented_pill.dart';
 
 export '../common/segmented_pill.dart' show PillSegment, SegmentedPill;
@@ -273,7 +274,8 @@ class SettingsSwitchTile extends StatelessWidget {
         tint: tint,
         tinted: tinted,
         onTap: onChanged == null ? null : () => change(!value),
-        trailing: Switch.adaptive(value: value, onChanged: onChanged == null ? null : change),
+        // 开关换成 vetta 的几何：18.4 × 32、滑块 16、命中区外扩。
+        trailing: KitSwitch(value: value, onChanged: onChanged == null ? null : change),
       ),
     );
   }
