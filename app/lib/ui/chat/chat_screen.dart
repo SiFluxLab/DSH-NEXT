@@ -1623,6 +1623,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
       ref.listen(chatProvider(sessionId).select(_bladeOf), (_, next) {
         ref.read(bladeStatusProvider.notifier).set(next);
       });
+      // 异常中止：给一次 4 秒的余晖，读完就散，不留角标。
+      ref.listen(chatProvider(sessionId).select((s) => s.error), (_, error) {
+        if (error == null || !mounted) return;
+        final glow = ref.read(edgeGlowProvider.notifier)..show(EdgeGlow.aborted);
+        Future<void>.delayed(const Duration(seconds: 4), () {
+          if (mounted && ref.read(edgeGlowProvider) == EdgeGlow.aborted) glow.clear();
+        });
+      });
       // 余晖同理：等待决定时亮起，处理完自动熄灭。
       ref.listen(chatProvider(sessionId).select((s) => s.approvals.isNotEmpty || s.questions.isNotEmpty), (_, waiting) {
         final glow = ref.read(edgeGlowProvider.notifier);
