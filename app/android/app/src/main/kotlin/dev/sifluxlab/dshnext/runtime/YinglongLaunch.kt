@@ -62,24 +62,17 @@ object YinglongLaunch {
     }
 
     /**
-     * `/usr/local/bin/dsh` is a `#!/bin/sh` shim around `node --import=… bin.js`.
-     * Replace the exec of that script with the node command it contains, so the
-     * kernel never has to resolve a shebang. Leaves the script alone when it does
-     * not look like the shim (an unknown template fails loudly at launch).
+     * `/usr/local/bin/dsh` is a `#!/bin/sh` shim: `exec node [--import=…] bin.js "$@"`.
+     * Read the node command out of it. Shebangs are resolved by the kernel without
+     * path translation, so a launch must never exec that script itself.
      */
-    internal fun withoutShim(script: String, root: File): String {
-        val exec = "exec /usr/local/bin/dsh "
-        if (!script.contains(exec)) return script
-        val shim = File(root, "usr/local/bin/dsh")
-        val text = runCatching { shim.readText() }.getOrNull() ?: return script
-        val m = Regex("""exec\s+(/\S*node)\s+(?:--import=(\S+)\s+)?(/\S*bin\.js)""").find(text) ?: return script
+    internal data class Shim(val node: String, val preload: String?, val entry: String)
+
+    internal fun shim(root: File): Shim? {
+        val text = runCatching { File(root, "usr/local/bin/dsh").readText() }.getOrNull() ?: return null
+        val m = Regex("""exec\s+(/\S*node)\s+(?:--import=(\S+)\s+)?(/\S*bin\.js)""").find(text) ?: return null
         val (node, preload, entry) = m.destructured
-        val command = buildString {
-            append("exec ").append(node).append(' ')
-            if (preload.isNotEmpty()) append("--import=").append(preload).append(' ')
-            append(entry).append(' ')
-        }
-        return script.replace(exec, command)
+        return Shim(node, preload.ifEmpty { null }, entry)
     }
 
     /**
@@ -94,15 +87,11 @@ object YinglongLaunch {
         val root = rootfs.canonicalFile
         val loader = File(root, "$DIR/$loaderName")
         val libraries = libraryDirectories(abi).joinToString(":") { File(root, it).path }
-        // The chain that failed in the field: dash (translated) execs node (translated).
-        // /bin/true would pass while that is broken.
-        val cmd = listOf(loader.path, "--library-path", libraries, File(root, "usr/bin/env").path, "-i",
-            "ZT_ROOT=${root.path}", "ZT_LD=${loader.path}", "ZT_LIBPATH=$libraries",
-            "/bin/sh", "-c", "exec /opt/node/bin/node --version")
+        val shim = shim(root) ?: return "selfTest:noShim"
+        // Exactly the chain the launch uses: loader → node. A shell or /usr/bin/env
+        // in between would be a second, differently-shaped exec path.
+        val cmd = listOf(loader.path, "--library-path", libraries, File(root, shim.node.trimStart('/')).path, "--version")
         return try {
-            // The loader's own children translate only when ZT_* are in the
-            // environment they inherit (arguing them through `env -i` alone is not
-            // enough: `env` itself has to translate its exec of /bin/sh).
             val builder = ProcessBuilder(cmd).directory(File(root, "root")).redirectErrorStream(true)
             val environment = builder.environment()
             environment.clear()
@@ -112,6 +101,7 @@ object YinglongLaunch {
             environment["ZT_FAKE_ROOT"] = "1"
             environment["ZT_LD"] = loader.path
             environment["ZT_LIBPATH"] = libraries
+            environment["ZT_STATS"] = "1"
             val p = builder.start()
             val out = p.inputStream.bufferedReader().use { reader ->
                 val text = StringBuilder()
@@ -140,26 +130,22 @@ object YinglongLaunch {
         check(unavailable(rootfs, abi) == null) { "yinglong: ${unavailable(rootfs, abi)}" }
         val root = rootfs.canonicalFile
         val rootPath = root.path
+        val shim = shim(root) ?: error("yinglong: /usr/local/bin/dsh is not the expected shim")
 
+        // 1. The guest environment and the command, taken from the composed PRoot argv.
         val envAt = argv.indexOf("/usr/bin/env")
         require(envAt > 1 && argv.getOrNull(envAt + 1) == "-i") { "yinglong: missing guest environment" }
-
-        // 1. Guest-visible environment: the `env -i` arguments, up to the shell.
-        val guest = ArrayList<String>()
+        val guest = LinkedHashMap<String, String>()
         var i = envAt + 2
         while (i < argv.size && argv[i].contains('=')) {
-            val name = argv[i].substringBefore('=')
-            require(Regex("[A-Za-z_][A-Za-z0-9_]*").matches(name)) { "yinglong: invalid environment name" }
-            guest += argv[i++]
+            val pair = argv[i++].split('=', limit = 2)
+            require(Regex("[A-Za-z_][A-Za-z0-9_]*").matches(pair[0])) { "yinglong: invalid environment name" }
+            guest[pair[0]] = pair[1]
         }
         require(argv.drop(i).take(2) == listOf("/bin/sh", "-c") && argv.size == i + 3) { "yinglong: unsupported guest command" }
-        val script = argv.last()
-        require('\u0000' !in script && '\n' !in script && '\r' !in script) { "yinglong: invalid guest command" }
-        // A shebang is resolved by the kernel, which does not translate it: `exec
-        // /usr/local/bin/dsh` (a #!/bin/sh shim) ends up in Android's bionic sh and
-        // dies with "libc.so: cannot open shared object file" (exit 127). Run the
-        // node command the shim would have run instead.
-        val launchScript = withoutShim(script, root)
+        // `web --patch … --host … --port … --no-open`, with guest paths kept as they are:
+        // node opens them through the patched libc, which translates.
+        val web = DirectLaunch.webArguments(argv.last())
 
         // 2. PRoot binds become Zero-Trap bindings: guest=host, longest prefix wins.
         val binds = LinkedHashMap<String, String>()
@@ -179,10 +165,13 @@ object YinglongLaunch {
         }
         val ztBind = binds.entries.joinToString(";") { (guestPath, host) -> "$guestPath=$host" }
 
-        // 3. Loader, libraries and the first executable — all host paths.
+        // 3. Loader, libraries and the first executable — all host paths. No shell
+        //    and no /usr/bin/env in the chain: both would have to exec guest
+        //    binaries themselves, and every exec is a place the translation can be
+        //    skipped (a shebang, a missing ZT_LD) and hand the work to bionic.
         val loader = File(root, "$DIR/$loaderName").path
         val libraries = libraryDirectories(abi).joinToString(":") { File(root, it).path }
-        val env = File(root, "usr/bin/env").path
+        val node = File(root, shim.node.trimStart('/')).path
 
         val zt = linkedMapOf(
             "ZT_ROOT" to rootPath,
@@ -191,15 +180,15 @@ object YinglongLaunch {
             "ZT_LIBPATH" to libraries,
         )
         if (ztBind.isNotEmpty()) zt["ZT_BIND"] = ztBind
-        // Children only see what `env -i` carries; the app's own process gets both.
-        guest += zt.map { (k, v) -> "$k=$v" }
 
-        val cmd = arrayListOf(loader, "--library-path", libraries, env, "-i")
-        cmd += guest
-        cmd += listOf("/bin/sh", "-c", launchScript)
+        val cmd = arrayListOf(loader, "--library-path", libraries, node)
+        shim.preload?.let { cmd += "--import=$it" }
+        cmd += shim.entry
+        cmd += web
 
         val environment = LinkedHashMap<String, String>()
         hostEnv.forEach { (k, v) -> if (!k.startsWith("PROOT_") && k != "LD_PRELOAD" && k != "LD_LIBRARY_PATH") environment[k] = v }
+        environment.putAll(guest)
         environment.putAll(zt)
         return Plan(cmd, environment, File(root, "root"))
     }

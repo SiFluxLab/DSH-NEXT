@@ -151,7 +151,7 @@ class DshProcess(
         val allBinds = binds.filterNot { expand(it) == sameBind }.distinct()
         // PRoot's Node resolves through glibc, which fails A with a refused AAAA (#152): add Direct's resolver.
         val effectiveGuestEnv = guestEnv + ("DSH_GO_RUNTIME_ROOT" to rootfs.canonicalPath) +
-            listOfNotNull(if (direct) null else "NODE_OPTIONS" to DirectLaunch.prootNodeOptions(guestEnv["NODE_OPTIONS"]))
+            listOfNotNull(if (direct || zt) null else "NODE_OPTIONS" to DirectLaunch.prootNodeOptions(guestEnv["NODE_OPTIONS"]))
         var guestEnvPlaced = false
         check(manifest.launchArgv.isNotEmpty()) { "runtime manifest has no launch.argv" }
         var bindsPlaced = false
@@ -247,6 +247,8 @@ class DshProcess(
         }
         onLaunchMethod?.invoke(direct)
         val p = builder.start()
+        // 应龙 runs node directly (no shell), so the launch writes the guest pid file.
+        if (zt) runCatching { File(rootfs, "tmp/dsh-web.pid").writeText("${p.pid()}\n") }
         process = p
         launchDiagnostics.spawned()
         val out = pump(p.inputStream.bufferedReader(), "stdout")

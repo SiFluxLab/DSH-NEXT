@@ -96,18 +96,21 @@ GitHub OAuth App；部署步骤见 `services/share-worker/docs/`。
 
 ```
 opt/yinglong/ld-linux-aarch64.so.1 --library-path <opt/yinglong>:<镜像 lib> \
-  <镜像>/usr/bin/env -i <guest 环境> <ZT_*> /bin/sh -c 'echo $$ > /tmp/dsh-web.pid; exec /usr/local/bin/dsh web …'
+  <镜像>/opt/node/bin/node --import=<boot-cache> <镜像>/opt/dsh/.../bin.js web --patch … --host … --port …
 ```
+
+进程环境里带 `ZT_ROOT / ZT_FAKE_ROOT / ZT_LD / ZT_LIBPATH / ZT_BIND`。**没有 `/bin/sh`、没有
+`/usr/bin/env`**：它们各自都要再 exec 一次 guest 二进制，每一次 exec 都是一个可能被跳过翻译的环节。
 
 三条容易踩的规则（都在 `YinglongLaunch` 的注释里）：
 
 1. 加载器用**宿主路径**且必须绝对；它后面的东西都是 **guest 路径**，由补丁 libc 翻译。
 2. `env -i` 会清环境，所以 `ZT_ROOT` / `ZT_BIND` / `ZT_FAKE_ROOT` / `ZT_LD` / `ZT_LIBPATH`
    必须作为 `env -i` 的参数传下去，否则子进程全部退回系统 libc。
-3. **不要把脚本当命令 exec**：`/usr/local/bin/dsh` 是 `#!/bin/sh` shim，shebang 由内核解析、
-   不经过翻译，会落到 Android 自带的 bionic sh 上并以 127 退出
-   （报错 `libc.so: cannot open shared object file`）。`YinglongLaunch.withoutShim` 会读
-   shim、把 `exec /usr/local/bin/dsh` 换成它真正的 `exec /opt/node/bin/node [--import=…] bin.js`。
+3. **链路上不要留任何 shell 或 `env`**：`/usr/local/bin/dsh` 是 `#!/bin/sh` shim，shebang 由内核
+   解析、不经过翻译，会落到 Android 自带的 bionic sh 上并以 127 退出（`libc.so: cannot open
+   shared object file`）。`YinglongLaunch` 读 shim，直接按「加载器 → node `--import=… bin.js`
+   `web …`」启动，环境由 `ProcessBuilder` 设；`/tmp/dsh-web.pid` 由启动器自己写。
 4. 不要把镜像里的 `/lib/libc.so.6` 换掉：`execve` 时内核按 PT_INTERP 找解释器，那一步
    不经过翻译，换了也无效。
 
