@@ -48914,6 +48914,12 @@ abstract class L10n {
   /// **'掉帧比例'**
   String get performanceJankRatio;
 
+  /// No description provided for @opticsBlockedNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'有项目被系统偏好关闭（移除动画 / 降低透明度）'**
+  String get opticsBlockedNote;
+
   /// No description provided for @workshopTitle.
   ///
   /// In zh, this message translates to:

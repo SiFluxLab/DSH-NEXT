@@ -18,6 +18,14 @@ String opticsPresetLabel(L10n l10n, OpticsPreset preset) => switch (preset) {
   OpticsPreset.silent => l10n.opticsSilent,
 };
 
+/// 有没有哪一项"开关看着是开、实际被系统关掉了"。
+bool _blockedBySystem(OpticsPrefs prefs, Optics optics) =>
+    (optics.blade <= 0 && prefs.blade != false) ||
+    (optics.prism <= 0 && prefs.prism != false) ||
+    (!optics.anticipation && prefs.anticipation != false) ||
+    (!optics.afterglow && prefs.afterglow != false) ||
+    (!optics.inkFade && prefs.inkFade != false);
+
 /// 「当前生效」：把最终值写出来。用户关掉某项后能确认它真的关掉了，
 /// 系统偏好把它压低时也能看见原因。
 String _effectiveLine(L10n l10n, Optics optics) {
@@ -62,6 +70,13 @@ class OpticsSection extends ConsumerWidget {
           subtitle: _effectiveLine(l10n, optics),
           chevron: false,
         ),
+        // 开关开着、实际却被系统偏好压下去时，说清楚是谁关的，别让人以为坏了。
+        if (_blockedBySystem(prefs, optics))
+          SettingsTile(
+            key: const ValueKey('optics-blocked'),
+            title: l10n.opticsBlockedNote,
+            chevron: false,
+          ),
         SettingsSegmentTile<OpticsPreset>(
           key: const ValueKey('optics-preset'),
           title: l10n.opticsPreset,

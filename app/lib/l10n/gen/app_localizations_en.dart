@@ -28099,6 +28099,7 @@ class L10nEn extends L10n {
   String get performanceP95Frame => '95th percentile';
   String get performanceWorstFrame => 'Worst frame';
   String get performanceJankRatio => 'Jank ratio';
+  String get opticsBlockedNote => 'Some items are off because the system asked for less motion or transparency';
   String get workshopTitle => 'Workshop';
 
   @override

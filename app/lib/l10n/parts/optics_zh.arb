@@ -21,5 +21,6 @@
   "opticsFollowPreset": "跟随所选档位",
   "opticsEffective": "当前生效",
   "opticsOn": "开",
-  "opticsOff": "关"
+  "opticsOff": "关",
+  "opticsBlockedNote": "有项目被系统偏好关闭（移除动画 / 降低透明度）"
 }

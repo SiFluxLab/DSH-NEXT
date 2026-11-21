@@ -43,16 +43,18 @@ class OpticsPrefs {
       lowPower: lowPower,
     );
     if (!hasOverrides) return base;
+    // 单项开关只能"往下压"，不能把系统偏好已经关掉的东西重新打开：
+    // 移除动画、降低透明度永远赢过用户的单项选择。
     return Optics(
       preset: base.preset,
       specular: base.specular,
       grain: base.grain,
-      blade: blade == false ? 0 : (blade == true ? 1 : base.blade),
-      prism: prism == false ? 0 : (prism == true ? 1 : base.prism),
+      blade: blade == false ? 0 : base.blade,
+      prism: prism == false ? 0 : base.prism,
       blurSigma: base.blurSigma,
-      anticipation: anticipation ?? base.anticipation,
-      afterglow: afterglow ?? base.afterglow,
-      inkFade: inkFade ?? base.inkFade,
+      anticipation: anticipation == false ? false : base.anticipation,
+      afterglow: afterglow == false ? false : base.afterglow,
+      inkFade: inkFade == false ? false : base.inkFade,
     );
   }
 }

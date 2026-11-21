@@ -26661,6 +26661,7 @@ class L10nZh extends L10n {
   String get performanceP95Frame => '95 分位';
   String get performanceWorstFrame => '最差一帧';
   String get performanceJankRatio => '掉帧比例';
+  String get opticsBlockedNote => '有项目被系统偏好关闭（移除动画 / 降低透明度）';
   String get workshopTitle => '创意工坊';
 
   @override

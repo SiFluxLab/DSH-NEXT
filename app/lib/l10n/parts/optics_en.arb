@@ -21,5 +21,6 @@
   "opticsFollowPreset": "Follow the preset",
   "opticsEffective": "In effect",
   "opticsOn": "on",
-  "opticsOff": "off"
+  "opticsOff": "off",
+  "opticsBlockedNote": "Some items are off because the system asked for less motion or transparency"
 }
