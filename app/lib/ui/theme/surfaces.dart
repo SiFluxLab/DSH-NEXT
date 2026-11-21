@@ -28,6 +28,8 @@ class GlassStyle {
     required this.fallbackFill,
     required this.hairline,
     required this.rim,
+    this.innerRim = const Color(0x00000000),
+    this.bottomShade = const Color(0x00000000),
     this.blurSigma = 0,
     this.saturation = 1,
     this.hairlineWidth = 0.5,
@@ -48,6 +50,30 @@ class GlassStyle {
   /// 顶边高光起始色,向下 45% 处渐隐到透明 —— 光从上方打在玻璃边上。
   final Color rim;
 
+  /// **内缘高光**(默认全透明 = 关):贴着形状内侧、离外沿约 2px 的一道更细的
+  /// 高光,从上往下 30% 处渐隐。
+  ///
+  /// 用途:让玻璃读起来"有厚度"。外沿发丝线是玻璃的边缘,内缘高光是光在玻璃
+  /// **内部**靠近边缘处的折射;两道光相距 2px,眼睛才会读成"一块有厚度的材质",
+  /// 而不是"一张半透明色纸"。只建议给 [GlassTier.chrome] 这类**小面积**浮件开
+  /// (顶栏胶囊、圆钮、输入条),它们最需要"手感上的厚度"。
+  ///
+  /// 成本:一次额外的 `drawPath`(描边 + 线性渐变 shader)。没有新的离屏层、没有
+  /// 新的模糊;每帧多一道描边、一个 shader。手机上几乎测不出来,但一件玻璃一条,
+  /// 一屏几十个 pill 就变成几十条 —— 所以默认关。
+  final Color innerRim;
+
+  /// **底部暗边**(默认全透明 = 关):贴着形状内侧、从下往上 24% 处渐隐的一道
+  /// 暗线。
+  ///
+  /// 用途:光从上方来,玻璃底缘会积一点暗。深色主题下玻璃底的填充(stones/白 5%)
+  /// 和背后的近黑几乎同色,底缘就"没有边",浮件看起来像贴纸;这一道让浮件坐得住。
+  /// 浅色主题下要非常克制(墨 4% 以下),否则会显脏。
+  ///
+  /// 成本:与 [innerRim] 同一档 —— 一次描边 + 一个渐变 shader,默认关。
+  /// 深色玻璃的底缘要用**暗**色(取投影的墨色),不要拿 [rim] 去调,那是顶边的活。
+  final Color bottomShade;
+
   /// 高斯模糊 σ(逻辑像素)。0 = 不模糊。
   final double blurSigma;
 
@@ -59,11 +85,26 @@ class GlassStyle {
 
   bool get blurs => blurSigma > 0;
 
+  /// 加一点"厚度":[innerRim] 取 [rim] 的 55%,[bottomShade] 取投影墨色的 45%
+  /// (没有投影时退回 [hairline])。返回新样式,原样式不变。
+  ///
+  /// 想让某一类玻璃变厚就 `style: DshSurfaces.of(context).chrome.thick()`。
+  /// 默认**不**给任何层级调它:两道光会同时改变全站观感,值得先在真机上过一眼。
+  GlassStyle thick() {
+    final ink = shadows.isEmpty ? hairline : shadows.first.color;
+    return copyWith(
+      innerRim: rim.withValues(alpha: rim.a * 0.55),
+      bottomShade: ink.withValues(alpha: ink.a * 0.45),
+    );
+  }
+
   GlassStyle copyWith({
     Color? fill,
     Color? fallbackFill,
     Color? hairline,
     Color? rim,
+    Color? innerRim,
+    Color? bottomShade,
     double? blurSigma,
     double? saturation,
     double? hairlineWidth,
@@ -74,6 +115,8 @@ class GlassStyle {
       fallbackFill: fallbackFill ?? this.fallbackFill,
       hairline: hairline ?? this.hairline,
       rim: rim ?? this.rim,
+      innerRim: innerRim ?? this.innerRim,
+      bottomShade: bottomShade ?? this.bottomShade,
       blurSigma: blurSigma ?? this.blurSigma,
       saturation: saturation ?? this.saturation,
       hairlineWidth: hairlineWidth ?? this.hairlineWidth,
@@ -87,6 +130,8 @@ class GlassStyle {
       fallbackFill: Color.lerp(a.fallbackFill, b.fallbackFill, t)!,
       hairline: Color.lerp(a.hairline, b.hairline, t)!,
       rim: Color.lerp(a.rim, b.rim, t)!,
+      innerRim: Color.lerp(a.innerRim, b.innerRim, t)!,
+      bottomShade: Color.lerp(a.bottomShade, b.bottomShade, t)!,
       blurSigma: lerpDouble(a.blurSigma, b.blurSigma, t)!,
       saturation: lerpDouble(a.saturation, b.saturation, t)!,
       hairlineWidth: lerpDouble(a.hairlineWidth, b.hairlineWidth, t)!,
@@ -235,13 +280,14 @@ class DshSurfaces extends ThemeExtension<DshSurfaces> {
         fallbackFill: smoke.withValues(alpha: 0.97),
         hairline: white.withValues(alpha: 0.09),
         rim: white.withValues(alpha: 0.16),
-        blurSigma: 18,
+        // 与 DSHM 的 25 对齐（之前只改了浅色那份，深色还是 18——真机上看到的是这份）。
+        blurSigma: 25,
         saturation: 1.2,
         shadows: [
           BoxShadow(color: black.withValues(alpha: 0.35), blurRadius: 24, offset: const Offset(0, 8)),
           BoxShadow(color: black.withValues(alpha: 0.25), blurRadius: 3, offset: const Offset(0, 1)),
         ],
-      ),
+      ).thick(),
       sheet: GlassStyle(
         fill: n.sheetDark.withValues(alpha: 0.86),
         fallbackFill: n.sheetDark,

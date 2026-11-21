@@ -13,9 +13,16 @@
 //   switch.tsx  h-[18.4px] w-[32px]（sm 14×24）, thumb 16/12, 命中区外扩 12×8
 import 'dart:math' as math;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+import '../common/haptics.dart';
 import '../theme/theme.dart';
+
+// 新原语各自成文件（骨架屏、入场编排），但从这里转出口：调用方只要
+// `import '../kit/kit.dart';` 就全都拿得到，不必为了一个新件再加一行 import。
+export 'kit_reveal.dart';
+export 'kit_skeleton.dart';
 
 /// vetta 的几何与排版常量（px 直接对应 CSS）。
 abstract final class Kit {
@@ -41,6 +48,22 @@ abstract final class Kit {
   /// 按下时整体下移 1px——这是它"有手感"的关键，比放大或变暗都更接近真按钮。
   static const pressOffset = 1.0;
 
+  /// 松手回弹时**越过**静止位置的距离（0.5px）。
+  ///
+  /// 回弹只走 60ms 而且要过冲，所以不能用 [AppMotion.springCurve]（它 1.9% 的
+  /// 过冲落在 1px 上只有 0.02px，看不见），必须写成显式关键帧：
+  /// `1px → -0.5px → 0`，见 [KitPress]。
+  static const pressRebound = 0.5;
+
+  /// 开关切换时轨道横向鼓起的比例（1.5%，160ms 内鼓满再收回）。
+  static const toggleBulge = 0.015;
+
+  /// 滑块搬家途中横向压缩的比例（scaleX 0.96）。
+  ///
+  /// 真东西被推着走时，前后两端会被挤一下；少了这一下，滑块就只是"一个矩形
+  /// 平移了"，视觉上读不出它是被"搬"过去的。
+  static const slideSqueeze = 0.04;
+
   /// 字号：12（控件内文字）、13（列表标题）、14（正文）、11（元信息）。
   static const textMeta = 11.0;
   static const textControl = 12.0;
@@ -65,11 +88,40 @@ abstract final class Kit {
   static const controlMaxWidth = 384.0;
 }
 
-/// 动效闸门：新组件不许各自决定"要不要动"。
+/// 动效闸门：新组件不许各自决定"要不要动"，也不许各自写时长。
 ///
 /// 系统"移除动画"（含 App 的省电降级）为真时一律零时长；光感档位关掉
 /// "预见性动画"时，编排类动画也不再发生。这样新页面和老页面的手感一致。
+///
+/// 下面的常量是 kit 内部的**微动作**时长。它们单独命名而不是散在 build 里，
+/// 是因为：这些数一旦各处写一份，微调时必然只改一处，全站就会出现"按钮快
+/// 60ms、开关快 80ms"这种说不清的不齐。跨页面的通用档位（[AppMotion.quick]、
+/// [AppMotion.commit]、[AppMotion.spring]）仍然只放在 theme/motion.dart。
 abstract final class KitMotion {
+  /// 松手回弹：按下 1px → 越过 -0.5px → 停回 0，全程 60ms。
+  ///
+  /// 只有 60ms：回弹是"手已经抬起来、按钮追上来的那一小段"。再长就会被看成
+  /// "按钮自己动了一下"，而不是"我刚才按过它"。
+  static const release = Duration(milliseconds: 60);
+
+  /// 输入框聚焦：环从 0 长到 3px，边框从 60% 提到 100%。
+  static const focus = Duration(milliseconds: 120);
+
+  /// 分段"点亮"（底色出现，不是搬家）。比滑块快一档，因为它只是亮起来。
+  static const pick = Duration(milliseconds: 120);
+
+  /// 滑块从一个格子搬到另一个格子；曲线配 [AppMotion.springCurve]。
+  static const slide = AppMotion.spring;
+
+  /// 开关切换时轨道横向鼓起 1.5% 再收回。
+  static const toggle = Duration(milliseconds: 160);
+
+  /// 骨架屏**首次**出现的淡入（之后整块静止，不循环、不呼吸）。
+  static const skeletonIn = Duration(milliseconds: 400);
+
+  /// 角标数字变化时滚到新值（只滚这一次）。
+  static const roll = Duration(milliseconds: 200);
+
   static Duration of(BuildContext context, [Duration fallback = AppMotion.quick]) {
     if (MediaQuery.disableAnimationsOf(context)) return Duration.zero;
     return fallback;
@@ -85,7 +137,10 @@ enum KitButtonVariant { primary, standard, outline, field, secondary, ghost, des
 enum KitButtonSize { xs, sm, md, lg, icon, iconSm, iconLg }
 
 /// 按钮。行为照 button.tsx：按下平移 1px、焦点环、disabled 50%。
-class KitButton extends StatefulWidget {
+///
+/// 按压反馈交给 [KitPress]（同一个 1px + 60ms 回弹），这样按钮、卡片、列表行
+/// 的"按下去"是全站同一种手感，而不是各自 InkWell 一下。
+class KitButton extends StatelessWidget {
   const KitButton({
     super.key,
     required this.onTap,
@@ -94,6 +149,7 @@ class KitButton extends StatefulWidget {
     this.variant = KitButtonVariant.standard,
     this.size = KitButtonSize.md,
     this.enabled = true,
+    this.haptic = false,
   });
 
   final VoidCallback? onTap;
@@ -103,26 +159,25 @@ class KitButton extends StatefulWidget {
   final KitButtonSize size;
   final bool enabled;
 
-  @override
-  State<KitButton> createState() => _KitButtonState();
-}
+  /// 点下去给一次**提交类**触感（[Haptics.commit]，mediumImpact）。
+  ///
+  /// 默认关，而且只给真正的提交点开：保存、发送、确认、删除确认。普通按钮
+  /// （取消、返回、筛选、「再来一次」）开这个会让整屏都在震，触感就不再是信号。
+  final bool haptic;
 
-class _KitButtonState extends State<KitButton> {
-  bool _down = false;
-
-  double get _height => switch (widget.size) {
+  double get _height => switch (size) {
     KitButtonSize.xs => Kit.hXs,
     KitButtonSize.sm || KitButtonSize.iconSm => Kit.hSm,
     KitButtonSize.lg || KitButtonSize.iconLg => Kit.hLg,
     _ => Kit.hMd,
   };
 
-  bool get _iconOnly => widget.label == null;
+  bool get _iconOnly => label == null;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final (background, foreground, border) = switch (widget.variant) {
+    final (background, foreground, border) = switch (variant) {
       KitButtonVariant.primary => (scheme.primary, scheme.onPrimary, Colors.transparent),
       KitButtonVariant.standard => (scheme.onSurface, scheme.surface, Colors.transparent),
       KitButtonVariant.outline => (Colors.transparent, scheme.onSurface, scheme.outlineVariant),
@@ -142,18 +197,20 @@ class _KitButtonState extends State<KitButton> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (widget.icon case final icon?) Icon(icon, size: widget.size == KitButtonSize.xs ? 12 : 16, color: foreground),
-          if (widget.label case final label?) ...[
-            if (widget.icon != null) const SizedBox(width: 6),
+          if (icon case final icon?) Icon(icon, size: size == KitButtonSize.xs ? 12 : 16, color: foreground),
+          if (label case final label?) ...[
+            if (icon != null) const SizedBox(width: 6),
             Flexible(
               child: Text(
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: widget.variant == KitButtonVariant.field ? Kit.textControl : Kit.textBody,
+                  fontSize: variant == KitButtonVariant.field ? Kit.textControl : Kit.textBody,
                   fontWeight: FontWeight.w500,
-                  height: 1.2,
+                  // 行高 1.35 是中文的底线：1.2 在 14 号上只差 2px，但两行按钮
+                  // （或放大字号后）会明显挤在一起。按钮高固定 32，不撑开布局。
+                  height: 1.35,
                   color: foreground,
                 ),
               ),
@@ -163,41 +220,221 @@ class _KitButtonState extends State<KitButton> {
       ),
     );
     return Opacity(
-      opacity: widget.enabled ? 1 : 0.5,
+      opacity: enabled ? 1 : 0.5,
       child: Semantics(
         button: true,
-        enabled: widget.enabled,
-        label: widget.label,
+        enabled: enabled,
+        label: label,
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTapDown: widget.enabled ? (_) => setState(() => _down = true) : null,
-          onTapCancel: widget.enabled ? () => setState(() => _down = false) : null,
-          onTapUp: widget.enabled
+          onTapUp: enabled
               ? (_) {
-                  setState(() => _down = false);
-                  widget.onTap?.call();
+                  if (haptic) Haptics.commit();
+                  onTap?.call();
                 }
               : null,
-          child: AnimatedContainer(
-            duration: KitMotion.of(context),
-            curve: AppMotion.swift,
-            // 按下整体下移 1px：这一像素是"按到了实体"的全部来源。
-            transform: Matrix4.translationValues(0, _down ? Kit.pressOffset : 0, 0),
-            child: content,
-          ),
+          // 只给反馈，不自带点击：点击仍由上面这层 GestureDetector 负责，
+          // KitPress 只听裸指针，不参与手势竞争。
+          child: KitPress(enabled: enabled, child: content),
         ),
       ),
     );
   }
 }
 
+/// 统一的按下反馈：按下整体下移 1px，松手 60ms 回弹（越过停点 0.5px）。
+///
+/// 为什么抽出来：按下这 1px 是整套界面"有实体"的全部来源，而它之前只长在
+/// [KitButton] 里——别的页面用 InkWell 的水波代替，同一屏就出现两种"按下去"。
+/// 抽出来之后，卡片、列表行、自绘胶囊都能拿到同一种。
+///
+/// 两种用法：
+/// - **自带点击**：传 [onTap] / [onLongPress]，它会加上按钮语义
+///   （[semanticLabel]）和可选的 [haptic]。
+/// - **只给反馈**：两个都留空，包一个自己处理点击的子树（[KitButton] 就是这么
+///   用的）。这时它只监听裸指针，不进手势竞争；手指移出触摸阈值（在滚动）就撤销。
+///
+/// 系统"移除动画"时只剩静止的按下状态，没有回弹。
+class KitPress extends StatefulWidget {
+  const KitPress({
+    super.key,
+    required this.child,
+    this.onTap,
+    this.onLongPress,
+    this.enabled = true,
+    this.haptic = false,
+    this.semanticLabel,
+    this.offset = Kit.pressOffset,
+    this.behavior = HitTestBehavior.opaque,
+  });
+
+  final Widget child;
+  final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
+
+  /// false：不变形、不响应（子树照常绘制）。
+  final bool enabled;
+
+  /// 只在自带点击时生效：点下去给一次选择类触感（[Haptics.selection]）。
+  ///
+  /// 它是"选择"不是"提交"——提交类的那一声留给真正落定的动作，用
+  /// [Haptics.commit] 在调用的地方自己喊。
+  final bool haptic;
+
+  /// 自带点击时用来读的文案；传了就代替子树里的文字（不重复朗读）。
+  final String? semanticLabel;
+
+  /// 按下下移的距离（默认 1px）。大卡片可以传 2 让分量更足。
+  final double offset;
+
+  /// 只给反馈时的命中范围。
+  final HitTestBehavior behavior;
+
+  @override
+  State<KitPress> createState() => _KitPressState();
+}
+
+class _KitPressState extends State<KitPress> with SingleTickerProviderStateMixin {
+  /// 0 = 刚松手，1 = 停稳。静止时停在 1（此时位移为 0）。
+  late final AnimationController _lift = AnimationController(vsync: this, duration: KitMotion.release, value: 1);
+
+  bool _down = false;
+  Offset? _downAt;
+
+  bool get _ownsTap => widget.onTap != null || widget.onLongPress != null;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // 闸门就在这里：系统关动画时时长是 0，回弹一步到位、没有中间帧。
+    _lift.duration = KitMotion.of(context, KitMotion.release);
+  }
+
+  @override
+  void didUpdateWidget(KitPress oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // 按下途中被禁用（提交后按钮自己变灰是最常见的一种）：立刻抬起来，
+    // 别在屏幕上留一个"按着"的按钮。这里直接改字段、不走 setState ——
+    // 此刻本来就要重建，再排一次重建是多余的。
+    if (oldWidget.enabled && !widget.enabled && _down) {
+      _down = false;
+      _lift.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _lift.dispose();
+    super.dispose();
+  }
+
+  /// 当前位移。按下是**立刻**到位的（真按钮不会"慢慢沉下去"），回弹才有动画。
+  double get _dy {
+    if (_down) return widget.offset;
+    final t = AppMotion.swift.transform(_lift.value);
+    if (t >= 1) return 0;
+    // 显式关键帧：1 → -0.5（越过停点）→ 0。前 40% 用来过冲，后 60% 落回。
+    const peak = -Kit.pressRebound;
+    if (t <= 0.4) return widget.offset * (1 + (peak - 1) * (t / 0.4));
+    return widget.offset * peak * (1 - (t - 0.4) / 0.6);
+  }
+
+  void _press() {
+    if (!widget.enabled) return;
+    _lift.stop();
+    if (!_down) setState(() => _down = true);
+  }
+
+  void _release() {
+    _downAt = null;
+    if (!_down) return;
+    setState(() => _down = false);
+    _lift.forward(from: 0);
+  }
+
+  /// 手指在滚动：撤销按下状态，否则滚完列表会留下一个"按着"的按钮。
+  void _move(PointerMoveEvent event) {
+    final at = _downAt;
+    if (at == null) return;
+    final slop = MediaQuery.maybeGestureSettingsOf(context)?.touchSlop ?? kTouchSlop;
+    if ((event.position - at).distance > slop) _release();
+  }
+
+  /// 真正的点击（含读屏点按）：触感只在这里发一次，`onTapUp` 不发——
+  /// 一次点击会按顺序走 `onTapUp` 和 `onTap`，两处都发就是震两下。
+  void _tap() {
+    if (widget.haptic) Haptics.selection();
+    widget.onTap?.call();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final child = AnimatedBuilder(
+      animation: _lift,
+      builder: (context, child) => Transform.translate(offset: Offset(0, _dy), child: child),
+      child: widget.child,
+    );
+    if (!_ownsTap) {
+      return Listener(
+        behavior: widget.behavior,
+        onPointerDown: (event) {
+          if (!widget.enabled) return;
+          _downAt = event.position;
+          _press();
+        },
+        onPointerMove: _move,
+        onPointerUp: (_) => _release(),
+        onPointerCancel: () => _release(),
+        child: child,
+      );
+    }
+    final enabled = widget.enabled;
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: widget.semanticLabel,
+      // 给了文案就用它代替子树文字，免得读屏把同一句话念两遍。
+      excludeSemantics: widget.semanticLabel != null,
+      onTap: enabled && widget.onTap != null ? _tap : null,
+      onLongPress: enabled ? widget.onLongPress : null,
+      child: GestureDetector(
+        behavior: widget.behavior,
+        excludeFromSemantics: true,
+        onTapDown: enabled ? (_) => _press() : null,
+        onTapUp: enabled ? (_) => _release() : null,
+        onTapCancel: enabled ? () => _release() : null,
+        onTap: enabled && widget.onTap != null ? _tap : null,
+        onLongPress: enabled && widget.onLongPress != null
+            ? () {
+                _release();
+                widget.onLongPress!();
+              }
+            : null,
+        child: child,
+      ),
+    );
+  }
+}
+
 /// 开关：18.4 × 32，滑块 16，开着填主色；命中区比可见范围大一圈。
-class KitSwitch extends StatelessWidget {
-  const KitSwitch({super.key, required this.value, required this.onChanged, this.small = false});
+class KitSwitch extends StatefulWidget {
+  const KitSwitch({
+    super.key,
+    required this.value,
+    required this.onChanged,
+    this.small = false,
+    this.haptic = false,
+  });
 
   final bool value;
   final ValueChanged<bool>? onChanged;
   final bool small;
+
+  /// 切换时给一次**选择类**触感（[Haptics.selection]）。
+  ///
+  /// 默认关：设置页一屏有十几个开关，每个都震就成了噪音。只给"真的改变行为"
+  /// 的那些开（比如省电模式、手机操控）。
+  final bool haptic;
 
   /// 命中区在轨道外各留的距离（`after:-inset-x-3 -inset-y-2`）。
   ///
@@ -208,39 +445,85 @@ class KitSwitch extends StatelessWidget {
   static const hitPadY = 8.0;
 
   @override
+  State<KitSwitch> createState() => _KitSwitchState();
+}
+
+class _KitSwitchState extends State<KitSwitch> with SingleTickerProviderStateMixin {
+  /// 0 → 1 走完就是"鼓起再收回"。静止停在 1（鼓起量为 0）。
+  late final AnimationController _bulge = AnimationController(
+    vsync: this,
+    duration: KitMotion.toggle,
+    value: 1,
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _bulge.duration = KitMotion.of(context, KitMotion.toggle);
+  }
+
+  @override
+  void dispose() {
+    _bulge.dispose();
+    super.dispose();
+  }
+
+  void _toggle() {
+    final onChanged = widget.onChanged;
+    if (onChanged == null) return;
+    if (widget.haptic) Haptics.selection();
+    // 轨道先横向鼓起 1.5% 再收回（160ms）：切换是个"咔哒"的机械动作，
+    // 只换颜色的话，轨道读起来像一张会变色的贴纸，而不是一个被拨过去的零件。
+    _bulge.forward(from: 0);
+    onChanged(!widget.value);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final w = small ? Kit.switchSmW : Kit.switchW;
-    final h = small ? Kit.switchSmH : Kit.switchH;
+    final w = widget.small ? Kit.switchSmW : Kit.switchW;
+    final h = widget.small ? Kit.switchSmH : Kit.switchH;
     final thumb = h - 2;
     return Semantics(
-      toggled: value,
+      toggled: widget.value,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: onChanged == null ? null : () => onChanged!(!value),
+        onTap: widget.onChanged == null ? null : _toggle,
         child: Padding(
           // after:-inset-x-3 -inset-y-2 → 左右各外扩 12、上下各 8 的命中区。
-          padding: const EdgeInsets.symmetric(horizontal: hitPadX, vertical: hitPadY),
-          child: AnimatedContainer(
-            duration: KitMotion.of(context),
-            curve: AppMotion.swift,
-            width: w,
-            height: h,
-            padding: const EdgeInsets.all(1),
-            decoration: BoxDecoration(
-              color: value ? scheme.primary : scheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(h / 2),
-            ),
-            child: AnimatedAlign(
+          padding: const EdgeInsets.symmetric(
+            horizontal: KitSwitch.hitPadX,
+            vertical: KitSwitch.hitPadY,
+          ),
+          // 鼓起用 Transform：只动绘制，不动布局——开关在行里占的宽度不变，
+          // 右边那列的值、箭头不会跟着抖一下。
+          child: AnimatedBuilder(
+            animation: _bulge,
+            builder: (context, child) {
+              final bulge = math.sin(math.pi * _bulge.value.clamp(0.0, 1.0)) * Kit.toggleBulge;
+              return Transform.scale(scaleX: 1 + bulge, scaleY: 1, child: child);
+            },
+            child: AnimatedContainer(
               duration: KitMotion.of(context),
               curve: AppMotion.swift,
-              alignment: value ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
-              child: Container(
-                width: thumb,
-                height: thumb,
-                decoration: BoxDecoration(
-                  color: value ? scheme.onPrimary : scheme.surface,
-                  shape: BoxShape.circle,
+              width: w,
+              height: h,
+              padding: const EdgeInsets.all(1),
+              decoration: BoxDecoration(
+                color: widget.value ? scheme.primary : scheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(h / 2),
+              ),
+              child: AnimatedAlign(
+                duration: KitMotion.of(context),
+                curve: AppMotion.swift,
+                alignment: widget.value ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
+                child: Container(
+                  width: thumb,
+                  height: thumb,
+                  decoration: BoxDecoration(
+                    color: widget.value ? scheme.onPrimary : scheme.surface,
+                    shape: BoxShape.circle,
+                  ),
                 ),
               ),
             ),
@@ -287,16 +570,30 @@ class _KitInputState extends State<KitInput> {
     final scheme = Theme.of(context).colorScheme;
     final focused = _node.hasFocus;
     return AnimatedContainer(
-      duration: KitMotion.of(context),
+      duration: KitMotion.of(context, KitMotion.focus),
+      curve: AppMotion.swift,
       height: Kit.hMd,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(Kit.radiusControl),
         border: Border.all(
-          color: focused ? scheme.primary.withValues(alpha: 0.6) : scheme.outlineVariant.withValues(alpha: 0.6),
+          // 聚焦时边框从 60% 提到 100%：环是"外面那圈光"，边框是"自己被点亮"，
+          // 两者一起收进来，眼睛读到的才是"这个格子活了"，而不是"多了个影子"。
+          color: focused
+              ? scheme.primary
+              : scheme.outlineVariant.withValues(alpha: 0.6),
         ),
-        boxShadow: focused
-            ? [BoxShadow(color: scheme.primary.withValues(alpha: 0.3), spreadRadius: Kit.focusRing / 2, blurRadius: Kit.focusRing)]
-            : null,
+        // 环的展开靠颜色从 0 插值到 30%（spread/blur 一直是 3/3，120ms）。
+        //
+        // 未聚焦时**必须**给一个 alpha 0 的同形状影子，不能给 null：
+        // AnimatedContainer 走 `Decoration.lerp` → `BoxShadow.lerpList`，
+        // 而后者要求两个列表等长（null 会被当成空列表，一聚焦就抛断言）。
+        boxShadow: [
+          BoxShadow(
+            color: scheme.primary.withValues(alpha: focused ? 0.30 : 0),
+            spreadRadius: Kit.focusRing / 2,
+            blurRadius: Kit.focusRing,
+          ),
+        ],
       ),
       padding: const EdgeInsets.symmetric(horizontal: 10),
       alignment: Alignment.center,
@@ -304,7 +601,7 @@ class _KitInputState extends State<KitInput> {
         controller: widget.controller,
         focusNode: _node,
         onChanged: widget.onChanged,
-        style: const TextStyle(fontSize: Kit.textBody),
+        style: const TextStyle(fontSize: Kit.textBody, height: 1.35),
         cursorHeight: math.min(18, Kit.textBody * 1.3),
         decoration: InputDecoration.collapsed(hintText: widget.hint),
       ),
@@ -436,6 +733,10 @@ class KitSectionHeader extends StatelessWidget {
 }
 
 /// 卡片角标：`h-5 rounded-full px-2 text-[10px] font-semibold` + 15% 底色。
+///
+/// 数字角标（未读数、条数）从 3 变到 4 时，新数字从下方滚上来 200ms（只滚这一次）。
+/// 只在两边**都是纯数字**时才滚：文字换掉（「草稿」→「已发布」）滚起来像坏了；
+/// 而数字变化是"同一件事在变"，滚一下能让眼睛在不盯着它的地方也知道它变了。
 class KitChip extends StatelessWidget {
   const KitChip({super.key, required this.label, this.color, this.dot = false});
 
@@ -458,11 +759,65 @@ class KitChip extends StatelessWidget {
             Container(width: 6, height: 6, decoration: BoxDecoration(color: tint, shape: BoxShape.circle)),
             const SizedBox(width: 5),
           ],
-          Text(
-            label,
-            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, height: 1.2, color: tint),
+          _ChipLabel(
+            label: label,
+            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, height: 1.35, color: tint),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 角标文字：数字变化时滚一次，其余情况是普通 [Text]。
+class _ChipLabel extends StatefulWidget {
+  const _ChipLabel({required this.label, required this.style});
+
+  final String label;
+  final TextStyle style;
+
+  @override
+  State<_ChipLabel> createState() => _ChipLabelState();
+}
+
+class _ChipLabelState extends State<_ChipLabel> {
+  /// 上一次变化的两边是不是都是纯数字。初值按当前文案算，所以第一次出现不滚。
+  late bool _roll = _isNumber(widget.label);
+
+  static bool _isNumber(String text) {
+    if (text.isEmpty) return false;
+    for (final unit in text.codeUnits) {
+      if (unit < 0x30 || unit > 0x39) return false; // 只认 0-9
+    }
+    return true;
+  }
+
+  @override
+  void didUpdateWidget(_ChipLabel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.label == widget.label) return;
+    _roll = _isNumber(oldWidget.label) && _isNumber(widget.label);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_roll) return Text(widget.label, style: widget.style);
+    // ClipRect：滚动的中间帧里新数字会短暂越出 20 高的胶囊，不裁就会画到旁边的
+    // 文字上。只有数字角标有这个裁剪，普通文字角标不受影响。
+    return ClipRect(
+      child: AnimatedSwitcher(
+        duration: KitMotion.of(context, KitMotion.roll),
+        switchInCurve: AppMotion.swift,
+        switchOutCurve: AppMotion.swift,
+        transitionBuilder: (child, animation) => FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            // 从下方 45% 处升上来：位移很小，读起来是"换了一位数字"，不是"换了个角标"。
+            position: Tween(begin: const Offset(0, 0.45), end: Offset.zero).animate(animation),
+            child: child,
+          ),
+        ),
+        child: Text(widget.label, key: ValueKey(widget.label), style: widget.style),
       ),
     );
   }
@@ -536,7 +891,8 @@ class _SegmentState extends State<_Segment> {
           behavior: HitTestBehavior.opaque,
           onTap: widget.onTap,
           child: AnimatedContainer(
-            duration: KitMotion.of(context, const Duration(milliseconds: 120)),
+            duration: KitMotion.of(context, KitMotion.pick),
+            curve: AppMotion.swift,
             padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 2),
             decoration: BoxDecoration(
               color: background,
@@ -564,8 +920,10 @@ class _SegmentState extends State<_Segment> {
 /// 双极胶囊（prism 的 `.ag-prism-sb-seg` 规格）：两格，滑块 300ms 滑过去。
 ///
 /// 这一枚是"搬东西"而不是"点亮"，所以用它自己的曲线
-/// `cubic-bezier(0.34, 1.24, 0.64, 1)`——带一点回弹，手感比 linear 活。
-class KitDualToggle extends StatelessWidget {
+/// `cubic-bezier(0.34, 1.24, 0.64, 1)`（= [AppMotion.springCurve]）——带一点回弹，
+/// 手感比 linear 活。滑块在途中还会被横向压 4%（scaleX 0.96）：真零件被推着走时
+/// 前后会被挤一下，少了这一下，滑块就只是"一个矩形平移了"。
+class KitDualToggle extends StatefulWidget {
   const KitDualToggle({
     super.key,
     required this.left,
@@ -580,7 +938,37 @@ class KitDualToggle extends StatelessWidget {
   final ValueChanged<bool> onChanged;
 
   /// 300ms + 回弹。
-  static const curve = Cubic(0.34, 1.24, 0.64, 1);
+  static const curve = AppMotion.springCurve;
+
+  @override
+  State<KitDualToggle> createState() => _KitDualToggleState();
+}
+
+class _KitDualToggleState extends State<KitDualToggle> with SingleTickerProviderStateMixin {
+  /// 0 → 1 与滑块搬家同步；途中压缩量按 sin(π·t) 取得，静止时正好为 0。
+  late final AnimationController _slide = AnimationController(
+    vsync: this,
+    duration: KitMotion.slide,
+    value: 1,
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _slide.duration = KitMotion.of(context, KitMotion.slide);
+  }
+
+  @override
+  void didUpdateWidget(KitDualToggle oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.rightSelected != widget.rightSelected) _slide.forward(from: 0);
+  }
+
+  @override
+  void dispose() {
+    _slide.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -598,15 +986,28 @@ class KitDualToggle extends StatelessWidget {
               ),
             ),
             AnimatedAlign(
-              duration: KitMotion.of(context, const Duration(milliseconds: 300)),
-              curve: curve,
-              alignment: rightSelected ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
+              duration: KitMotion.of(context, KitMotion.slide),
+              curve: KitDualToggle.curve,
+              alignment: widget.rightSelected ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
               child: FractionallySizedBox(
                 widthFactor: 0.5,
                 child: Padding(
                   padding: const EdgeInsets.all(3),
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(color: knob, borderRadius: BorderRadius.circular(999)),
+                  // 压缩只作用在滑块自己身上（不含那 3px 内缩），否则途中会连
+                  // 滑块和轨道之间的缝一起缩，看起来像整块在呼吸。
+                  child: AnimatedBuilder(
+                    animation: _slide,
+                    builder: (context, child) {
+                      final squeeze = math.sin(math.pi * _slide.value.clamp(0.0, 1.0)) * Kit.slideSqueeze;
+                      return Transform.scale(scaleX: 1 - squeeze, child: child);
+                    },
+                    // SizedBox.expand 是必须的：DecoratedBox 没有子节点时会取约束的
+                    // 最小值，而 AnimatedAlign 给的是松约束 —— 少了它滑块的高度是 0，
+                    // 这个控件就只剩轨道和文字（改之前就是这样）。
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(color: knob, borderRadius: BorderRadius.circular(999)),
+                      child: const SizedBox.expand(),
+                    ),
                   ),
                 ),
               ),
@@ -614,8 +1015,12 @@ class KitDualToggle extends StatelessWidget {
             Positioned.fill(
               child: Row(
                 children: [
-                  Expanded(child: _Half(item: left, selected: !rightSelected, onTap: () => onChanged(false))),
-                  Expanded(child: _Half(item: right, selected: rightSelected, onTap: () => onChanged(true))),
+                  Expanded(
+                    child: _Half(item: widget.left, selected: !widget.rightSelected, onTap: () => widget.onChanged(false)),
+                  ),
+                  Expanded(
+                    child: _Half(item: widget.right, selected: widget.rightSelected, onTap: () => widget.onChanged(true)),
+                  ),
                 ],
               ),
             ),

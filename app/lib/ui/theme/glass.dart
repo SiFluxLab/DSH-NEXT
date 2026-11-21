@@ -148,6 +148,11 @@ class GlassSurface extends StatelessWidget {
         hairline: s.hairline,
         hairlineWidth: s.hairlineWidth,
         rim: s.rim.withValues(alpha: (s.rim.a * rimScale).clamp(0.0, 1.0)),
+        // 厚度两件：默认全透明（不画），由 `GlassStyle.thick()` 打开。
+        // 它们跟 [rim] 一样受镜面强度钳制——光感档位降到"静默"时，厚玻璃
+        // 也不该比"完整光感"更亮。
+        innerRim: s.innerRim.withValues(alpha: (s.innerRim.a * rimScale).clamp(0.0, 1.0)),
+        bottomShade: s.bottomShade,
         textDirection: textDirection,
       ),
       child: DecoratedBox(
@@ -208,13 +213,19 @@ class GlassSurface extends StatelessWidget {
   }
 }
 
-/// 发丝描边 + 顶边高光。描边画在形状内侧,裁剪时不会被切掉一半。
+/// 发丝描边 + 顶边高光（+ 可选的内缘高光、底边暗边）。
+/// 描边画在形状内侧,裁剪时不会被切掉一半。
+///
+/// 四条线都挤在同一次 `paint` 里,共用同一条形状路径（内缘那两条只是把矩形再
+/// 往里缩 2px 重建一次路径）:没有新的离屏层,也没有新的滤镜。
 class _GlassEdgePainter extends CustomPainter {
   _GlassEdgePainter({
     required this.shape,
     required this.hairline,
     required this.hairlineWidth,
     required this.rim,
+    required this.innerRim,
+    required this.bottomShade,
     required this.textDirection,
   });
 
@@ -222,6 +233,13 @@ class _GlassEdgePainter extends CustomPainter {
   final Color hairline;
   final double hairlineWidth;
   final Color rim;
+
+  /// 内缘高光:离外沿约 2px 的一道细高光。全透明 = 不画。
+  final Color innerRim;
+
+  /// 底边暗边:离外沿约 2px 的一道暗线。全透明 = 不画。
+  final Color bottomShade;
+
   final TextDirection? textDirection;
 
   @override
@@ -251,6 +269,40 @@ class _GlassEdgePainter extends CustomPainter {
         ).createShader(rect);
       canvas.drawPath(path, highlight);
     }
+    // 内缘的两条只在打开了才建路径/建 shader：默认关的那条路径上多一分钱都不花。
+    // 8px 以下的小件（状态点、6px 的圆点）内缩 2px 之后形状就没了，跳过。
+    if ((innerRim.a > 0 || bottomShade.a > 0) && size.shortestSide > 8) {
+      // 2px 的内缩：外沿发丝线 0.5–1px，两道光相距 2px 才读得出"厚度"而不是"双线"。
+      final inner = shape.getOuterPath(rect.deflate(2), textDirection: textDirection);
+      if (innerRim.a > 0) {
+        canvas.drawPath(
+          inner,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = math.max(width, 0.6)
+            ..shader = LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [innerRim, innerRim.withValues(alpha: 0)],
+              stops: const [0, 0.30],
+            ).createShader(rect),
+        );
+      }
+      if (bottomShade.a > 0) {
+        canvas.drawPath(
+          inner,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = math.max(width, 0.6)
+            ..shader = LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [bottomShade.withValues(alpha: 0), bottomShade],
+              stops: const [0.76, 1],
+            ).createShader(rect),
+        );
+      }
+    }
   }
 
   @override
@@ -259,6 +311,8 @@ class _GlassEdgePainter extends CustomPainter {
       old.hairline != hairline ||
       old.hairlineWidth != hairlineWidth ||
       old.rim != rim ||
+      old.innerRim != innerRim ||
+      old.bottomShade != bottomShade ||
       old.textDirection != textDirection;
 }
 

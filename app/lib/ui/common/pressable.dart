@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
-import 'package:flutter/services.dart';
 
 import '../theme/motion.dart';
+import 'haptics.dart';
 
 /// Press feedback for anything tappable: settles to [AppMotion.pressScale]
 /// (0.97) while held and back to 1 on release, never past it, on a spring that
@@ -165,7 +165,7 @@ class _PressableState extends State<Pressable> with SingleTickerProviderStateMix
   }
 
   void _tap() {
-    if (widget.haptic) HapticFeedback.selectionClick();
+    if (widget.haptic) Haptics.selection();
     widget.onTap?.call();
   }
 
