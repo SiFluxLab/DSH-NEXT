@@ -28092,6 +28092,13 @@ class L10nEn extends L10n {
   String get opticsEffective => 'In effect';
   String get opticsOn => 'on';
   String get opticsOff => 'off';
+  String get performanceMeasured => 'Measured';
+  String get performanceMeasuredHint => 'Sampling starts when this page opens (last 240 frames). 16.7 ms is the per-frame budget; a jank ratio above 10% means this mode is heavy for the device.';
+  String get performanceMeasuredWaiting => 'Sampling, one moment';
+  String get performanceAvgFrame => 'Average frame';
+  String get performanceP95Frame => '95th percentile';
+  String get performanceWorstFrame => 'Worst frame';
+  String get performanceJankRatio => 'Jank ratio';
   String get workshopTitle => 'Workshop';
 
   @override

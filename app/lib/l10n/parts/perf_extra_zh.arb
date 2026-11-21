@@ -1,0 +1,9 @@
+{
+  "performanceMeasured": "实测",
+  "performanceMeasuredHint": "打开这一页才开始采样（最近 240 帧）。16.7 ms 是一帧的预算，掉帧比例超过 10% 说明这一档对当前设备偏重。",
+  "performanceMeasuredWaiting": "采样中，等一秒",
+  "performanceAvgFrame": "平均帧耗时",
+  "performanceP95Frame": "95 分位",
+  "performanceWorstFrame": "最差一帧",
+  "performanceJankRatio": "掉帧比例"
+}

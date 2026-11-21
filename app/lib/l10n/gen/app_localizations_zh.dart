@@ -26654,6 +26654,13 @@ class L10nZh extends L10n {
   String get opticsEffective => '当前生效';
   String get opticsOn => '开';
   String get opticsOff => '关';
+  String get performanceMeasured => '实测';
+  String get performanceMeasuredHint => '打开这一页才开始采样（最近 240 帧）。16.7 ms 是一帧的预算，掉帧比例超过 10% 说明这一档对当前设备偏重。';
+  String get performanceMeasuredWaiting => '采样中，等一秒';
+  String get performanceAvgFrame => '平均帧耗时';
+  String get performanceP95Frame => '95 分位';
+  String get performanceWorstFrame => '最差一帧';
+  String get performanceJankRatio => '掉帧比例';
   String get workshopTitle => '创意工坊';
 
   @override

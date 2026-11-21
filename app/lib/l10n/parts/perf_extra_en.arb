@@ -1,0 +1,9 @@
+{
+  "performanceMeasured": "Measured",
+  "performanceMeasuredHint": "Sampling starts when this page opens (last 240 frames). 16.7 ms is the per-frame budget; a jank ratio above 10% means this mode is heavy for the device.",
+  "performanceMeasuredWaiting": "Sampling, one moment",
+  "performanceAvgFrame": "Average frame",
+  "performanceP95Frame": "95th percentile",
+  "performanceWorstFrame": "Worst frame",
+  "performanceJankRatio": "Jank ratio"
+}

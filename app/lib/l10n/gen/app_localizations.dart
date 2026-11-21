@@ -48872,6 +48872,48 @@ abstract class L10n {
   /// **'关'**
   String get opticsOff;
 
+  /// No description provided for @performanceMeasured.
+  ///
+  /// In zh, this message translates to:
+  /// **'实测'**
+  String get performanceMeasured;
+
+  /// No description provided for @performanceMeasuredHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'打开这一页才开始采样（最近 240 帧）。16.7 ms 是一帧的预算，掉帧比例超过 10% 说明这一档对当前设备偏重。'**
+  String get performanceMeasuredHint;
+
+  /// No description provided for @performanceMeasuredWaiting.
+  ///
+  /// In zh, this message translates to:
+  /// **'采样中，等一秒'**
+  String get performanceMeasuredWaiting;
+
+  /// No description provided for @performanceAvgFrame.
+  ///
+  /// In zh, this message translates to:
+  /// **'平均帧耗时'**
+  String get performanceAvgFrame;
+
+  /// No description provided for @performanceP95Frame.
+  ///
+  /// In zh, this message translates to:
+  /// **'95 分位'**
+  String get performanceP95Frame;
+
+  /// No description provided for @performanceWorstFrame.
+  ///
+  /// In zh, this message translates to:
+  /// **'最差一帧'**
+  String get performanceWorstFrame;
+
+  /// No description provided for @performanceJankRatio.
+  ///
+  /// In zh, this message translates to:
+  /// **'掉帧比例'**
+  String get performanceJankRatio;
+
   /// No description provided for @workshopTitle.
   ///
   /// In zh, this message translates to:

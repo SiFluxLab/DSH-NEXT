@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/l10n.dart';
+import '../../performance/frame_stats.dart';
 import '../../performance/performance_state.dart';
 import '../../state/android_features.dart';
 import '../shell/page_frame.dart';
@@ -45,6 +46,7 @@ class PerformancePage extends ConsumerWidget {
     return AppPage.list(
       title: l10n.performanceTitle,
       children: [
+        const _FrameStatsSection(),
         SettingsSection(
           footer: Text(thermal ? l10n.performanceCooling : l10n.performanceChoiceHint),
           children: [
@@ -135,6 +137,54 @@ class PerformancePage extends ConsumerWidget {
         ),
         // 大字号下最后一行也要能整个滚进视野:滚动到底时留出一点余量。
         const SizedBox(height: 72),
+      ],
+    );
+  }
+}
+
+
+/// 「实测」：最近 240 帧的平均 / 95 分位 / 最差与掉帧比例。
+///
+/// 打开这一页才开始采样（`frameStatsProvider` 首次监听时装回调），所以它是
+/// 一个"你想量的时候量一下"的工具，而不是常驻开销。
+class _FrameStatsSection extends ConsumerWidget {
+  const _FrameStatsSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final stats = ref.watch(frameStatsProvider).value;
+    final scheme = Theme.of(context).colorScheme;
+    String ms(double v) => '${v.toStringAsFixed(1)} ms';
+    return SettingsSection(
+      title: l10n.performanceMeasured,
+      footer: Text(l10n.performanceMeasuredHint),
+      children: [
+        if (stats == null || stats.empty)
+          SettingsTile(title: l10n.performanceMeasuredWaiting, chevron: false)
+        else ...[
+          SettingsTile(
+            title: l10n.performanceAvgFrame,
+            value: Text(ms(stats.avgMs), style: TextStyle(color: scheme.onSurfaceVariant)),
+            chevron: false,
+          ),
+          SettingsTile(
+            title: l10n.performanceP95Frame,
+            value: Text(ms(stats.p95Ms), style: TextStyle(color: scheme.onSurfaceVariant)),
+            chevron: false,
+          ),
+          SettingsTile(
+            title: l10n.performanceWorstFrame,
+            value: Text(ms(stats.worstMs), style: TextStyle(color: scheme.onSurfaceVariant)),
+            chevron: false,
+          ),
+          SettingsTile(
+            title: l10n.performanceJankRatio,
+            value: Text('${(stats.jankRatio * 100).toStringAsFixed(1)}%',
+                style: TextStyle(color: stats.jankRatio > 0.1 ? scheme.error : scheme.onSurfaceVariant)),
+            chevron: false,
+          ),
+        ],
       ],
     );
   }
