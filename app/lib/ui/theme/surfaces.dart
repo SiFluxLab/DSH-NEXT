@@ -178,7 +178,7 @@ class DshSurfaces extends ThemeExtension<DshSurfaces> {
         fallbackFill: t.surface1.withValues(alpha: 0.96),
         hairline: ink.withValues(alpha: 0.08),
         rim: white.withValues(alpha: 0.85),
-        blurSigma: 28,
+        blurSigma: 25,
         saturation: 1.3,
         shadows: [
           BoxShadow(color: ink.withValues(alpha: 0.08), blurRadius: 24, offset: const Offset(0, 8)),
@@ -228,12 +228,13 @@ class DshSurfaces extends ThemeExtension<DshSurfaces> {
       accent: accent,
       blurEnabled: blurEnabled,
       chrome: GlassStyle(
-        // KSU 那种玻璃：底子更"白瓷"（不透明度高），模糊更重，内缘一条高光。
-        // 只提高这两项就足以从"雾"变成"玻璃"，不需要加投影。
-        fill: smoke.withValues(alpha: 0.80),
+        // 参考 DSHM（KernelSU 派系）的 miuix `textureBlur`：blurRadius 25、
+        // 混合色是 surface 的 87%。也就是说它的玻璃**很实**——先有一层几乎不透明的
+        // 白瓷体，模糊只是让底下透出一点点颜色。这跟我们原来 0.7 的"淡雾"是两种东西。
+        fill: smoke.withValues(alpha: 0.87),
         fallbackFill: smoke.withValues(alpha: 0.97),
         hairline: white.withValues(alpha: 0.09),
-        rim: white.withValues(alpha: 0.12),
+        rim: white.withValues(alpha: 0.16),
         blurSigma: 18,
         saturation: 1.2,
         shadows: [
