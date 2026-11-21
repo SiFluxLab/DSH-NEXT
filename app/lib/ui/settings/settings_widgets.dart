@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../l10n/l10n.dart';
+import '../common/app_sheet.dart' show FlatPanel;
 import '../common/list_page_row.dart' show ListPageRow;
 import '../common/overview_card.dart' show OverviewChevron;
 import '../common/segmented_pill.dart';
@@ -40,7 +41,9 @@ export 'settings_polish.dart'
 /// 但**同一列里只允许一条竖线**;所以分组卡回到 16,和胶囊、概览卡、二级页的
 /// `ListPageCard` 站在同一条线上。分组之间 24(`mb-6`):一眼能分清"换组了",
 /// 又不会让人以为翻到了另一页。
-const kSettingsGroupMargin = EdgeInsets.fromLTRB(16, 0, 16, 24);
+// 原版留白：左右 16、组间 20。上一轮改到 20/28 之后整页反而更挤——
+// 行间没有呼吸时，靠边距补偿是补不回来的。
+const kSettingsGroupMargin = EdgeInsets.fromLTRB(16, 0, 16, 20);
 
 /// The measured geometry every settings-style row shares. Change it here and in
 /// `test/settings/settings_geometry_test.dart` together.
@@ -497,10 +500,15 @@ class SettingsSection extends StatelessWidget {
                 child: KitSectionHeader(title: title, note: note),
               ),
             ),
-          // 分区卡：实色面 + 实线边框 + 圆角 12（vetta 的 `rounded-xl border border-border bg-card`）。
-          // 行与行之间是一条 0.5px 细线（[KitRowList]），不再是 2px 的"缝"——缝会读出
-          // "一堆小卡片"，细线才读作"一张卡里的多行"。
-          KitCard(child: spot == null ? rows : SpotAnchor(spot: spot!, child: rows)),
+          // 回到原版布局：**圆角 20 的卡片 + 行间 2px 的缝**，不再是 12 圆角 + 发丝线。
+          //
+          // 上一轮照着 vetta 的分区卡改成了"实线 1px + 0.5px 分隔"，问题在于行与行
+          // 贴在一起、卡片又变小圆角，整页读起来是"一块挤在一起的表格"（用户：太挤）。
+          // 原版的做法是每行自己带 2px 的呼吸，卡片用大圆角把它们收成一组。
+          FlatPanel(
+            radius: AppShape.lg,
+            child: spot == null ? rows : SpotAnchor(spot: spot!, child: rows),
+          ),
           if (footer case final footer?)
             Padding(
               padding: const EdgeInsets.fromLTRB(8, footerGap, 8, 0),
