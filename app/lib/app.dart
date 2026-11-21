@@ -182,7 +182,8 @@ class _DshAppState extends ConsumerState<DshApp> with WidgetsBindingObserver {
         .resolve(
           reduceMotion: reduced,
           reduceTransparency: !performance.blur,
-          lowPower: ref.watch(performancePrefsProvider.select((p) => p.mode)) == PerformanceMode.light,
+          // 低端机 / 发热 / 用户选了省电：三种来源已经由 PerformanceDefaults 合成。
+          lowPower: performance.lightweight,
         );
     FrameClock.instance.enabled = fluid;
     _themesFor(
