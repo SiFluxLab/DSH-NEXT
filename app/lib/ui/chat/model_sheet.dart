@@ -840,7 +840,6 @@ class _ModelCard extends StatelessWidget {
   final bool selected;
   final VoidCallback? onTap;
 
-  static const radius = BorderRadius.all(Radius.circular(AppShape.lg));
 
   @override
   Widget build(BuildContext context) {
