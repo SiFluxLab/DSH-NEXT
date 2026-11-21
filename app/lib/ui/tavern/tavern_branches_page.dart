@@ -17,7 +17,6 @@ import '../../l10n/l10n.dart';
 import '../../tavern/tavern_provider.dart';
 import '../common/app_sheet.dart';
 import '../common/brief_notice.dart';
-import '../common/empty_view.dart';
 import '../features/feature_kit.dart';
 import '../settings/settings_widgets.dart';
 import '../shell/page_frame.dart';

@@ -584,7 +584,6 @@ class KitDualToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final dark = Theme.of(context).brightness == Brightness.dark;
     final track = dark ? Colors.white.withValues(alpha: 0.052) : const Color(0xFF0F172A).withValues(alpha: 0.055);
     final knob = dark ? Colors.white.withValues(alpha: 0.13) : Colors.white;
