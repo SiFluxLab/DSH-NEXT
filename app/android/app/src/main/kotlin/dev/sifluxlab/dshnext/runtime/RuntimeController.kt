@@ -210,8 +210,9 @@ class RuntimeController private constructor(private val app: Context) : DshProce
         return DirectLaunch.Preference(
             saved = if (prefs.contains(K_ZT_ENGINE)) prefs.getBoolean(K_ZT_ENGINE, false) else available,
             available = available,
-            // 失败标记不再从偏好恢复：每次冷启动都从"没失败过"开始。
-            failedRuntime = null,
+            // 本进程内失败过一次就换成 PRoot：标记在进程里，冷启动才会重试。
+            // 之前这里写死 null，于是回退后仍选应龙 —— 启动失败的瞬间会无限重来。
+            failedRuntime = ztFailedThisRun,
             runtime = runCatching { manifest.runtimeVersion }.getOrNull(),
         )
     }

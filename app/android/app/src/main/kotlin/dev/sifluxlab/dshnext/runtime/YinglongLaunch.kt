@@ -182,9 +182,13 @@ object YinglongLaunch {
         if (ztBind.isNotEmpty()) zt["ZT_BIND"] = ztBind
 
         val cmd = arrayListOf(loader, "--library-path", libraries, node)
-        // shim 里那句 --import 受条件保护：boot cache 要等 dsh 自己跑过一次才生成。
-        // 运行时里没有这个文件时必须跳过，否则 node 以 ERR_MODULE_NOT_FOUND 退出 1。
-        shim.preload?.takeIf { File(root, it.trimStart('/')).exists() }?.let { cmd += "--import=$it" }
+        // 应龙路径**不传 --import**。
+        //
+        // 原因不是"文件不存在"（它在镜像里），而是 node 的 ESM loader 对 --import 的绝对路径
+        // 走自己的解析，不经过被 Zero-Trap 打补丁的 libc open，于是它只看到宿主根下的
+        // /opt/dsh-go/boot-cache.mjs，必然 ERR_MODULE_NOT_FOUND 并以 1 退出。
+        // boot cache 只是冷启动加速，缺了它不影响正确性；PRoot 路径仍由 shim 自己带。
+        // 之前那句"存在性判断"在真机上永远为真，等于没判断，所以整段去掉。
         cmd += shim.entry
         cmd += web
 
