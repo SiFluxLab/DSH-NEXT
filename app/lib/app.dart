@@ -185,7 +185,8 @@ class _DshAppState extends ConsumerState<DshApp> with WidgetsBindingObserver {
           reduceMotion: reduced,
           reduceTransparency: !performance.blur,
           // 低端机 / 发热 / 用户选了省电：三种来源已经由 PerformanceDefaults 合成。
-          lowPower: performance.lightweight,
+          // 但用户**显式**选过光感档位时不再自动降档——否则他会以为开关坏了。
+          lowPower: performance.lightweight && !ref.watch(opticsPrefsProvider).explicit,
         );
     FrameClock.instance.enabled = fluid;
     // 诊断里能看到当前光感档位：用户报"卡"时，这一行决定了我们从哪儿查。

@@ -10,6 +10,7 @@
 //
 // 系统开了"移除动画"或"降低透明度"时，对应维度自动归零（见 [Optics.resolve]），
 // 不靠调用方记得判断。
+import 'dart:math' as math;
 import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/material.dart';
@@ -113,13 +114,20 @@ class Optics extends ThemeExtension<Optics> {
       ),
     };
     if (!reduceMotion && !reduceTransparency && !lowPower) return base;
+    // 低电/热降频：**减弱**而不是抹掉。把光刃、模糊直接归零会让整套界面看起来
+    // "什么都没生效"——用户没法分辨这是省电还是坏了。只掉最贵的两层（颗粒、棱镜），
+    // 模糊压到 10，光刃留七成，状态照样看得见。
     return Optics(
       preset: base.preset,
       specular: reduceTransparency ? 0 : base.specular,
       grain: reduceTransparency || lowPower ? 0 : base.grain,
-      blade: reduceMotion ? 0 : base.blade,
+      blade: reduceMotion ? 0 : (lowPower ? base.blade * 0.7 : base.blade),
       prism: reduceTransparency || lowPower ? 0 : base.prism,
-      blurSigma: reduceTransparency || lowPower ? 0 : base.blurSigma,
+      blurSigma: reduceTransparency
+          ? 0
+          : lowPower
+          ? (base.blurSigma == 0 ? 0 : math.min(base.blurSigma, 10))
+          : base.blurSigma,
       anticipation: !reduceMotion && base.anticipation,
       afterglow: !reduceMotion && base.afterglow,
       inkFade: !reduceMotion && base.inkFade,

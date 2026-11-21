@@ -12,6 +12,7 @@ import '../ui/theme/optics.dart';
 class OpticsPrefs {
   const OpticsPrefs({
     this.preset = OpticsPreset.focus,
+    this.explicit = false,
     this.blade,
     this.prism,
     this.anticipation,
@@ -21,6 +22,10 @@ class OpticsPrefs {
   });
 
   final OpticsPreset preset;
+
+  /// 用户是否**显式**选过档位（而不是停在默认值上）。
+  /// 显式选择会压过"低电/热降频自动降档"，否则用户会觉得开关坏了。
+  final bool explicit;
 
   /// null = 跟随档位；true / false = 用户显式开或关。
   final bool? blade;
@@ -61,6 +66,7 @@ class OpticsPrefs {
 
 class OpticsController extends Notifier<OpticsPrefs> {
   static const _presetKey = 'optics.preset';
+  static const _explicitKey = 'optics.explicit';
   static const _bladeKey = 'optics.blade';
   static const _prismKey = 'optics.prism';
   static const _anticipationKey = 'optics.anticipation';
@@ -79,6 +85,7 @@ class OpticsController extends Notifier<OpticsPrefs> {
       final preset = OpticsPreset.values.asNameMap()[prefs.getString(_presetKey)] ?? OpticsPrefs().preset;
       state = OpticsPrefs(
         preset: preset,
+        explicit: prefs.getBool(_explicitKey) ?? false,
         blade: prefs.getBool(_bladeKey),
         prism: prefs.getBool(_prismKey),
         anticipation: prefs.getBool(_anticipationKey),
@@ -93,8 +100,8 @@ class OpticsController extends Notifier<OpticsPrefs> {
 
   /// 换档位：同时清掉所有单项否决，回到该档位本来的样子。
   Future<void> setPreset(OpticsPreset preset) async {
-    state = OpticsPrefs(preset: preset, loaded: true);
-    await _write({_presetKey: preset.name, _bladeKey: null, _prismKey: null,
+    state = OpticsPrefs(preset: preset, explicit: true, loaded: true);
+    await _write({_presetKey: preset.name, _explicitKey: true, _bladeKey: null, _prismKey: null,
       _anticipationKey: null, _afterglowKey: null, _inkFadeKey: null});
   }
 
@@ -125,13 +132,14 @@ class OpticsController extends Notifier<OpticsPrefs> {
 
   /// 把四个开关全部交还给档位。
   Future<void> followPreset() async {
-    state = OpticsPrefs(preset: state.preset, loaded: true);
+    state = OpticsPrefs(preset: state.preset, explicit: state.explicit, loaded: true);
     await _write({_bladeKey: null, _prismKey: null, _anticipationKey: null,
       _afterglowKey: null, _inkFadeKey: null});
   }
 
   OpticsPrefs _copy({bool? blade, bool? prism, bool? anticipation, bool? afterglow, bool? inkFade}) => OpticsPrefs(
     preset: state.preset,
+    explicit: true,
     blade: blade ?? state.blade,
     prism: prism ?? state.prism,
     anticipation: anticipation ?? state.anticipation,
