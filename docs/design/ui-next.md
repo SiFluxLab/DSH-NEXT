@@ -171,3 +171,27 @@
 
 **判断标准**：任何一项都能在设置里被单独关掉，且关掉之后**帧数更省、外观更朴素**——
 如果一个开关关掉没有任何区别，那它就不该存在。
+
+## 10. 侧边栏翻页器（Pi 式）
+
+参考 **`agegr/pi-web`**（pi 编码代理的 Web UI）的 `components/SessionSidebar.tsx` 与
+`app/sidebar.css`。它的侧边栏不是"一长条列表"，而是**一排单元格 + 可切换的页面**。
+
+| 规格 | 它的值 | 我们的实现 |
+|---|---|---|
+| 页签形态 | flex 单元格，`border-right: 1px var(--border)` | `Expanded` + 1px `outlineVariant` 竖线 |
+| 选中态 | 顶部 `2px` 强调线 + `bg-selected` + `font-weight:500` | 同（那条顶线与「光刃」同一套语言） |
+| 图标/间距/内距 | 13px / gap 6px / `0 12px` | 同 |
+| 行高 | 44（触控最小尺寸） | 同 |
+| 切换动效 | `SIDEBAR_MOTION_MS = 180` | `AppMotion.flip = 180ms`，曲线 `AppMotion.swift` |
+| 减少动态效果 | 动效归零 | `optics.anticipation` 关 或 reduce-motion → `Duration.zero` |
+| 当前页 | 按端持久化（`lib/sidebar-prefs.ts`） | `SharedPreferences: drawer.tab` |
+
+**它没有的，我们加了**：横向滑动翻页（`PageView` + 吸附），以及**第 0 页继续向右拉就把抽屉
+交回去**（`OverscrollNotification` 只在首屏越界时上报，`ClampingScrollPhysics` 才会产生越界事件——
+换成 `Bouncing` 会让这个手势静默失效，所以代码里特意注释）。
+
+**两页**：会话（原有内容不动）/ 文件（复用 `WorkspaceFilesTab`）。矮窗与横屏保持旧布局：
+页签栏会把两行会话挤没。
+
+**可关**：外观 › 侧边栏翻页器。关掉即回到一屏到底。
