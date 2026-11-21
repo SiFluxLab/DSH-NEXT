@@ -71,7 +71,7 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJSON(needs.abis.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # The hash covers every tracked file under runtime/ (build script, patches,
       # locks, bridge, the 应龙 payload). Anything else — app code, docs — does not
       # need a new runtime, and the built one is reused instead (~2-4 min saved).
@@ -80,13 +80,13 @@ jobs:
         run: echo "hash=$(git ls-tree -r HEAD -- runtime | sha1sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
       - name: Restore the built runtime
         id: out
-        uses: actions/cache@v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: runtime/out/${{ matrix.abi }}
           key: runtime-out-${{ matrix.abi }}-${{ steps.inhash.outputs.hash }}
       - name: Restore the download cache
         if: steps.out.outputs.cache-hit != 'true'
-        uses: actions/cache@v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: runtime/.cache
           key: runtime-cache-${{ matrix.abi }}-${{ hashFiles('runtime/build-runtime.sh', 'runtime/patches/pins.json') }}
@@ -116,7 +116,7 @@ jobs:
           done
 
       - name: Upload the runtime
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: runtime-${{ matrix.abi }}
           path: runtime/out/${{ matrix.abi }}
@@ -131,7 +131,7 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJSON(needs.abis.outputs.matrix) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # Same key as the runtime job: on a warm run this restores the 150 MB runtime
       # straight from the cache instead of downloading it as an artifact.
@@ -140,7 +140,7 @@ jobs:
         run: echo "hash=$(git ls-tree -r HEAD -- runtime | sha1sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
       - name: Restore the built runtime
         id: runtime_out
-        uses: actions/cache@v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: runtime/out/${{ matrix.abi }}
           key: runtime-out-${{ matrix.abi }}-${{ steps.inhash.outputs.hash }}
@@ -163,26 +163,26 @@ jobs:
 
       - name: Place the runtime where Gradle looks for it
         if: steps.runtime_out.outputs.cache-hit != 'true' && steps.release_runtime.outputs.got != 'true'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: runtime-${{ matrix.abi }}
           path: runtime/out/${{ matrix.abi }}
 
       - name: Java 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
           java-version: '21'
 
       - name: Flutter ${{ env.FLUTTER_VERSION }}
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
       - name: Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
         with:
           cmdline-tools-version: 'latest'
           packages: 'platform-tools'
@@ -274,7 +274,7 @@ jobs:
           done
           ls -l
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: apk-${{ matrix.flavor }}
           path: app/build/app/outputs/flutter-apk/dsh-next-*.apk
@@ -286,12 +286,12 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v') || inputs.release == true
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: apk-*
           merge-multiple: true
           path: dist
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3.0.4
         with:
           tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || format('build-{0}', github.run_number) }}
           name: DSH NEXT ${{ github.ref_name }}
