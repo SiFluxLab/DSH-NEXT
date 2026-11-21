@@ -53,12 +53,13 @@ abstract final class Grain {
   /// 沿弧线撒点。用确定性的伪随机，保证同一帧重绘不会闪。
   static void along(
     Canvas canvas,
-    Path path,
-    PathMetrics metrics, {
+    Path path, {
     required double alphaScale,
     int count = 220,
     Color tint = const Color(0xFFFFFFFF),
   }) {
+    // 不显式命名 PathMetrics：它来自 dart:ui，由 material 间接导出与否不该由调用方决定。
+    final metrics = path.computeMetrics().toList();
     if (count <= 0 || alphaScale <= 0) return;
     final paint = Paint()..style = PaintingStyle.fill;
     var seed = 0x9E3779B9;

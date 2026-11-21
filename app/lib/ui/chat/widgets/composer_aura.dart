@@ -251,7 +251,7 @@ class _AuraPainter extends CustomPainter {
     }
     // 颗粒：只在有亮弧的时候撒——空闲态是一圈静止环，不需要"空气感"。
     if (arcSpan < 0.995 && alpha > 0.05) {
-      Grain.along(canvas, arcPath(), path.computeMetrics(), alphaScale: arcSpan, count: 160);
+      Grain.along(canvas, arcPath(), alphaScale: arcSpan, count: 160);
     }
 
     // 4.0 的 motion 只用于将来需要按状态调速时读取；现在保持编译期无副作用。
