@@ -652,7 +652,12 @@ class _ModelSheetState extends ConsumerState<_ModelSheet> {
                                   )) {
                                     _pickEffort(effort);
                                   } else {
-                                    _selection = _selection!.copyWith(reasoningEffort: effort);
+                                    // ModelSelection 没有 copyWith：手工重建，只换档位。
+                                    _selection = ModelSelection(
+                                      provider: _selection!.provider,
+                                      model: _selection!.model,
+                                      reasoningEffort: effort,
+                                    );
                                     setState(() {});
                                   }
                                 },

@@ -136,7 +136,7 @@ class _EffortSliderState extends State<EffortSlider> {
                             width: 8,
                             height: 8,
                             decoration: BoxDecoration(
-                              color: Color.lerp(scheme.onSurface.withValues(alpha: 0.35), Spectral.glow, t * t),
+                              color: Color.lerp(scheme.onSurface.withValues(alpha: 0.35), Spectral.glow, t * t)!,
                               shape: BoxShape.circle,
                             ),
                           ),

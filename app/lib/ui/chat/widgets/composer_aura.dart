@@ -193,9 +193,9 @@ class _AuraPainter extends CustomPainter {
       return head..addPath(metric.extractPath(0, start + span - metric.length), Offset.zero);
     }
 
-    void strokeArc(double width, Color Function(double t) tint, BlendMode blend) {
+    void strokeArc(double width, Color Function(Color) tint, BlendMode blend) {
       final gradient = LinearGradient(
-        colors: Spectral.arc(phase, alpha).map((c) => tint(c.a)).toList(),
+        colors: Spectral.arc(phase, alpha).map(tint).toList(),
         stops: Spectral.stops,
       );
       canvas.drawPath(
