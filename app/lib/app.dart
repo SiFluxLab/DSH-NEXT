@@ -172,12 +172,13 @@ class _DshAppState extends ConsumerState<DshApp> with WidgetsBindingObserver {
         performance.reduceMotion || WidgetsBinding.instance.platformDispatcher.accessibilityFeatures.disableAnimations;
     final fluid = performance.fluidMotion && !reduced;
     // 光感：用户档位 × 系统偏好 × 省电模式。系统偏好永远赢（见 Optics.resolve）。
-    final optics = Optics.resolve(
-      ref.watch(opticsPresetProvider),
-      reduceMotion: reduced,
-      reduceTransparency: !performance.blur,
-      lowPower: ref.watch(performancePrefsProvider.select((p) => p.mode)) == PerformanceMode.light,
-    );
+    final optics = ref
+        .watch(opticsPrefsProvider)
+        .resolve(
+          reduceMotion: reduced,
+          reduceTransparency: !performance.blur,
+          lowPower: ref.watch(performancePrefsProvider.select((p) => p.mode)) == PerformanceMode.light,
+        );
     FrameClock.instance.enabled = fluid;
     _themesFor(ref.watch(accentProvider), locale.languageCode == 'en', performance.blur, reduced, fluid);
     if (!waiting && !_settled) {
@@ -224,6 +225,7 @@ class _DshAppState extends ConsumerState<DshApp> with WidgetsBindingObserver {
                         ? EasedKeyboardInset(child: MirroredSideInsets(child: child!))
                         : MirroredSideInsets(child: child!),
                   ),
+                  const Positioned.fill(child: IgnorePointer(child: EdgeAfterglow())),
                   const LaunchLayer(),
                 ],
                 ),

@@ -26615,7 +26615,7 @@ class L10nZh extends L10n {
   String get yinglongEngineUnavailable => '这个运行时没有对应架构的应龙，仍用 PRoot';
   String get yinglongEngineFailedHint => '上次用应龙没能起来，已自动退回 PRoot；打开再试一次';
   String get opticsTitle => '光感与动效';
-  String get opticsFooter => '系统开启「移除动画」或关闭玻璃模糊时，这里的效果会自动减弱，不用手动关。';
+  String get opticsFooter => '系统开启「移除动画」或关闭玻璃模糊时，这里的效果会自动减弱，不用手动关；换档位会重置下面的单项开关。';
   String get opticsPreset => '光感强度';
   String get opticsFull => '完整光感';
   String get opticsFocus => '专注';
@@ -26623,6 +26623,17 @@ class L10nZh extends L10n {
   String get opticsFullHint => '玻璃、光刃、颗粒与棱镜边缘全开，动画最丰富';
   String get opticsFocusHint => '玻璃与光刃保留，去掉颗粒，光刃只反映引擎状态';
   String get opticsSilentHint => '不做模糊、不画光刃，只留必要的描边与淡入';
+  String get opticsBlade => '光刃';
+  String get opticsBladeHint => '顶栏上沿的一道高光，反映引擎在空闲、生成、跑工具还是等你决定';
+  String get opticsPrism => '棱镜边缘';
+  String get opticsPrismHint => '玻璃边缘极淡的冷青/品红/暖金色散，只在深色背景上明显';
+  String get opticsAnticipation => '预见性动画';
+  String get opticsAnticipationHint => '目标页面的骨架与描边先就位，内容到达后再填入，避免空白跳变';
+  String get opticsAfterglow => '边缘余晖';
+  String get opticsAfterglowHint => '等待你决定、异常中止、后台任务完成时，屏幕边缘给一层极淡的光，不弹窗';
+  String get opticsInkFade => '流光文字';
+  String get opticsInkFadeHint => '流式输出的新字由淡到实，五级过渡，旧字不动';
+  String get opticsFollowPreset => '跟随所选档位';
   String get workshopTitle => '创意工坊';
 
   @override

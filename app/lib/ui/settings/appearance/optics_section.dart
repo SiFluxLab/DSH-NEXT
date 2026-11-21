@@ -31,7 +31,8 @@ class OpticsSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final preset = ref.watch(opticsPresetProvider);
+    final prefs = ref.watch(opticsPrefsProvider);
+    final preset = prefs.preset;
     final optics = Optics.of(context);
     return SettingsSection(
       title: l10n.opticsTitle,
@@ -48,14 +49,60 @@ class OpticsSection extends ConsumerWidget {
             for (final p in OpticsPreset.values) PillSegment(p, opticsPresetLabel(l10n, p)),
           ],
           selected: preset,
-          onChanged: (value) => ref.read(opticsPresetProvider.notifier).set(value),
+          onChanged: (value) => ref.read(opticsPrefsProvider.notifier).setPreset(value),
         ),
-        SettingsTile(
-          title: l10n.opticsPreset,
-          subtitle: opticsPresetHint(l10n, preset),
-          chevron: false,
-          onTap: null,
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+          child: Text(
+            opticsPresetHint(l10n, preset),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
         ),
+        // 单项否决：档位定基调，这里关掉自己不想看的那一项。
+        SettingsSwitchTile(
+          key: const ValueKey('optics-blade'),
+          title: l10n.opticsBlade,
+          subtitle: l10n.opticsBladeHint,
+          value: optics.blade > 0,
+          onChanged: (value) => ref.read(opticsPrefsProvider.notifier).setBlade(value),
+        ),
+        SettingsSwitchTile(
+          key: const ValueKey('optics-prism'),
+          title: l10n.opticsPrism,
+          subtitle: l10n.opticsPrismHint,
+          value: optics.prism > 0,
+          onChanged: (value) => ref.read(opticsPrefsProvider.notifier).setPrism(value),
+        ),
+        SettingsSwitchTile(
+          key: const ValueKey('optics-anticipation'),
+          title: l10n.opticsAnticipation,
+          subtitle: l10n.opticsAnticipationHint,
+          value: optics.anticipation,
+          onChanged: (value) => ref.read(opticsPrefsProvider.notifier).setAnticipation(value),
+        ),
+        SettingsSwitchTile(
+          key: const ValueKey('optics-afterglow'),
+          title: l10n.opticsAfterglow,
+          subtitle: l10n.opticsAfterglowHint,
+          value: optics.afterglow,
+          onChanged: (value) => ref.read(opticsPrefsProvider.notifier).setAfterglow(value),
+        ),
+        SettingsSwitchTile(
+          key: const ValueKey('optics-ink-fade'),
+          title: l10n.opticsInkFade,
+          subtitle: l10n.opticsInkFadeHint,
+          value: optics.inkFade,
+          onChanged: (value) => ref.read(opticsPrefsProvider.notifier).setInkFade(value),
+        ),
+        if (prefs.hasOverrides)
+          SettingsTile(
+            key: const ValueKey('optics-follow'),
+            title: l10n.opticsFollowPreset,
+            chevron: false,
+            onTap: () => ref.read(opticsPrefsProvider.notifier).followPreset(),
+          ),
       ],
     );
   }

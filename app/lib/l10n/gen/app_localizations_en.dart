@@ -28053,7 +28053,7 @@ class L10nEn extends L10n {
   String get yinglongEngineUnavailable => 'This runtime has no Yinglong build for this ABI; PRoot stays in use';
   String get yinglongEngineFailedHint => 'The Yinglong launch did not come up; it fell back to PRoot. Turn it on to try again';
   String get opticsTitle => 'Light and motion';
-  String get opticsFooter => 'Effects step down on their own when the system turns off animations or glass blur; you do not have to switch them off here.';
+  String get opticsFooter => 'Effects step down on their own when the system turns off animations or glass blur; changing the preset resets the switches below.';
   String get opticsPreset => 'Intensity';
   String get opticsFull => 'Full';
   String get opticsFocus => 'Focus';
@@ -28061,6 +28061,17 @@ class L10nEn extends L10n {
   String get opticsFullHint => 'Glass, the light blade, grain and prism edges, with every animation';
   String get opticsFocusHint => 'Glass and the light blade stay, grain goes, and the blade only tracks the engine';
   String get opticsSilentHint => 'No blur, no blade: just the strokes and fades a screen needs';
+  String get opticsBlade => 'Light blade';
+  String get opticsBladeHint => 'A hairline highlight on the top edge that shows whether the engine is idle, streaming, running tools or waiting on you';
+  String get opticsPrism => 'Prism edge';
+  String get opticsPrismHint => 'A very faint cyan / magenta / gold dispersion on glass edges, visible mostly on dark backgrounds';
+  String get opticsAnticipation => 'Anticipatory motion';
+  String get opticsAnticipationHint => 'The next screen\'s skeleton and strokes take their place first, so content lands in a settled layout';
+  String get opticsAfterglow => 'Edge afterglow';
+  String get opticsAfterglowHint => 'A faint rim of light for waiting-on-you, aborted and finished-in-background states, instead of a dialog';
+  String get opticsInkFade => 'Ink fade';
+  String get opticsInkFadeHint => 'Streamed text arrives from light to solid in five steps; existing text never re-animates';
+  String get opticsFollowPreset => 'Follow the preset';
   String get workshopTitle => 'Workshop';
 
   @override

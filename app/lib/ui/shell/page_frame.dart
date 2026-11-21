@@ -9,7 +9,7 @@ import '../common/ui_trace.dart';
 import '../common/side_insets.dart';
 import '../settings/index/spot_anchor.dart' show seekSpot;
 import '../theme/app_icons.dart';
-import '../common/light_blade.dart';
+import '../common/app_blade.dart';
 import '../theme/theme.dart';
 
 /// Frame for every secondary page (settings, engine, remote, diagnostics…).
@@ -187,7 +187,7 @@ class _AppPageState extends State<AppPage> {
                 left: 10,
                 right: 10,
                 top: padding.top + 2,
-                child: const LightBlade(state: BladeState.idle, radius: 14),
+                child: const AppBlade(),
               ),
               CustomScrollView(
                 controller: _controller,

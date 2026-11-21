@@ -48686,6 +48686,72 @@ abstract class L10n {
   /// **'不做模糊、不画光刃，只留必要的描边与淡入'**
   String get opticsSilentHint;
 
+  /// No description provided for @opticsBlade.
+  ///
+  /// In zh, this message translates to:
+  /// **'光刃'**
+  String get opticsBlade;
+
+  /// No description provided for @opticsBladeHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'顶栏上沿的一道高光，反映引擎在空闲、生成、跑工具还是等你决定'**
+  String get opticsBladeHint;
+
+  /// No description provided for @opticsPrism.
+  ///
+  /// In zh, this message translates to:
+  /// **'棱镜边缘'**
+  String get opticsPrism;
+
+  /// No description provided for @opticsPrismHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'玻璃边缘极淡的冷青/品红/暖金色散，只在深色背景上明显'**
+  String get opticsPrismHint;
+
+  /// No description provided for @opticsAnticipation.
+  ///
+  /// In zh, this message translates to:
+  /// **'预见性动画'**
+  String get opticsAnticipation;
+
+  /// No description provided for @opticsAnticipationHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'目标页面的骨架与描边先就位，内容到达后再填入，避免空白跳变'**
+  String get opticsAnticipationHint;
+
+  /// No description provided for @opticsAfterglow.
+  ///
+  /// In zh, this message translates to:
+  /// **'边缘余晖'**
+  String get opticsAfterglow;
+
+  /// No description provided for @opticsAfterglowHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'等待你决定、异常中止、后台任务完成时，屏幕边缘给一层极淡的光，不弹窗'**
+  String get opticsAfterglowHint;
+
+  /// No description provided for @opticsInkFade.
+  ///
+  /// In zh, this message translates to:
+  /// **'流光文字'**
+  String get opticsInkFade;
+
+  /// No description provided for @opticsInkFadeHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'流式输出的新字由淡到实，五级过渡，旧字不动'**
+  String get opticsInkFadeHint;
+
+  /// No description provided for @opticsFollowPreset.
+  ///
+  /// In zh, this message translates to:
+  /// **'跟随所选档位'**
+  String get opticsFollowPreset;
+
   /// No description provided for @workshopTitle.
   ///
   /// In zh, this message translates to:

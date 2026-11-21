@@ -1,11 +1,22 @@
 {
   "opticsTitle": "光感与动效",
-  "opticsFooter": "系统开启「移除动画」或关闭玻璃模糊时，这里的效果会自动减弱，不用手动关。",
+  "opticsFooter": "系统开启「移除动画」或关闭玻璃模糊时，这里的效果会自动减弱，不用手动关；换档位会重置下面的单项开关。",
   "opticsPreset": "光感强度",
   "opticsFull": "完整光感",
   "opticsFocus": "专注",
   "opticsSilent": "静默省电",
   "opticsFullHint": "玻璃、光刃、颗粒与棱镜边缘全开，动画最丰富",
   "opticsFocusHint": "玻璃与光刃保留，去掉颗粒，光刃只反映引擎状态",
-  "opticsSilentHint": "不做模糊、不画光刃，只留必要的描边与淡入"
+  "opticsSilentHint": "不做模糊、不画光刃，只留必要的描边与淡入",
+  "opticsBlade": "光刃",
+  "opticsBladeHint": "顶栏上沿的一道高光，反映引擎在空闲、生成、跑工具还是等你决定",
+  "opticsPrism": "棱镜边缘",
+  "opticsPrismHint": "玻璃边缘极淡的冷青/品红/暖金色散，只在深色背景上明显",
+  "opticsAnticipation": "预见性动画",
+  "opticsAnticipationHint": "目标页面的骨架与描边先就位，内容到达后再填入，避免空白跳变",
+  "opticsAfterglow": "边缘余晖",
+  "opticsAfterglowHint": "等待你决定、异常中止、后台任务完成时，屏幕边缘给一层极淡的光，不弹窗",
+  "opticsInkFade": "流光文字",
+  "opticsInkFadeHint": "流式输出的新字由淡到实，五级过渡，旧字不动",
+  "opticsFollowPreset": "跟随所选档位"
 }

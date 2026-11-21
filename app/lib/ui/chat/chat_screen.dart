@@ -32,6 +32,7 @@ import '../../state/agents_state.dart' show subagentParentProvider;
 import '../../state/attachments.dart';
 import '../../state/balance_state.dart';
 import '../../state/chat_error_text.dart';
+import '../../state/blade_state.dart';
 import '../../state/chat_state.dart';
 import '../../state/commands_state.dart';
 import '../../state/compose_inbox.dart';
@@ -1599,10 +1600,39 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
     };
   }
 
+  /// 这一段对话该让光刃说什么。工具行优先于"在生成"：一次回合里两者会同时为真；
+  /// 等待审批则是最高优先级——那是唯一需要人动手的状态。
+  static BladeState _bladeOf(ChatState s) {
+    var working = false;
+    for (final item in s.items) {
+      if (item is! ToolChatItem) continue;
+      if (item.status == ToolStatus.awaitingApproval) return BladeState.waiting;
+      if (item.status == ToolStatus.streaming || item.status == ToolStatus.running) working = true;
+    }
+    if (s.approvals.isNotEmpty || s.questions.isNotEmpty) return BladeState.waiting;
+    if (working) return BladeState.working;
+    return s.running ? BladeState.streaming : BladeState.idle;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final sessionId = ref.watch(currentSessionProvider);
+    // 光刃只报告"正在看的这一段对话"：等你决定 / 跑工具 / 流式 / 空闲。
+    if (sessionId != null) {
+      ref.listen(chatProvider(sessionId).select(_bladeOf), (_, next) {
+        ref.read(bladeStatusProvider.notifier).set(next);
+      });
+      // 余晖同理：等待决定时亮起，处理完自动熄灭。
+      ref.listen(chatProvider(sessionId).select((s) => s.approvals.isNotEmpty || s.questions.isNotEmpty), (_, waiting) {
+        final glow = ref.read(edgeGlowProvider.notifier);
+        if (waiting) {
+          glow.show(EdgeGlow.awaiting);
+        } else if (ref.read(edgeGlowProvider) == EdgeGlow.awaiting) {
+          glow.clear();
+        }
+      });
+    }
     final connAsync = ref.watch(activeConnectionProvider);
     final conn = connAsync.value;
     final connected = conn != null;

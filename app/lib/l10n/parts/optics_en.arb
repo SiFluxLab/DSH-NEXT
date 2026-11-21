@@ -1,11 +1,22 @@
 {
   "opticsTitle": "Light and motion",
-  "opticsFooter": "Effects step down on their own when the system turns off animations or glass blur; you do not have to switch them off here.",
+  "opticsFooter": "Effects step down on their own when the system turns off animations or glass blur; changing the preset resets the switches below.",
   "opticsPreset": "Intensity",
   "opticsFull": "Full",
   "opticsFocus": "Focus",
   "opticsSilent": "Quiet",
   "opticsFullHint": "Glass, the light blade, grain and prism edges, with every animation",
   "opticsFocusHint": "Glass and the light blade stay, grain goes, and the blade only tracks the engine",
-  "opticsSilentHint": "No blur, no blade: just the strokes and fades a screen needs"
+  "opticsSilentHint": "No blur, no blade: just the strokes and fades a screen needs",
+  "opticsBlade": "Light blade",
+  "opticsBladeHint": "A hairline highlight on the top edge that shows whether the engine is idle, streaming, running tools or waiting on you",
+  "opticsPrism": "Prism edge",
+  "opticsPrismHint": "A very faint cyan / magenta / gold dispersion on glass edges, visible mostly on dark backgrounds",
+  "opticsAnticipation": "Anticipatory motion",
+  "opticsAnticipationHint": "The next screen's skeleton and strokes take their place first, so content lands in a settled layout",
+  "opticsAfterglow": "Edge afterglow",
+  "opticsAfterglowHint": "A faint rim of light for waiting-on-you, aborted and finished-in-background states, instead of a dialog",
+  "opticsInkFade": "Ink fade",
+  "opticsInkFadeHint": "Streamed text arrives from light to solid in five steps; existing text never re-animates",
+  "opticsFollowPreset": "Follow the preset"
 }
