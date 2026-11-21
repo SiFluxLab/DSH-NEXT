@@ -288,10 +288,30 @@ class ChatEmptyState extends StatelessWidget {
                 ),
               ),
               enter(
-                Text(
-                  greetingFor(now ?? chatClock()),
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.displaySmall?.copyWith(color: theme.colorScheme.onSurface),
+                // hero：24/600、字距 -0.4，向下渐隐到 70% 的前景色。
+                // 这是页面上唯一允许用渐变的文字（vetta 的 hero 同款做法），
+                // 其它标题一律实色——否则到处发光就等于到处都不亮。
+                ShaderMask(
+                  blendMode: BlendMode.srcIn,
+                  shaderCallback: (rect) => LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      theme.colorScheme.onSurface,
+                      theme.colorScheme.onSurface.withValues(alpha: 0.70),
+                    ],
+                  ).createShader(rect),
+                  child: Text(
+                    greetingFor(now ?? chatClock()),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 24,
+                      height: 1.25,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.4,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 4),

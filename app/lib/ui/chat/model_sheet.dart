@@ -18,6 +18,7 @@ import '../../state/settings_state.dart';
 import '../common/app_sheet.dart';
 import '../common/empty_view.dart';
 import '../common/pressable.dart';
+import 'widgets/effort_slider.dart';
 import 'widgets/provider_glyph.dart';
 import '../common/segmented_pill.dart';
 import '../common/sheet_title_bar.dart';
@@ -636,18 +637,23 @@ class _ModelSheetState extends ConsumerState<_ModelSheet> {
                       SheetSectionLabel(appL10n.viewModelEffort),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: inset),
-                        child: SegmentedPill<String>(
-                          height: 40,
-                          segments: [for (final e in efforts) PillSegment(e.id, effortLabel(e.id, e.name))],
-                          selected: _selection?.reasoningEffort ?? selected?.defaultEffort ?? efforts.first.id,
+                        child: EffortSlider(
+                          levels: [for (final e in efforts) effortLabel(e.id, e.name)],
+                          index: efforts.indexWhere(
+                            (e) => e.id == (_selection?.reasoningEffort ?? selected?.defaultEffort ?? efforts.first.id),
+                          ).clamp(0, efforts.length - 1),
                           onChanged: readOnly
                               ? null
-                              : (effort) {
+                              : (index) {
+                                  final effort = efforts[index].id;
                                   if (identical(
                                     findModel(ref.read(modelListViewProvider).value, _selection),
                                     selected,
                                   )) {
                                     _pickEffort(effort);
+                                  } else {
+                                    _selection = _selection!.copyWith(reasoningEffort: effort);
+                                    setState(() {});
                                   }
                                 },
                         ),
