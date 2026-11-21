@@ -1603,8 +1603,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
   /// 这一段对话该让光刃说什么。工具行优先于"在生成"：一次回合里两者会同时为真；
   /// 等待审批则是最高优先级——那是唯一需要人动手的状态。
   static BladeState _bladeOf(ChatState s) {
+    // 从尾部往前看，最多看 12 条：这一问在流式期间每 32ms 被算一次，
+    // 长会话里 O(n) 扫描是纯浪费；而正在跑的工具一定在末尾附近（条目不重排）。
     var working = false;
-    for (final item in s.items) {
+    final items = s.items;
+    for (var i = items.length - 1, seen = 0; i >= 0 && seen < 12; i--, seen++) {
+      final item = items[i];
       if (item is! ToolChatItem) continue;
       if (item.status == ToolStatus.awaitingApproval) return BladeState.waiting;
       if (item.status == ToolStatus.streaming || item.status == ToolStatus.running) working = true;
