@@ -11,6 +11,7 @@ import '../../../state/optics_state.dart';
 import '../../../ui/theme/optics.dart';
 import '../../../ui/theme/theme.dart';
 import '../../common/light_blade.dart';
+import '../index/spots.dart';
 import '../settings_widgets.dart';
 
 String opticsPresetLabel(L10n l10n, OpticsPreset preset) => switch (preset) {
@@ -35,6 +36,7 @@ class OpticsSection extends ConsumerWidget {
     final preset = prefs.preset;
     final optics = Optics.of(context);
     return SettingsSection(
+      spot: Spots.optics,
       title: l10n.opticsTitle,
       footer: Text(l10n.opticsFooter),
       children: [

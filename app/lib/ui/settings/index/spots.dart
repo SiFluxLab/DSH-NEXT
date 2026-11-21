@@ -836,6 +836,13 @@ abstract final class Spots {
   );
 
   // 主题.
+  static final optics = SettingSpot(
+    'optics',
+    page: SettingsPageId.appearance,
+    title: (l) => l.opticsTitle,
+    freq: Freq.medium,
+    link: 'optics',
+  );
   static final darkMode = SettingSpot(
     'dark-mode',
     page: SettingsPageId.appearance,
@@ -1262,6 +1269,7 @@ final _rows = <SettingSpot>[
   Spots.phoneBackgroundGuide,
   Spots.pluginsMarket,
   Spots.webSearchKey,
+  Spots.optics,
   Spots.darkMode,
   Spots.accent,
   Spots.tileStyle,
