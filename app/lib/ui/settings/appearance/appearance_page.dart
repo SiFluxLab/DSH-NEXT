@@ -16,6 +16,7 @@ import '../../../state/android_features.dart';
 import '../../../state/appearance_state.dart';
 import '../../../state/settings_state.dart';
 import '../../../state/drawer_pager_state.dart';
+import '../../../state/ui_kit_state.dart';
 import '../../../state/surface_palette_state.dart';
 import '../../../ui_config/ui_config.dart';
 import '../../common/expand_reveal.dart';
@@ -119,6 +120,26 @@ class AppearancePage extends ConsumerWidget {
                 value: ref.watch(drawerPagerEnabledProvider),
                 onChanged: (value) => ref.read(drawerPagerEnabledProvider.notifier).set(value),
               ),
+            ),
+          ],
+        ),
+        SettingsSection(
+          title: l10n.uiKitTitle,
+          footer: Text(l10n.uiKitFooter),
+          children: [
+            SettingsSwitchTile(
+              key: const ValueKey('segmented-tabs'),
+              title: l10n.uiKitSegmented,
+              subtitle: l10n.uiKitSegmentedHint,
+              value: ref.watch(uiKitProvider).segmented,
+              onChanged: (value) => ref.read(uiKitProvider.notifier).setSegmented(value),
+            ),
+            SettingsSwitchTile(
+              key: const ValueKey('dual-toggle'),
+              title: l10n.uiKitDual,
+              subtitle: l10n.uiKitDualHint,
+              value: ref.watch(uiKitProvider).dualToggle,
+              onChanged: (value) => ref.read(uiKitProvider.notifier).setDualToggle(value),
             ),
           ],
         ),

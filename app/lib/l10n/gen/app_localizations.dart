@@ -49016,6 +49016,42 @@ abstract class L10n {
   /// **'筛选对话'**
   String get stateDrawerFilterTitle;
 
+  /// No description provided for @uiKitTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'页签与分段'**
+  String get uiKitTitle;
+
+  /// No description provided for @uiKitFooter.
+  ///
+  /// In zh, this message translates to:
+  /// **'两枚控件取自 obsidian-prism。关掉就回到我们原来的写法，功能不变。'**
+  String get uiKitFooter;
+
+  /// No description provided for @uiKitSegmented.
+  ///
+  /// In zh, this message translates to:
+  /// **'页签胶囊'**
+  String get uiKitSegmented;
+
+  /// No description provided for @uiKitSegmentedHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'一排小胶囊，选中靠底色点亮（工坊的三个视图先接它）'**
+  String get uiKitSegmentedHint;
+
+  /// No description provided for @uiKitDual.
+  ///
+  /// In zh, this message translates to:
+  /// **'双极滑块'**
+  String get uiKitDual;
+
+  /// No description provided for @uiKitDualHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'两格之间有一个会滑过去的滑块（上游默认关闭，属 Beta）'**
+  String get uiKitDualHint;
+
   /// No description provided for @workshopTitle.
   ///
   /// In zh, this message translates to:

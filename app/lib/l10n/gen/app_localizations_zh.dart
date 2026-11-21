@@ -26678,6 +26678,12 @@ class L10nZh extends L10n {
   String get chatFoldCode => '收起长代码';
   String chatShowAllLines(int count) => '展开全部 $count 行';
   String get stateDrawerFilterTitle => '筛选对话';
+  String get uiKitTitle => '页签与分段';
+  String get uiKitFooter => '两枚控件取自 obsidian-prism。关掉就回到我们原来的写法，功能不变。';
+  String get uiKitSegmented => '页签胶囊';
+  String get uiKitSegmentedHint => '一排小胶囊，选中靠底色点亮（工坊的三个视图先接它）';
+  String get uiKitDual => '双极滑块';
+  String get uiKitDualHint => '两格之间有一个会滑过去的滑块（上游默认关闭，属 Beta）';
   String get workshopTitle => '创意工坊';
 
   @override

@@ -28116,6 +28116,12 @@ class L10nEn extends L10n {
   String get chatFoldCode => 'Collapse long code';
   String chatShowAllLines(int count) => 'Show all $count lines';
   String get stateDrawerFilterTitle => 'Filter conversations';
+  String get uiKitTitle => 'Tabs and segments';
+  String get uiKitFooter => 'Both controls come from obsidian-prism. Turned off, the previous control is used and nothing else changes.';
+  String get uiKitSegmented => 'Capsule tabs';
+  String get uiKitSegmentedHint => 'Small capsules where the selected one lights up (the workshop\'s three views use it first)';
+  String get uiKitDual => 'Two-pole slider';
+  String get uiKitDualHint => 'A knob that travels between two cells (off by default upstream, it is beta there)';
   String get workshopTitle => 'Workshop';
 
   @override

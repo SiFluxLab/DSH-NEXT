@@ -17,6 +17,8 @@ import '../../state/builtin_plugins_state.dart';
 import '../../state/workshop_dependencies.dart';
 import '../../state/workshop_installed_state.dart';
 import '../../workshop/workshop_models.dart';
+import '../../kit/kit.dart';
+import '../../state/ui_kit_state.dart';
 import '../common/segmented_pill.dart';
 import '../shell/page_frame.dart';
 import '../theme/app_icons.dart';
@@ -107,15 +109,30 @@ class _WorkshopScreenState extends ConsumerState<WorkshopScreen> {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                child: SegmentedPill<WorkshopTab>(
-                  segments: [
-                    PillSegment(WorkshopTab.browse, l10n.workshopTabBrowse),
-                    PillSegment(WorkshopTab.installed, l10n.commonInstalled),
-                    PillSegment(WorkshopTab.mine, l10n.workshopTabMine),
-                  ],
-                  selected: _tab,
-                  onChanged: (t) => setState(() => _tab = t),
-                ),
+                // 三格视图切换。开着「页签胶囊」时用 prism 那套（每枚自带底、120ms 点亮），
+                // 关掉就退回原来的分段胶囊——它是可选功能，不是替换。
+                child: ref.watch(uiKitProvider).segmented
+                    ? Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: KitSegmented<WorkshopTab>(
+                          items: [
+                            (WorkshopTab.browse, l10n.workshopTabBrowse),
+                            (WorkshopTab.installed, l10n.commonInstalled),
+                            (WorkshopTab.mine, l10n.workshopTabMine),
+                          ],
+                          value: _tab,
+                          onChanged: (t) => setState(() => _tab = t),
+                        ),
+                      )
+                    : SegmentedPill<WorkshopTab>(
+                        segments: [
+                          PillSegment(WorkshopTab.browse, l10n.workshopTabBrowse),
+                          PillSegment(WorkshopTab.installed, l10n.commonInstalled),
+                          PillSegment(WorkshopTab.mine, l10n.workshopTabMine),
+                        ],
+                        selected: _tab,
+                        onChanged: (t) => setState(() => _tab = t),
+                      ),
               ),
             ),
             switch (_tab) {

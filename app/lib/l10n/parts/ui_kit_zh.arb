@@ -1,0 +1,8 @@
+{
+  "uiKitTitle": "页签与分段",
+  "uiKitFooter": "两枚控件取自 obsidian-prism。关掉就回到我们原来的写法，功能不变。",
+  "uiKitSegmented": "页签胶囊",
+  "uiKitSegmentedHint": "一排小胶囊，选中靠底色点亮（工坊的三个视图先接它）",
+  "uiKitDual": "双极滑块",
+  "uiKitDualHint": "两格之间有一个会滑过去的滑块（上游默认关闭，属 Beta）"
+}
