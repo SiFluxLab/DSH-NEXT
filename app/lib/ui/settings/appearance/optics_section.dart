@@ -10,7 +10,6 @@ import '../../../l10n/l10n.dart';
 import '../../../state/optics_state.dart';
 import '../../../ui/theme/theme.dart';
 import '../../common/light_blade.dart';
-import '../index/spots.dart';
 import '../settings_widgets.dart';
 
 String opticsPresetLabel(L10n l10n, OpticsPreset preset) => switch (preset) {

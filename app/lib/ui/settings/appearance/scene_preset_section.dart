@@ -8,7 +8,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../l10n/l10n.dart';
 import '../../../state/scene_preset.dart';
 import '../../theme/app_icons.dart';
-import '../index/spots.dart';
 import '../settings_widgets.dart';
 
 String sceneLabel(L10n l10n, ScenePreset scene) => switch (scene) {
@@ -44,7 +43,7 @@ class ScenePresetSection extends ConsumerWidget {
         for (final scene in ScenePreset.values)
           SettingsTile(
             key: ValueKey('scene-${scene.name}'),
-            leading: Icon(sceneIcon(scene), size: 22),
+            icon: sceneIcon(scene),
             title: sceneLabel(l10n, scene),
             subtitle: sceneHint(l10n, scene),
             trailing: Icon(

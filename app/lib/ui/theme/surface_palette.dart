@@ -16,8 +16,8 @@ enum SurfacePalette { obsidian, warm }
 
 /// 一套中性色：背景、三层表面、文字阶梯、细线。
 @immutable
-class _Tones {
-  const _Tones({
+class SurfaceTones {
+  const SurfaceTones({
     required this.background,
     required this.surface1,
     required this.surface2,
@@ -36,7 +36,7 @@ class _Tones {
   final Color muted;
 }
 
-const _obsidianDark = _Tones(
+const _obsidianDark = SurfaceTones(
   background: Color(0xFF0E0E11),
   surface1: Color(0xFF151519),
   surface2: Color(0xFF1C1C21),
@@ -46,7 +46,7 @@ const _obsidianDark = _Tones(
   muted: Color(0xFF8F8F9C),
 );
 
-const _obsidianLight = _Tones(
+const _obsidianLight = SurfaceTones(
   background: Color(0xFFF4F7FB),
   surface1: Color(0xFFFFFFFF),
   surface2: Color(0xFFEDF2F9),
@@ -56,7 +56,7 @@ const _obsidianLight = _Tones(
   muted: Color(0xFF6B7280),
 );
 
-const _warmDark = _Tones(
+const _warmDark = SurfaceTones(
   background: Color(0xFF10100F),
   surface1: Color(0xFF1B1A18),
   surface2: Color(0xFF22201D),
@@ -66,7 +66,7 @@ const _warmDark = _Tones(
   muted: Color(0xFF968F82),
 );
 
-const _warmLight = _Tones(
+const _warmLight = SurfaceTones(
   background: Color(0xFFF6F4EE),
   surface1: Color(0xFFFFFFFF),
   surface2: Color(0xFFF1EEE5),
@@ -77,7 +77,7 @@ const _warmLight = _Tones(
 );
 
 extension SurfacePaletteTones on SurfacePalette {
-  _Tones tones(Brightness brightness) => switch ((this, brightness)) {
+  SurfaceTones tones(Brightness brightness) => switch ((this, brightness)) {
     (SurfacePalette.obsidian, Brightness.dark) => _obsidianDark,
     (SurfacePalette.obsidian, Brightness.light) => _obsidianLight,
     (SurfacePalette.warm, Brightness.dark) => _warmDark,

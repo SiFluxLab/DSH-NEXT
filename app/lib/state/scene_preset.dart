@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../performance/performance_policy.dart';
 import '../performance/performance_state.dart';
 import '../ui/theme/optics.dart';
 import 'optics_state.dart';

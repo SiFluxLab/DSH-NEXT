@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../l10n/l10n.dart';
 import '../../../state/surface_palette_state.dart';
+import '../../theme/app_icons.dart';
 import '../../theme/theme.dart';
 import '../index/spots.dart';
 import '../settings_widgets.dart';
