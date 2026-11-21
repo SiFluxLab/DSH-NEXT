@@ -97,6 +97,24 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq xz-utils zstd curl
           runtime/build-runtime.sh "${{ matrix.abi }}"
+      # actions/cache is evicted after a few quiet days; the release asset keeps a
+      # built runtime for as long as the hash is current.
+      - name: Store the runtime as a release asset
+        if: steps.out.outputs.cache-hit != 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          asset="runtime-${{ matrix.abi }}-${{ steps.inhash.outputs.hash }}.tar.xz"
+          tar -C "runtime/out/${{ matrix.abi }}" -cJf "$RUNNER_TEMP/$asset" .
+          # Both ABIs can reach this at once; a lost race on create is fine.
+          gh release view runtime-cache >/dev/null 2>&1 ||
+            gh release create runtime-cache --title "Runtime cache" --prerelease \
+              --notes "Built runtimes for CI. Safe to delete only if no build needs its hash." || true
+          for attempt in 1 2 3; do
+            gh release upload runtime-cache "$RUNNER_TEMP/$asset" --clobber && break || sleep 5
+          done
+
       - name: Upload the runtime
         uses: actions/upload-artifact@v4
         with:
@@ -126,8 +144,25 @@ jobs:
         with:
           path: runtime/out/${{ matrix.abi }}
           key: runtime-out-${{ matrix.abi }}-${{ steps.inhash.outputs.hash }}
-      - name: Place the runtime where Gradle looks for it
+      - name: Fetch the runtime from its release asset
+        id: release_runtime
         if: steps.runtime_out.outputs.cache-hit != 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          asset="runtime-${{ matrix.abi }}-${{ steps.inhash.outputs.hash }}.tar.xz"
+          if gh release download runtime-cache --pattern "$asset" --dir "$RUNNER_TEMP" 2>/dev/null; then
+            mkdir -p "runtime/out/${{ matrix.abi }}"
+            tar -C "runtime/out/${{ matrix.abi }}" -xJf "$RUNNER_TEMP/$asset"
+            echo "got=true" >> "$GITHUB_OUTPUT"
+            echo "restored $asset from the runtime-cache release"
+          else
+            echo "got=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Place the runtime where Gradle looks for it
+        if: steps.runtime_out.outputs.cache-hit != 'true' && steps.release_runtime.outputs.got != 'true'
         uses: actions/download-artifact@v4
         with:
           name: runtime-${{ matrix.abi }}
