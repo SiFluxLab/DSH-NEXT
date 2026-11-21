@@ -62,8 +62,29 @@ object YinglongLaunch {
     }
 
     /**
-     * One cheap run through the loader (`/usr/bin/env -i /bin/true`) before the
-     * engine depends on it. Android's seccomp filter, a wrong library path or a
+     * `/usr/local/bin/dsh` is a `#!/bin/sh` shim around `node --import=… bin.js`.
+     * Replace the exec of that script with the node command it contains, so the
+     * kernel never has to resolve a shebang. Leaves the script alone when it does
+     * not look like the shim (an unknown template fails loudly at launch).
+     */
+    internal fun withoutShim(script: String, root: File): String {
+        val exec = "exec /usr/local/bin/dsh "
+        if (!script.contains(exec)) return script
+        val shim = File(root, "usr/local/bin/dsh")
+        val text = runCatching { shim.readText() }.getOrNull() ?: return script
+        val m = Regex("""exec\s+(/\S*node)\s+(?:--import=(\S+)\s+)?(/\S*bin\.js)""").find(text) ?: return script
+        val (node, preload, entry) = m.destructured
+        val command = buildString {
+            append("exec ").append(node).append(' ')
+            if (preload.isNotEmpty()) append("--import=").append(preload).append(' ')
+            append(entry).append(' ')
+        }
+        return script.replace(exec, command)
+    }
+
+    /**
+     * One cheap run through the loader (`env -i … /bin/sh -c 'exec node --version'`)
+     * before the engine depends on it. Android's seccomp filter, a wrong library path or a
      * loader the kernel refuses all show up here as a non-zero exit, instead of
      * as an engine that never listens. Returns null when the loader works, else
      * "selfTest:<exit>" (or the exception's class name).
@@ -73,8 +94,11 @@ object YinglongLaunch {
         val root = rootfs.canonicalFile
         val loader = File(root, "$DIR/$loaderName")
         val libraries = libraryDirectories(abi).joinToString(":") { File(root, it).path }
+        // The chain that failed in the field: dash (translated) execs node (translated).
+        // /bin/true would pass while that is broken.
         val cmd = listOf(loader.path, "--library-path", libraries, File(root, "usr/bin/env").path, "-i",
-            "ZT_ROOT=${root.path}", "ZT_LD=${loader.path}", "ZT_LIBPATH=$libraries", "/bin/true")
+            "ZT_ROOT=${root.path}", "ZT_LD=${loader.path}", "ZT_LIBPATH=$libraries",
+            "/bin/sh", "-c", "exec /opt/node/bin/node --version")
         return try {
             val p = ProcessBuilder(cmd).directory(File(root, "root"))
                 .redirectErrorStream(true).start()
@@ -120,6 +144,11 @@ object YinglongLaunch {
         require(argv.drop(i).take(2) == listOf("/bin/sh", "-c") && argv.size == i + 3) { "yinglong: unsupported guest command" }
         val script = argv.last()
         require('\u0000' !in script && '\n' !in script && '\r' !in script) { "yinglong: invalid guest command" }
+        // A shebang is resolved by the kernel, which does not translate it: `exec
+        // /usr/local/bin/dsh` (a #!/bin/sh shim) ends up in Android's bionic sh and
+        // dies with "libc.so: cannot open shared object file" (exit 127). Run the
+        // node command the shim would have run instead.
+        val launchScript = withoutShim(script, root)
 
         // 2. PRoot binds become Zero-Trap bindings: guest=host, longest prefix wins.
         val binds = LinkedHashMap<String, String>()
@@ -156,7 +185,7 @@ object YinglongLaunch {
 
         val cmd = arrayListOf(loader, "--library-path", libraries, env, "-i")
         cmd += guest
-        cmd += listOf("/bin/sh", "-c", script)
+        cmd += listOf("/bin/sh", "-c", launchScript)
 
         val environment = LinkedHashMap<String, String>()
         hostEnv.forEach { (k, v) -> if (!k.startsWith("PROOT_") && k != "LD_PRELOAD" && k != "LD_LIBRARY_PATH") environment[k] = v }
