@@ -51,17 +51,22 @@ class EmptyView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = DshColors.of(context);
-    final badge = compact ? 48.0 : 64.0;
+    // vetta 的空态是「图标砖 + 13px 主文案 + 11px 副文案」：
+    // 图标 40（砖 48、圆角 12、主色 10% 底），文字小、留白大，让空态**安静**。
+    final badge = compact ? 40.0 : 48.0;
     Widget? graphic = art;
     if (graphic == null && icon != null) {
-      graphic = SizedBox.square(
-        dimension: badge,
-        child: GlassSurface(
-          tier: GlassTier.card,
-          circle: true,
-          child: Center(
-            child: Icon(icon, size: compact ? 22 : 28, color: theme.colorScheme.onSurfaceVariant),
-          ),
+      graphic = Container(
+        width: badge,
+        height: badge,
+        decoration: BoxDecoration(
+          color: theme.colorScheme.primary.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(compact ? 10 : 12),
+        ),
+        child: Icon(
+          icon,
+          size: compact ? 18 : 22,
+          color: theme.colorScheme.primary.withValues(alpha: 0.6),
         ),
       );
     }
@@ -82,11 +87,16 @@ class EmptyView extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (graphic != null) ...[graphic, SizedBox(height: compact ? 14 : 18)],
+          if (graphic != null) ...[graphic, SizedBox(height: compact ? 10 : 12)],
           Text(
             title,
             textAlign: TextAlign.center,
-            style: compact ? theme.textTheme.titleSmall : theme.textTheme.titleMedium,
+            style: TextStyle(
+              fontSize: compact ? 13 : 14,
+              fontWeight: FontWeight.w600,
+              height: 1.3,
+              color: theme.colorScheme.onSurface,
+            ),
           ),
           if (message case final message?) ...[
             const SizedBox(height: 4),
@@ -95,8 +105,10 @@ class EmptyView extends StatelessWidget {
               child: Text(
                 message,
                 textAlign: TextAlign.center,
-                style: (compact ? theme.textTheme.bodySmall : theme.textTheme.bodyMedium)?.copyWith(
-                  color: colors.textTertiary,
+                style: TextStyle(
+                  fontSize: compact ? 11 : 12,
+                  height: 1.5,
+                  color: colors.textTertiary.withValues(alpha: 0.75),
                 ),
               ),
             ),
