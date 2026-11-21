@@ -10,7 +10,7 @@ import 'package:dsh_app/state/connection_state.dart';
 import 'package:dsh_app/state/sessions_state.dart';
 import 'package:dsh_app/state/workspaces_state.dart';
 import 'package:dsh_app/ui/common/capsule_chip.dart';
-import 'package:dsh_app/ui/shell/drawer/drawer_filter_bar.dart';
+import 'package:dsh_app/ui/shell/drawer/drawer_view_button.dart';
 import 'package:dsh_app/ui/shell/drawer/folder_header.dart';
 import 'package:dsh_app/ui/shell/drawer/selection_bars.dart';
 import 'package:dsh_app/ui/shell/drawer/session_tile.dart';

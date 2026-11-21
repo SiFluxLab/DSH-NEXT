@@ -12,9 +12,7 @@ import '../../../state/session_attention_state.dart';
 import '../../common/list_page_row.dart';
 import '../../common/app_sheet.dart';
 import '../../common/capsule_chip.dart';
-import '../../common/read_list_status.dart';
 import '../../theme/app_icons.dart';
-import '../../theme/theme.dart';
 
 class DrawerFilterCapsule extends ConsumerWidget {
   const DrawerFilterCapsule({super.key});

@@ -3,7 +3,7 @@ import 'dart:convert';
 
 import 'package:dsh_app/l10n/l10n.dart';
 import 'package:dsh_app/pets/pet_overlay_actions.dart';
-import 'package:dsh_app/ui/shell/drawer/drawer_filter_bar.dart';
+import 'package:dsh_app/ui/shell/drawer/drawer_view_button.dart';
 import 'package:flutter/services.dart';
 import 'package:dsh_app/runtime/runtime_state.dart';
 import 'package:dsh_app/state/connection_state.dart';
