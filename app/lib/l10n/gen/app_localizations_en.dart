@@ -28078,6 +28078,15 @@ class L10nEn extends L10n {
   String get surfaceObsidianHint => 'True neutral near-black, cool mist in daylight, a four-step surface ladder';
   String get surfaceWarm => 'Warm charcoal';
   String get surfaceWarmHint => 'Warm charcoal at night, album white in daylight, easier on the eyes after dark';
+  String get sceneTitle => 'One-tap setup';
+  String get sceneFooter => 'These three change light, motion, glass blur and refresh rate together; every item below can still be tuned on its own.';
+  String get sceneCustomFooter => 'You have tuned the items below, so you are not on a preset; pick one to return to its defaults.';
+  String get sceneFull => 'Full effect';
+  String get sceneFullHint => 'Glass, blade, grain and prism on, the richest motion, refresh rate unthrottled';
+  String get sceneFocus => 'Focus';
+  String get sceneFocusHint => 'Glass and blade stay, grain goes, motion keeps only the feedback that matters';
+  String get sceneQuiet => 'Quiet and thrifty';
+  String get sceneQuietHint => 'No blur, no blade, no animations, refresh rate left to the system';
   String get workshopTitle => 'Workshop';
 
   @override

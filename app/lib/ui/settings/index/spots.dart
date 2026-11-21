@@ -843,6 +843,13 @@ abstract final class Spots {
     freq: Freq.medium,
     link: 'optics',
   );
+  static final scene = SettingSpot(
+    'scene-preset',
+    page: SettingsPageId.appearance,
+    title: (l) => l.sceneTitle,
+    freq: Freq.high,
+    link: 'scene-preset',
+  );
   static final surface = SettingSpot(
     'surface-palette',
     page: SettingsPageId.appearance,
@@ -1276,6 +1283,7 @@ final _rows = <SettingSpot>[
   Spots.phoneBackgroundGuide,
   Spots.pluginsMarket,
   Spots.webSearchKey,
+  Spots.scene,
   Spots.surface,
   Spots.optics,
   Spots.darkMode,

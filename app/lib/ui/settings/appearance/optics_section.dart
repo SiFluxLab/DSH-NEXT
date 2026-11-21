@@ -8,7 +8,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../l10n/l10n.dart';
 import '../../../state/optics_state.dart';
-import '../../../ui/theme/optics.dart';
 import '../../../ui/theme/theme.dart';
 import '../../common/light_blade.dart';
 import '../index/spots.dart';

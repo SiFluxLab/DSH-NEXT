@@ -48788,6 +48788,60 @@ abstract class L10n {
   /// **'暖炭褐底，暖白画册浅底，低蓝光夜间更舒服'**
   String get surfaceWarmHint;
 
+  /// No description provided for @sceneTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'一键设置'**
+  String get sceneTitle;
+
+  /// No description provided for @sceneFooter.
+  ///
+  /// In zh, this message translates to:
+  /// **'这三档会同时改光感、动画、玻璃模糊与刷新率；下面每一项仍可单独微调。'**
+  String get sceneFooter;
+
+  /// No description provided for @sceneCustomFooter.
+  ///
+  /// In zh, this message translates to:
+  /// **'你调过下面的细项，现在不在任何一档上；选一档可以一键回到该档的默认。'**
+  String get sceneCustomFooter;
+
+  /// No description provided for @sceneFull.
+  ///
+  /// In zh, this message translates to:
+  /// **'完整光效'**
+  String get sceneFull;
+
+  /// No description provided for @sceneFullHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'玻璃、光刃、颗粒、棱镜全开，动画最丰富，刷新率跟满'**
+  String get sceneFullHint;
+
+  /// No description provided for @sceneFocus.
+  ///
+  /// In zh, this message translates to:
+  /// **'专注'**
+  String get sceneFocus;
+
+  /// No description provided for @sceneFocusHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'玻璃与光刃保留、去掉颗粒，动画只保留必要的反馈'**
+  String get sceneFocusHint;
+
+  /// No description provided for @sceneQuiet.
+  ///
+  /// In zh, this message translates to:
+  /// **'静默省电'**
+  String get sceneQuiet;
+
+  /// No description provided for @sceneQuietHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'不做模糊、不画光刃、关动画，刷新率交给系统'**
+  String get sceneQuietHint;
+
   /// No description provided for @workshopTitle.
   ///
   /// In zh, this message translates to:

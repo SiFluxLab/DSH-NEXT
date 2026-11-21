@@ -16,6 +16,7 @@ import 'state/optics_state.dart';
 import 'state/star_prompt.dart' show starPromptGateProvider, starPromptProvider;
 import 'state/tile_style_state.dart';
 import 'ui/chat/dsh_ui/dsh_ui_model.dart' show DshUiAppAccent;
+import 'ui/common/app_blade.dart';
 import 'ui/common/keyboard_motion.dart';
 import 'ui/common/side_insets.dart';
 import 'ui/launch/launch_overlay.dart';

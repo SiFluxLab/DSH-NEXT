@@ -1,0 +1,11 @@
+{
+  "sceneTitle": "一键设置",
+  "sceneFooter": "这三档会同时改光感、动画、玻璃模糊与刷新率；下面每一项仍可单独微调。",
+  "sceneCustomFooter": "你调过下面的细项，现在不在任何一档上；选一档可以一键回到该档的默认。",
+  "sceneFull": "完整光效",
+  "sceneFullHint": "玻璃、光刃、颗粒、棱镜全开，动画最丰富，刷新率跟满",
+  "sceneFocus": "专注",
+  "sceneFocusHint": "玻璃与光刃保留、去掉颗粒，动画只保留必要的反馈",
+  "sceneQuiet": "静默省电",
+  "sceneQuietHint": "不做模糊、不画光刃、关动画，刷新率交给系统"
+}

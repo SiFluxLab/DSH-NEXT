@@ -1,0 +1,11 @@
+{
+  "sceneTitle": "One-tap setup",
+  "sceneFooter": "These three change light, motion, glass blur and refresh rate together; every item below can still be tuned on its own.",
+  "sceneCustomFooter": "You have tuned the items below, so you are not on a preset; pick one to return to its defaults.",
+  "sceneFull": "Full effect",
+  "sceneFullHint": "Glass, blade, grain and prism on, the richest motion, refresh rate unthrottled",
+  "sceneFocus": "Focus",
+  "sceneFocusHint": "Glass and blade stay, grain goes, motion keeps only the feedback that matters",
+  "sceneQuiet": "Quiet and thrifty",
+  "sceneQuietHint": "No blur, no blade, no animations, refresh rate left to the system"
+}

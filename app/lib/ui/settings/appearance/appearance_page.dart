@@ -26,6 +26,7 @@ import 'app_icon_picker.dart';
 import 'icon_shortcut_sheet.dart';
 import 'launch_screen_section.dart';
 import 'optics_section.dart';
+import 'scene_preset_section.dart';
 import 'surface_palette_section.dart';
 import 'tile_style_picker.dart';
 import 'wallpaper_section.dart';
@@ -82,6 +83,7 @@ class AppearancePage extends ConsumerWidget {
     return AppPage.list(
       title: l10n.pluginsTheme,
       children: [
+        const ScenePresetSection(),
         const SurfacePaletteSection(),
         SettingsSection(
           title: l10n.hubThemeLightDark,

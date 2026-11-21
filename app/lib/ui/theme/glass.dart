@@ -157,7 +157,7 @@ class GlassSurface extends StatelessWidget {
     );
 
     if (useBlur) {
-      final sigma = math.min(s.blurs ? s.blurSigma : 14, blurCap);
+      final sigma = math.min(s.blurs ? s.blurSigma : 14.0, blurCap);
       final config = _filterFor(sigma, s.saturation);
       final sampling = settled != 0;
       content = grouped
