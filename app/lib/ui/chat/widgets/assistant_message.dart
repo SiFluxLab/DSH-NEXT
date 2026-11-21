@@ -144,19 +144,40 @@ class _AssistantMessageState extends State<AssistantMessage> {
       _bodyStreaming = streaming;
       _bodyReveal = reveal;
     }
-    if (!reveal) return _body!;
+    if (!reveal) return _wetInk(_body!, streaming);
     // The reveal has no cursor: a long pause gets a quiet dot under the text instead.
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        _body!,
-        if (streaming)
-          PositionedDirectional(
-            start: 1,
-            bottom: -_StallDot.size - 6,
-            child: _StallDot(text: text),
-          ),
-      ],
+    return _wetInk(
+      Stack(
+        clipBehavior: Clip.none,
+        children: [
+          _body!,
+          if (streaming)
+            PositionedDirectional(
+              start: 1,
+              bottom: -_StallDot.size - 6,
+              child: _StallDot(text: text),
+            ),
+        ],
+      ),
+      streaming,
+    );
+  }
+
+  /// 「流光文字」：正在生成的那段正文，最后一行像刚写上去的墨——由实到淡。
+  ///
+  /// 只加一层 ShaderMask，且只在流式期间、只在光感档位允许时；生成结束立刻撤掉，
+  /// 所以静止的正文永远是完全不透明、可被清晰阅读的。
+  Widget _wetInk(Widget child, bool streaming) {
+    if (!streaming || !Optics.of(context).inkFade) return child;
+    return ShaderMask(
+      blendMode: BlendMode.dstIn,
+      shaderCallback: (rect) => const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [Color(0xFFFFFFFF), Color(0xFFFFFFFF), Color(0xD9FFFFFF), Color(0x8CFFFFFF)],
+        stops: [0, 0.78, 0.92, 1],
+      ).createShader(rect),
+      child: child,
     );
   }
 

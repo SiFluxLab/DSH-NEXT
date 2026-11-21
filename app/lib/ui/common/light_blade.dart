@@ -55,6 +55,13 @@ class _LightBladeState extends State<LightBlade> with SingleTickerProviderStateM
       if (_controller.isAnimating) _controller.stop();
       return;
     }
+    // 空闲时不呼吸：静止帧就是 35% 的一条线。这是 prism 的 0fps 原则——
+    // 没有状态变化就不该有常驻动画，否则每个页面都在偷偷耗电。
+    if (widget.state == BladeState.idle) {
+      if (_controller.isAnimating) _controller.stop();
+      if (_controller.value != 0) _controller.value = 0;
+      return;
+    }
     final duration = switch (widget.state) {
       BladeState.streaming => const Duration(milliseconds: 1400),
       BladeState.working => const Duration(milliseconds: 1800),

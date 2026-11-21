@@ -42,7 +42,8 @@ class EdgeAfterglow extends ConsumerWidget {
       EdgeGlow.finished => scheme.tertiary,
     };
     return IgnorePointer(
-      child: TweenAnimationBuilder<double>(
+      child: RepaintBoundary(
+        child: TweenAnimationBuilder<double>(
         tween: Tween(begin: 0, end: 1),
         duration: const Duration(milliseconds: 620),
         curve: Curves.easeOutCubic,
@@ -60,6 +61,7 @@ class EdgeAfterglow extends ConsumerWidget {
             ),
           ),
         ),
+      ),
       ),
     );
   }
