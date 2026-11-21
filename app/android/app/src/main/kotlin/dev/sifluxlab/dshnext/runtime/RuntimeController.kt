@@ -95,6 +95,10 @@ class RuntimeController private constructor(private val app: Context) : DshProce
     /** Mode of the current (or last) launched process. */
     @Volatile private var runSafe = false
     @Volatile private var runGen = 0
+
+    /** 本进程内应龙失败过的 runtime 版本；只能由冷启动清掉（不写偏好）。
+     *  写进偏好的旧做法会让"修好了却永远不重试"，必须靠用户手动关开一次才生效。 */
+    private var ztFailedThisRun: String? = null
     @Volatile private var stopGen = -1
     @Volatile private var resetting = false
     // A phone draft save may stage only within the ready runtime captured by its button press.
