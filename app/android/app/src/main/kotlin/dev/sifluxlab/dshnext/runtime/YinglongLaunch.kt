@@ -211,7 +211,14 @@ object YinglongLaunch {
         // /opt/dsh-go/boot-cache.mjs，必然 ERR_MODULE_NOT_FOUND 并以 1 退出。
         // boot cache 只是冷启动加速，缺了它不影响正确性；PRoot 路径仍由 shim 自己带。
         // 之前那句"存在性判断"在真机上永远为真，等于没判断，所以整段去掉。
-        cmd += shim.entry
+        // 入口用**宿主路径**，不用 guest 路径。
+        //
+        // 事实链：node 自己就是按宿主路径（root/opt/node/bin/node）被加载器拉起来的，能跑；
+        // 而它收到 guest 路径 /opt/dsh/.../bin.js 后报 MODULE_NOT_FOUND —— 说明 Zero-Trap
+        // 对 open() 的路径翻译没有覆盖到 /opt（我们显式绑了 /opt 也没用，格式或在它那侧
+        // 另有约定，仓库里没有文档）。宿主路径是真实存在的文件，绕开翻译即可。
+        // 若这样也不行，下一次日志会显示同样的 MODULE_NOT_FOUND，届时改成"探测两条路径"。
+        cmd += entryHost.path
         cmd += web
 
         val environment = LinkedHashMap<String, String>()

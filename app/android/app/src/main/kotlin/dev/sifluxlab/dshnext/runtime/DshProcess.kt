@@ -237,7 +237,7 @@ class DshProcess(
         if (directFallbackReason == DirectLaunch.FAILED) listener.onLog("[dsh-app] direct fallback: direct launch failed before with this runtime; turn Direct on again to retry", "system")
         if (directFallbackReason == TawcrootLaunch.FAILED) listener.onLog("[dsh-app] tawcroot fallback: tawcroot failed to start before with this runtime; turn tawcroot on again to retry", "system")
         if (ztSelfTest != null) listener.onLog("[dsh-app] yinglong self-test failed ($ztSelfTest); this start uses PRoot", "system")
-        if (directFallbackReason == YinglongLaunch.FAILED) listener.onLog("[dsh-app] yinglong fallback: the Zero-Trap launch failed before with this runtime; running on PRoot until the runtime changes or 应龙 is turned on again", "system")
+        if (directFallbackReason == YinglongLaunch.FAILED) listener.onLog("[dsh-app] yinglong fallback: the Zero-Trap launch failed before with this runtime; running on PRoot for this session; a cold start tries Zero-Trap again", "system")
         listener.onLog("[dsh-app] launch method: ${if (zt) "yinglong" else if (tawc) "tawcroot" else if (direct) "direct-glibc" else "proot"}${if ((directEngine || tawcEngine || ztEngine) && safe) " (safe recovery)" else ""}", "system")
         listener.onLog("[dsh-app] launching ${builder.command().joinToString(" ") { redact(it) }}", "system")
         // stop() came in while this was being prepared: don't launch at all.
