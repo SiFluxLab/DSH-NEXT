@@ -14,9 +14,9 @@ on:
   workflow_dispatch:
     inputs:
       abis:
-        description: Which ABIs to build
+        description: Which ABIs to build (x64 仅在需要模拟器包时手选)
         type: choice
-        options: [arm64, x64, both]
+        options: [arm64, x64]
         default: arm64
       build_name:
         description: Version name (empty = app/pubspec.yaml)
@@ -56,10 +56,12 @@ jobs:
           # flavor = Gradle's, abi = the runtime's own name for it.
           arm64='{"flavor":"arm64","abi":"arm64-v8a"}'
           x64='{"flavor":"x64","abi":"x86_64"}'
-          case "${{ inputs.abis || 'both' }}" in
+          # 发布流水线只出 arm64：x64 包只在手动触发并显式选择时才构建。
+          # 手机上的模拟器（x86_64）不需要随每次发布产出，省掉一半 runtime 与 APK 时间。
+          case "${{ inputs.abis || 'arm64' }}" in
             arm64) list="[$arm64]" ;;
             x64) list="[$x64]" ;;
-            *) list="[$arm64,$x64]" ;;
+            *) list="[$arm64]" ;;
           esac
           echo "matrix={\"include\":$list}" >> "$GITHUB_OUTPUT"
 
