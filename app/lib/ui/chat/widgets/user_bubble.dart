@@ -89,7 +89,11 @@ class UserBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final surfaces = DshSurfaces.of(context);
-    final style = AppType.chatBody(context, color: surfaces.onUserBubble);
+    // 中性底上写字，颜色回到 onSurface；字号/行高照 vetta 的 14 / 1.6。
+    final style = AppType.chatBody(context, color: Theme.of(context).colorScheme.onSurface).copyWith(
+      fontSize: 14,
+      height: 1.6,
+    );
     // A generation request (generation mode's parameter header on the first
     // line): the description is the bubble, the parameters a small line under
     // the bubble; the header itself is for the host's plugin.
@@ -120,15 +124,28 @@ class UserBubble extends StatelessWidget {
       child: HoldLift(
         onLongPress: () => _menu(context),
         child: DecoratedBox(
-          decoration: ShapeDecoration(color: surfaces.userBubble, shape: AppShape.bubble),
-          child: Padding(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), child: content),
+          // vetta 的用户气泡不是"主题色胶囊"，而是**一个中性灰面**：
+          // 圆角 16、右下角收成 6、内距 14×10。它靠"低饱和 + 不对称圆角"
+          // 与助手（无容器纯排版）形成层级对比，而不是靠颜色喊话。
+          decoration: ShapeDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHigh,
+            shape: RoundedSuperellipseBorder(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(AppShape.lg),
+                topRight: Radius.circular(AppShape.lg),
+                bottomLeft: Radius.circular(AppShape.lg),
+                bottomRight: const Radius.circular(6),
+              ),
+            ),
+          ),
+          child: Padding(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10), child: content),
         ),
       ),
     );
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final maxWidth = constraints.maxWidth * 0.82;
+        final maxWidth = constraints.maxWidth * 0.72;
         // Explicit nodes: the bubble's long-press node must not pull the
         // attachments' labels into one merged node.
         return Semantics(
