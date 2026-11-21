@@ -75,17 +75,39 @@ class _ContextSheet extends StatelessWidget {
 
   final ContextUsage usage;
 
+  /// ≥1e6 用 M、≥1e3 用 k，一位小数并去掉尾部 .0；未知写「—」而不是 0。
+  static String _num(int? v) {
+    if (v == null) return '—';
+    if (v >= 1000000) return '${(v / 1000000).toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), '')}M';
+    if (v >= 1000) return '${(v / 1000).toStringAsFixed(1).replaceAll(RegExp(r'\.0$'), '')}k';
+    return '$v';
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final scheme = Theme.of(context).colorScheme;
-    String n(int v) => v >= 1000 ? '${(v / 1000).toStringAsFixed(1)}K' : '$v';
-    Widget row(String label, String value) => Padding(
+    final ratio = usage.ratio;
+    // 85% 是 prism 的临界线：到这儿开始变暖，提醒"该压缩了"。
+    final warn = ratio != null && ratio >= 0.85;
+    final tone = ratio == null
+        ? scheme.onSurfaceVariant
+        : warn
+        ? scheme.tertiary
+        : scheme.primary;
+    Widget row(String label, String value, {Color? color}) => Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 7),
       child: Row(
         children: [
-          Expanded(child: Text(label, style: TextStyle(color: scheme.onSurfaceVariant))),
-          Text(value, style: const TextStyle(fontFeatures: [FontFeature.tabularFigures()])),
+          Expanded(child: Text(label, style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant))),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 13,
+              fontFeatures: const [FontFeature.tabularFigures()],
+              color: color ?? scheme.onSurface,
+            ),
+          ),
         ],
       ),
     );
@@ -95,15 +117,59 @@ class _ContextSheet extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 4, 20, 10),
-          child: Text(l10n.contextTideTitle, style: Theme.of(context).textTheme.titleMedium),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(l10n.contextTideTitle, style: Theme.of(context).textTheme.titleMedium),
+              ),
+              if (ratio != null)
+                Text(
+                  '${(ratio * 100).round()}%',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: tone,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+            ],
+          ),
         ),
-        row(l10n.contextTideUsed, n(usage.used)),
-        row(l10n.contextTideCached, n(usage.cached)),
-        row(l10n.contextTideOutput, n(usage.output)),
-        row(
-          l10n.contextTideWindow,
-          usage.window == null ? l10n.contextTideUnknown : n(usage.window!),
-        ),
+        // 分段条：已用 vs 剩余，6.5 高、内距 1、圆角 999；85% 处一条刻度线。
+        if (ratio != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+            child: LayoutBuilder(
+              builder: (context, box) => Stack(
+                children: [
+                  Container(
+                    height: 6.5,
+                    decoration: BoxDecoration(
+                      color: scheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                  FractionallySizedBox(
+                    widthFactor: ratio.clamp(0.0, 1.0),
+                    child: Container(
+                      height: 6.5,
+                      decoration: BoxDecoration(color: tone, borderRadius: BorderRadius.circular(999)),
+                    ),
+                  ),
+                  Positioned(
+                    left: box.maxWidth * 0.85,
+                    top: -2,
+                    bottom: -2,
+                    child: Container(width: 1, color: scheme.tertiary.withValues(alpha: 0.5)),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        row(l10n.contextTideUsed, _num(usage.used)),
+        row(l10n.contextTideCached, _num(usage.cached)),
+        row(l10n.contextTideOutput, _num(usage.output)),
+        row(l10n.contextTideWindow, usage.window == null ? l10n.contextTideUnknown : _num(usage.window)),
         const SizedBox(height: 10),
       ],
     );
