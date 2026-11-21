@@ -30,15 +30,9 @@ class ContextTide extends ConsumerWidget {
     if (ratio == null || ratio < 0.8) return const SizedBox.shrink();
     final scheme = Theme.of(context).colorScheme;
     final optics = Optics.of(context);
-    // 80% 开始变暖、95% 变红：颜色只是提醒，真正的信息是那条线的长度。
-    final color = ratio == null
-        ? scheme.onSurfaceVariant.withValues(alpha: 0.35)
-        : ratio >= 0.95
-        ? scheme.error
-        : ratio >= 0.8
-        ? scheme.tertiary
-        : scheme.primary;
-    final target = ratio ?? 1.0;
+    // 到了这里 ratio 一定非空且 ≥ 0.8：85% 以后变暖、95% 变红。
+    final color = ratio >= 0.95 ? scheme.error : scheme.tertiary;
+    final target = ratio;
     final animate = optics.anticipation && !AppMotion.reduced(context);
     return Semantics(
       button: true,
@@ -62,7 +56,7 @@ class ContextTide extends ConsumerWidget {
                 child: Container(
                   height: 2,
                   decoration: BoxDecoration(
-                    color: color.withValues(alpha: ratio == null ? 0.5 : 0.9),
+                    color: color.withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(1),
                   ),
                 ),
