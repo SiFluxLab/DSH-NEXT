@@ -53,7 +53,8 @@ class _EffortSliderState extends State<EffortSlider> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final last = widget.levels.length - 1;
-    final safeIndex = widget.index.clamp(0, math.max(0, last));
+    // clamp 的上界必须是 int：math.max 返回 num，会让整条表达式变成 num。
+    final safeIndex = last <= 0 ? 0 : widget.index.clamp(0, last);
     final t = last <= 0 ? 0.0 : safeIndex / last;
     final duration = MediaQuery.disableAnimationsOf(context) ? Duration.zero : AppMotion.quick;
     final label = widget.levels.isEmpty ? '' : widget.levels[safeIndex];
