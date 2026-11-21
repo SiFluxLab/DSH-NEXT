@@ -5,8 +5,6 @@
 // 「光刃」是同一套语言（状态用一条光表达）。点它同样能看拆分。
 //
 // 数据只来自引擎回报的 `TokenUsage`；窗口查不到时**不画比例**，也不编分母。
-import 'dart:ui' show FontFeature;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
