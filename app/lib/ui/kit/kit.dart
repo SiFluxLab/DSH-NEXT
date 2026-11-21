@@ -384,7 +384,7 @@ class _KitPressState extends State<KitPress> with SingleTickerProviderStateMixin
         },
         onPointerMove: _move,
         onPointerUp: (_) => _release(),
-        onPointerCancel: () => _release(),
+        onPointerCancel: (_) => _release(),
         child: child,
       );
     }
