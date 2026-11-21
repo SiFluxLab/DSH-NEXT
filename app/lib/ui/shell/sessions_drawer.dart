@@ -91,6 +91,8 @@ class SessionsDrawer extends ConsumerWidget {
     this.now,
     this.identityBarHeight,
     this.drawerMotion,
+    this.onPullClose,
+    this.onPullRelease,
   });
 
   final VoidCallback onClose;
@@ -103,6 +105,13 @@ class SessionsDrawer extends ConsumerWidget {
   /// multi-select) once it is laid out: the pulled-over drawer's notices
   /// stand above it.
   final ValueNotifier<double>? identityBarHeight;
+
+  /// 第 0 页继续向右拉时，把这一下已经拉出的像素交给外壳，让抽屉 1:1 跟手收回。
+  /// 常驻侧栏（平板）没有这个动作，为 null。
+  final ValueChanged<double>? onPullClose;
+
+  /// 松手：外壳按当前开合程度决定收回还是回弹。
+  final VoidCallback? onPullRelease;
 
   /// The pulled-over drawer's 0 → 1 animation (null for the persistent
   /// sidebar). While it moves, the panel drops its backdrop blur: a moving
@@ -260,6 +269,8 @@ class SessionsDrawer extends ConsumerWidget {
                           children: [...sessionTop, Expanded(child: list)],
                         ),
                         files: const DrawerFilesPage(),
+                        onPullClose: onPullClose,
+                        onPullRelease: onPullRelease,
                       )
                     : Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,

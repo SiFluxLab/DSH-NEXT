@@ -138,8 +138,8 @@ class DrawerPager extends StatefulWidget {
   /// 拉出抽屉的位移（正数，像素）。
   final ValueChanged<double>? onPullClose;
 
-  /// 松手时的速度（正数 = 向右/向外）。
-  final ValueChanged<double>? onPullRelease;
+  /// 松手：由外壳按当前开合程度决定收回还是回弹。
+  final VoidCallback? onPullRelease;
 
   @override
   State<DrawerPager> createState() => _DrawerPagerState();
@@ -184,7 +184,7 @@ class _DrawerPagerState extends State<DrawerPager> {
             widget.onPullClose?.call(-notification.overscroll);
           }
         } else if (notification is ScrollEndNotification) {
-          widget.onPullRelease?.call(0);
+          widget.onPullRelease?.call();
         }
         return false;
       },

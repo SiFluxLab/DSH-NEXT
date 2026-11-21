@@ -429,6 +429,19 @@ class _HomeShellState extends ConsumerState<HomeShell> with TickerProviderStateM
                               onOpen: _openDestination,
                               identityBarHeight: _identityBar,
                               drawerMotion: _drawer,
+                              // 第 0 页继续向右拉：抽屉按 1:1 跟手收回，松手过半就关。
+                              onPullClose: (delta) {
+                                if (!_drawer.isAnimating) {
+                                  _drawer.value = (_drawer.value - delta / _drawerWidth(context)).clamp(0.0, 1.0);
+                                }
+                              },
+                              onPullRelease: () {
+                                if (_drawer.value < 0.5) {
+                                  _closeDrawer();
+                                } else {
+                                  _openDrawer();
+                                }
+                              },
                             ),
                             onClose: _closeDrawer,
                           ),
