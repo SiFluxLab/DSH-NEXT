@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../state/blade_state.dart';
+import '../../theme/spectral.dart';
 import '../../theme/theme.dart';
 
 class ComposerAura extends ConsumerStatefulWidget {
@@ -168,43 +169,84 @@ class _AuraPainter extends CustomPainter {
     final path = Path()..addRRect(rrect);
     final metric = path.computeMetrics().first;
 
-    // 底环：整圈 12%，让"有这么一个环"始终读得出来。
+    // 底环：整圈 10%，让"有这么一个环"始终读得出来。
     canvas.drawPath(
       path,
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.2
-        ..color = color.withValues(alpha: 0.12 * strength),
+        ..color = color.withValues(alpha: 0.10 * strength),
     );
 
-    // 亮弧：位置随 sweep 走，长度随状态变；working 用三角波来回，其它用单向。
+    // 亮弧位置：working 用三角波来回，其余单向绕行。
     final travel = to == BladeState.working ? 1 - (2 * sweep - 1).abs() : sweep;
     final start = metric.length * travel;
     final span = metric.length * arcSpan;
-    final glow = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.8
-      ..strokeCap = StrokeCap.round
-      ..shader = LinearGradient(
-        colors: [color.withValues(alpha: 0), color.withValues(alpha: alpha), color.withValues(alpha: 0)],
-      ).createShader(rect);
+
+    // 色相随时间缓慢漂移：这一格让光"活着"，但不是循环动画（旋转极慢，肉眼只感到色温变化）。
+    final phase = (sweep * 0.35) % 1.0;
+
+    Path arcPath() {
+      final head = metric.extractPath(start, math.min(start + span, metric.length));
+      if (start + span <= metric.length) return head;
+      // 跨过终点：把前半段接上，弧才不会断。
+      return head..addPath(metric.extractPath(0, start + span - metric.length), Offset.zero);
+    }
+
+    void strokeArc(double width, Color Function(double t) tint, BlendMode blend) {
+      final gradient = LinearGradient(
+        colors: Spectral.arc(phase, alpha).map((c) => tint(c.a)).toList(),
+        stops: Spectral.stops,
+      );
+      canvas.drawPath(
+        arcPath(),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = width
+          ..strokeCap = StrokeCap.round
+          ..blendMode = blend
+          ..shader = gradient.createShader(rect),
+      );
+    }
 
     if (arcSpan >= 0.995) {
-      // 整圈（waiting / idle）：直接描整条，没有断口。
+      // 整圈（idle / waiting）：沿环画一条分光渐变，不设断口。
       canvas.drawPath(
         path,
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = 1.6
-          ..color = color.withValues(alpha: alpha * (0.75 + 0.25 * math.sin(sweep * 2 * math.pi))),
+          ..blendMode = kLightBlend
+          ..shader = SweepGradient(
+            colors: [
+              Spectral.at(phase).withValues(alpha: alpha * 0.5),
+              Spectral.at(phase + 0.35).withValues(alpha: alpha),
+              Spectral.glow.withValues(alpha: alpha),
+              Spectral.at(phase + 0.7).withValues(alpha: alpha * 0.6),
+              Spectral.at(phase).withValues(alpha: alpha * 0.5),
+            ],
+            transform: const GradientRotation(0),
+          ).createShader(rect),
       );
     } else {
-      final head = metric.extractPath(start, math.min(start + span, metric.length));
-      canvas.drawPath(head, glow);
-      // 越过终点的那一段补回来，让弧"绕"起来没有断点。
-      if (start + span > metric.length) {
-        final tail = metric.extractPath(0, start + span - metric.length);
-        canvas.drawPath(tail, glow);
+      // 辉光层：更粗、很淡、加色——不花一次 blur 就得到"光晕"。
+      strokeArc(7, (c) => c.withValues(alpha: c.a * 0.16), kLightBlend);
+      // 主体：分光弧。
+      strokeArc(1.9, (c) => c, kLightBlend);
+      // 白热头：最后 6% 的一段拉成近白，光的"速度感"全在这里。
+      final headLen = math.max(1.0, span * 0.08);
+      final headStart = math.min(start + span, metric.length) - headLen;
+      if (headStart > 0) {
+        final headPath = metric.extractPath(headStart, headStart + headLen);
+        canvas.drawPath(
+          headPath,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2.2
+            ..strokeCap = StrokeCap.round
+            ..blendMode = kLightBlend
+            ..color = Colors.white.withValues(alpha: 0.75 * alpha),
+        );
       }
     }
     // 4.0 的 motion 只用于将来需要按状态调速时读取；现在保持编译期无副作用。
