@@ -38,6 +38,7 @@ class _DshAppState extends ConsumerState<DshApp> with WidgetsBindingObserver {
   /// Themes of the palette last built: rebuilt only when the palette or the
   /// language changes.
   AppAccent? _accent;
+  SurfacePalette? _palette;
   bool? _english;
   bool? _glassBlur;
   bool? _instantPages;
@@ -101,8 +102,9 @@ class _DshAppState extends ConsumerState<DshApp> with WidgetsBindingObserver {
   @override
   void didChangeAccessibilityFeatures() => setState(() {});
 
-  void _themesFor(AppAccent accent, bool english, bool glassBlur, bool instantPages, bool fluid) {
+  void _themesFor(AppAccent accent, SurfacePalette palette, bool english, bool glassBlur, bool instantPages, bool fluid) {
     if (accent == _accent &&
+        palette == _palette &&
         english == _english &&
         glassBlur == _glassBlur &&
         instantPages == _instantPages &&
@@ -110,6 +112,7 @@ class _DshAppState extends ConsumerState<DshApp> with WidgetsBindingObserver {
       return;
     }
     _accent = accent;
+    _palette = palette;
     _english = english;
     _glassBlur = glassBlur;
     _instantPages = instantPages;
@@ -120,6 +123,7 @@ class _DshAppState extends ConsumerState<DshApp> with WidgetsBindingObserver {
     final glyphs = english ? AppLocale.zhCN : null;
     _light = buildLightTheme(
       accent: accent,
+      palette: palette,
       glyphLocale: glyphs,
       glassBlur: glassBlur,
       instantPages: instantPages,
@@ -180,7 +184,14 @@ class _DshAppState extends ConsumerState<DshApp> with WidgetsBindingObserver {
           lowPower: ref.watch(performancePrefsProvider.select((p) => p.mode)) == PerformanceMode.light,
         );
     FrameClock.instance.enabled = fluid;
-    _themesFor(ref.watch(accentProvider), locale.languageCode == 'en', performance.blur, reduced, fluid);
+    _themesFor(
+      ref.watch(accentProvider),
+      ref.watch(surfacePaletteProvider),
+      locale.languageCode == 'en',
+      performance.blur,
+      reduced,
+      fluid,
+    );
     if (!waiting && !_settled) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _settled = true);
     }

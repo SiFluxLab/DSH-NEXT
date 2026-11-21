@@ -28072,6 +28072,12 @@ class L10nEn extends L10n {
   String get opticsInkFade => 'Ink fade';
   String get opticsInkFadeHint => 'Streamed text arrives from light to solid in five steps; existing text never re-animates';
   String get opticsFollowPreset => 'Follow the preset';
+  String get surfacePaletteTitle => 'Surface palette';
+  String get surfacePaletteFooter => 'Only the warmth of the background changes; accents stay separate and dark/light is still the switch above.';
+  String get surfaceObsidian => 'Obsidian';
+  String get surfaceObsidianHint => 'True neutral near-black, cool mist in daylight, a four-step surface ladder';
+  String get surfaceWarm => 'Warm charcoal';
+  String get surfaceWarmHint => 'Warm charcoal at night, album white in daylight, easier on the eyes after dark';
   String get workshopTitle => 'Workshop';
 
   @override

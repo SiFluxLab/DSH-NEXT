@@ -13,6 +13,7 @@ import 'app_icons.dart';
 import 'ink_glow.dart';
 import 'page_transitions.dart';
 import 'palette.dart';
+import 'surface_palette.dart';
 import 'semantic_colors.dart';
 import 'shapes.dart';
 import 'squircle.dart';
@@ -33,12 +34,13 @@ import 'typography.dart';
 /// [fluid] 灵动档:默认水波换成按压光晕([AppInkGlow])。
 ThemeData buildLightTheme({
   AppAccent accent = AppAccent.mist,
+  SurfacePalette palette = SurfacePalette.obsidian,
   bool glassBlur = true,
   Locale? glyphLocale,
   bool instantPages = false,
   bool fluid = false,
 }) => _build(
-  DshPalette.lightScheme(accent),
+  palette.apply(DshPalette.lightScheme(accent)),
   DshColors.forAccent(Brightness.light, accent),
   DshSurfaces.light(accent, blurEnabled: glassBlur),
   accent,
@@ -50,12 +52,13 @@ ThemeData buildLightTheme({
 /// 深色主题。
 ThemeData buildDarkTheme({
   AppAccent accent = AppAccent.mist,
+  SurfacePalette palette = SurfacePalette.obsidian,
   bool glassBlur = true,
   Locale? glyphLocale,
   bool instantPages = false,
   bool fluid = false,
 }) => _build(
-  DshPalette.darkScheme(accent),
+  palette.apply(DshPalette.darkScheme(accent)),
   DshColors.forAccent(Brightness.dark, accent),
   DshSurfaces.dark(accent, blurEnabled: glassBlur),
   accent,

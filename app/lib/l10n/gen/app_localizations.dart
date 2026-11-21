@@ -48752,6 +48752,42 @@ abstract class L10n {
   /// **'跟随所选档位'**
   String get opticsFollowPreset;
 
+  /// No description provided for @surfacePaletteTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'表面配色'**
+  String get surfacePaletteTitle;
+
+  /// No description provided for @surfacePaletteFooter.
+  ///
+  /// In zh, this message translates to:
+  /// **'只换底色冷暖，与强调色分开；深浅仍由上面的「深色模式」决定。'**
+  String get surfacePaletteFooter;
+
+  /// No description provided for @surfaceObsidian.
+  ///
+  /// In zh, this message translates to:
+  /// **'黑曜'**
+  String get surfaceObsidian;
+
+  /// No description provided for @surfaceObsidianHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'真中性近黑，冷调雾蓝浅底，四段表面阶梯'**
+  String get surfaceObsidianHint;
+
+  /// No description provided for @surfaceWarm.
+  ///
+  /// In zh, this message translates to:
+  /// **'暖炭'**
+  String get surfaceWarm;
+
+  /// No description provided for @surfaceWarmHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'暖炭褐底，暖白画册浅底，低蓝光夜间更舒服'**
+  String get surfaceWarmHint;
+
   /// No description provided for @workshopTitle.
   ///
   /// In zh, this message translates to:

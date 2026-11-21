@@ -1,0 +1,8 @@
+{
+  "surfacePaletteTitle": "Surface palette",
+  "surfacePaletteFooter": "Only the warmth of the background changes; accents stay separate and dark/light is still the switch above.",
+  "surfaceObsidian": "Obsidian",
+  "surfaceObsidianHint": "True neutral near-black, cool mist in daylight, a four-step surface ladder",
+  "surfaceWarm": "Warm charcoal",
+  "surfaceWarmHint": "Warm charcoal at night, album white in daylight, easier on the eyes after dark"
+}
