@@ -49010,6 +49010,12 @@ abstract class L10n {
   /// **'展开全部 {count} 行'**
   String chatShowAllLines(int count);
 
+  /// No description provided for @stateDrawerFilterTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'筛选对话'**
+  String get stateDrawerFilterTitle;
+
   /// No description provided for @workshopTitle.
   ///
   /// In zh, this message translates to:

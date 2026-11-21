@@ -3599,6 +3599,7 @@
   "drawerPagerTitle": "侧边栏翻页器",
   "drawerPagerHint": "顶上一排页签，左右滑动即可翻页",
   "drawerPagerFooter": "关掉后侧边栏回到一屏到底的长列表；数据与操作完全不变。",
+  "stateDrawerFilterTitle": "筛选对话",
   "engineNewChatDefaultsLast": "新对话默认（上次选择）",
   "engineNewChatDefaultsFixed": "新对话默认（固定）",
   "engineNewChatUseLast": "沿用上次",

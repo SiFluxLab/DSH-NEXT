@@ -5,5 +5,6 @@
   "drawerFilesEmptyNote": "Pick a conversation and its workspace files appear here.",
   "drawerPagerTitle": "Sidebar pager",
   "drawerPagerHint": "A row of tabs on top; swipe left and right to turn pages",
-  "drawerPagerFooter": "Turned off, the sidebar goes back to a single long list. Nothing about your data or actions changes."
+  "drawerPagerFooter": "Turned off, the sidebar goes back to a single long list. Nothing about your data or actions changes.",
+  "stateDrawerFilterTitle": "Filter conversations"
 }

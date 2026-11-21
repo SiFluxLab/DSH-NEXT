@@ -26677,6 +26677,7 @@ class L10nZh extends L10n {
   String get contextTideUnknown => '这个模型未声明';
   String get chatFoldCode => '收起长代码';
   String chatShowAllLines(int count) => '展开全部 $count 行';
+  String get stateDrawerFilterTitle => '筛选对话';
   String get workshopTitle => '创意工坊';
 
   @override

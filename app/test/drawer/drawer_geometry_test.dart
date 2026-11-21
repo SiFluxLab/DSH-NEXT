@@ -13,7 +13,8 @@ import 'package:dsh_app/state/sessions_state.dart';
 import 'package:dsh_app/state/workspaces_state.dart';
 import 'package:dsh_app/ui/common/capsule_chip.dart';
 import 'package:dsh_app/ui/common/empty_view.dart';
-import 'package:dsh_app/ui/shell/drawer/drawer_filter_bar.dart';
+import 'package:dsh_app/ui/shell/drawer/drawer_view_button.dart';
+import 'package:dsh_app/ui/shell/drawer/filter_capsule.dart';
 import 'package:dsh_app/ui/shell/drawer/folder_header.dart';
 import 'package:dsh_app/ui/shell/drawer/folder_mark.dart';
 import 'package:dsh_app/ui/shell/drawer/selection_bars.dart';
@@ -110,18 +111,13 @@ void main() {
   });
 
   group('filters', () {
-    testWidgets('capsules start on the 10 line, equal height, 8 apart, one centre line', (tester) async {
+    testWidgets('the filter capsule sits on the workspace row’s centre line', (tester) async {
       await _pump(tester);
-      final drawer = _rect(tester, find.byType(SessionsDrawer));
-      final chips = [
-        for (final f in DrawerFilter.values) _rect(tester, find.widgetWithText(CapsuleChoiceChip, f.label)),
-      ];
-      expect(chips.first.left - drawer.left, _near(10));
-      for (var i = 1; i < chips.length; i++) {
-        expect(chips[i].height, _near(chips.first.height));
-        expect(chips[i].center.dy, _near(chips.first.center.dy));
-        expect(chips[i].left - chips[i - 1].right, _near(DrawerFilterBar.gap));
-      }
+      final capsule = _rect(tester, find.byType(DrawerFilterCapsule));
+      final key = _rect(tester, find.byType(DrawerViewButton));
+      // 筛选从"一整行胶囊"收成一枚之后，它和选项键在同一行、同一条中心线上。
+      expect(capsule.center.dy, _near(key.center.dy));
+      expect(capsule.height, lessThanOrEqualTo(DrawerViewButton.size + 8));
     });
 
     testWidgets('the options key ends on the 10 line and is a 36 circle', (tester) async {
@@ -157,9 +153,10 @@ void main() {
       expect(row.height, _near(WorkspaceSwitcher.height));
       expect(key.center.dy, _near(row.center.dy));
       expect(drawer.right - key.right, _near(10));
-      // The first capsule's edge sits under the switcher's highlight edge.
-      final first = _rect(tester, find.widgetWithText(CapsuleChoiceChip, DrawerFilter.all.label));
-      expect(first.left - drawer.left, _near(10));
+      // 筛选胶囊在这条行的中心线上，右端与选项键同侧。
+      final capsule = _rect(tester, find.byType(DrawerFilterCapsule));
+      expect(capsule.center.dy, _near(row.center.dy));
+      expect(capsule.right, lessThanOrEqualTo(key.left + 1));
     });
 
     testWidgets('360 wide at 1.3× text: nothing overflows', (tester) async {

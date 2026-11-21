@@ -21,7 +21,7 @@ import 'package:dsh_app/ui/plugins/installed_tab.dart';
 import 'package:dsh_app/ui/plugins/plugins_screen.dart';
 import 'package:dsh_app/ui/providers/provider_detail_page.dart';
 import 'package:dsh_app/ui/providers/providers_page.dart';
-import 'package:dsh_app/ui/shell/drawer/drawer_filter_bar.dart';
+import 'package:dsh_app/ui/shell/drawer/filter_capsule.dart';
 import 'package:dsh_app/ui/shell/drawer/drawer_list.dart';
 import 'package:dsh_app/ui/shell/sessions_drawer.dart';
 import 'package:dsh_app/ui/workspace/workspace_switcher.dart';
@@ -315,7 +315,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
     expect(scroll.position.pixels, greaterThan(before));
     expect(waiting.isCompleted, isFalse);
-    expect(find.byType(DrawerFilterBar), findsOneWidget);
+    expect(find.byType(DrawerFilterCapsule), findsOneWidget);
     _measure('sessions', tester, start, scroll, before);
     await tester.tap(find.byType(SessionTile).hitTestable().first);
     await tester.pump();

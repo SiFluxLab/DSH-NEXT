@@ -1876,6 +1876,7 @@
   "drawerPagerTitle": "Sidebar pager",
   "drawerPagerHint": "A row of tabs on top; swipe left and right to turn pages",
   "drawerPagerFooter": "Turned off, the sidebar goes back to a single long list. Nothing about your data or actions changes.",
+  "stateDrawerFilterTitle": "Filter conversations",
   "engineNewChatDefaultsLast": "New chat defaults (last choice)",
   "engineNewChatDefaultsFixed": "New chat defaults (fixed)",
   "engineNewChatUseLast": "Last choice",

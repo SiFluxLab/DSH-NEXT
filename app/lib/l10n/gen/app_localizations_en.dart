@@ -28115,6 +28115,7 @@ class L10nEn extends L10n {
   String get contextTideUnknown => 'not declared for this model';
   String get chatFoldCode => 'Collapse long code';
   String chatShowAllLines(int count) => 'Show all $count lines';
+  String get stateDrawerFilterTitle => 'Filter conversations';
   String get workshopTitle => 'Workshop';
 
   @override

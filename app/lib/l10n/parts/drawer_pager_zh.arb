@@ -5,5 +5,6 @@
   "drawerFilesEmptyNote": "选一个会话后，这里会列出它的工作区文件。",
   "drawerPagerTitle": "侧边栏翻页器",
   "drawerPagerHint": "顶上一排页签，左右滑动即可翻页",
-  "drawerPagerFooter": "关掉后侧边栏回到一屏到底的长列表；数据与操作完全不变。"
+  "drawerPagerFooter": "关掉后侧边栏回到一屏到底的长列表；数据与操作完全不变。",
+  "stateDrawerFilterTitle": "筛选对话"
 }
