@@ -76,7 +76,9 @@ String sessionTitle(SessionSummary s) {
 /// The soft fill behind the current conversation (drawer and search).
 Color sessionSelectionColor(BuildContext context) {
   final scheme = Theme.of(context).colorScheme;
-  return scheme.primary.withValues(alpha: scheme.brightness == Brightness.dark ? 0.18 : 0.09);
+  // vetta 的交互底色只有一个 accent，选中就是它的 100% 档；主色留给真正的强调
+  // （当前生效、当前模型），不再拿主色给整行染一遍。
+  return scheme.surfaceContainerHigh;
 }
 
 /// The sessions drawer: brand and "新对话" on top, search, the workspace
@@ -478,8 +480,9 @@ class _EdgeFade extends StatelessWidget {
 
   final Widget child;
 
-  static const _top = 10.0;
-  static const _bottom = 16.0;
+  // vetta 的侧栏遮罩是 24px：短了看不出内容还在继续，长了会吃掉一整行。
+  static const _top = 24.0;
+  static const _bottom = 24.0;
 
   @override
   Widget build(BuildContext context) {
