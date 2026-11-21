@@ -115,7 +115,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Same key as the runtime job: on a warm run this restores the 150 MB runtime
+      # straight from the cache instead of downloading it as an artifact.
+      - id: inhash
+        shell: bash
+        run: echo "hash=$(git ls-tree -r HEAD -- runtime | sha1sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
+      - name: Restore the built runtime
+        id: runtime_out
+        uses: actions/cache@v4
+        with:
+          path: runtime/out/${{ matrix.abi }}
+          key: runtime-out-${{ matrix.abi }}-${{ steps.inhash.outputs.hash }}
       - name: Place the runtime where Gradle looks for it
+        if: steps.runtime_out.outputs.cache-hit != 'true'
         uses: actions/download-artifact@v4
         with:
           name: runtime-${{ matrix.abi }}
