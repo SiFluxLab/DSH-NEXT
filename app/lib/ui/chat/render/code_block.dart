@@ -454,9 +454,19 @@ class _CodeBlockState extends State<CodeBlock> {
     });
   }
 
+  /// 复制成功:**文字原地**变「已复制」,1.2 秒后自己淡回,同时一次
+  /// `selectionClick`。
+  ///
+  /// 为什么原地替换而不是弹一条 SnackBar:代码块的复制是"我要把这段拿去
+  /// 用"的最后一个动作,手已经在键盘上了。给一条要等它自己走的提示条,
+  /// 等于在屏幕上多放一个正在消失的东西;原地变一下字,眼睛不用离开代码。
+  ///
+  /// 触感用 [HapticFeedback.selectionClick] 而不是 lightImpact:它是一次
+  /// "选中了"的咔哒,和切分段、点选中的一致;lightImpact 是"发出去了"
+  /// 的分量,那个留给发送键。
   void _copy() {
     Clipboard.setData(ClipboardData(text: _trimmedCode));
-    HapticFeedback.lightImpact();
+    HapticFeedback.selectionClick();
     setState(() => _copied = true);
     Future.delayed(const Duration(milliseconds: 1200), () {
       if (mounted) setState(() => _copied = false);

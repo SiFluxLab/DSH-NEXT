@@ -342,6 +342,13 @@ class _ChatListState extends ConsumerState<ChatList> with SingleTickerProviderSt
   final _rowCache = ChatRowsCache();
   Map<String, int> _index = const {};
   Object? _rowsInputs;
+
+  /// 每次工具调用跑了多久,按 callId(引擎轨迹里那一段的起止)。
+  ///
+  /// 只在 `s.turns` 换了**列表本身**时重算:轨迹是一次次追加上来的,列表
+  /// 没换就说明一段都没变(流式时每 32ms 一次的状态重建不重算这张表)。
+  Map<String, Duration> _elapsed = const {};
+  List<TurnTrace>? _elapsedFrom;
   Set<String> _autoAnswered = const {};
 
   /// Row widgets as last built, by row key. A row whose [ChatRow] object, gap
@@ -637,10 +644,33 @@ class _ChatListState extends ConsumerState<ChatList> with SingleTickerProviderSt
     }
   }
 
+  /// 轨迹里每次工具调用的耗时(起 → 止),按 callId。
+  ///
+  /// 只认真的结束了的那一段:还在跑的那次没有结束时间,行尾就不该有个数字
+  /// (那会是一个编出来的数)。轨迹里找不到某次调用(历史没带轨迹)时同样
+  /// 不写——耗时是"读得到就写"的注脚,不是必填项。
+  static Map<String, Duration> _elapsedByCall(List<TurnTrace> turns) {
+    if (turns.isEmpty) return const {};
+    final out = <String, Duration>{};
+    for (final turn in turns) {
+      for (final span in turn.spans) {
+        final callId = span.callId;
+        final end = span.end;
+        if (callId == null || end == null) continue;
+        out[callId] = end.difference(span.start);
+      }
+    }
+    return out;
+  }
+
   // ---------------------------------------------------------------------------
   // 行与分界
 
   void _deriveRows(ChatState s, {required bool foldTurns, List<TurnArtifacts> artifacts = const []}) {
+    if (!identical(s.turns, _elapsedFrom)) {
+      _elapsedFrom = s.turns;
+      _elapsed = _elapsedByCall(s.turns);
+    }
     if (s.loading || !foldTurns) {
       _settling.clear();
     } else {
@@ -1115,6 +1145,9 @@ class _ChatListState extends ConsumerState<ChatList> with SingleTickerProviderSt
       enabled: fresh != null,
       index: fresh ?? 0,
       rise: row is UserRow || row is PendingRow,
+      // 回复比刚发出去的气泡多低 6 像素起步:先看到"我发的话",再看到
+      // "那边开始回"——同帧落地会读成一次刷新,而不是一次对话。
+      drop: _isReply(row) ? 6.0 : 0.0,
       child: _rowWidget(row),
     );
     return KeyedSubtree(
@@ -1152,15 +1185,25 @@ class _ChatListState extends ConsumerState<ChatList> with SingleTickerProviderSt
     _ => false,
   };
 
-  /// 换轮 24、同一轮 8、相邻过程行 0、卡片 12、脚注 4(全是 4 的倍数)。
+  /// 一条**有正文的**助手回复(段落的层,不是过程行的层)。
+  static bool _isReply(ChatRow? row) =>
+      row is AssistantRow && row.item.text.trim().isNotEmpty;
+
+  /// 换轮 24、问答之间 20、相邻回复块 12、同一轮里 8、相邻过程行 0、
+  /// 卡片 12、脚注 4(全是 4 的倍数)。
   ///
-  /// 唯一按规格走的是"用户气泡 → 紧接的回复":规格的常规行距 `pb-5` = 20
-  /// ([ChatMetrics.rowGap])。这里原来只有 8,气泡的下内距已经是 10,两段
-  /// 不同来源的文字挤在一起;换成 20 之后气泡和它的回答才读得出"一问一答"。
+  /// 三档对应三种关系,不是三档"差不多"的间距:
+  ///
+  /// - **20**(`ChatMetrics.rowGap`,规格的常规行 `pb-5`):气泡 → 它的回答。
+  ///   气泡的下内距已经是 10,再挤 8 就分不出"一问一答"了。
+  /// - **12**:两段助手正文上下相邻(工具之间说过一句、折叠之后又续一段)。
+  ///   它们是**同一个人说的两段话**,要读得出"换了一段",但不是换了一轮。
+  /// - **8**:段落之内、思考 → 正文这类同一段内部的交接。
   static double _gapBefore(ChatRow row, ChatRow? previous) {
     if (previous == null) return 0;
     if (_isUser(row)) return _isUser(previous) ? AppSpace.sm : AppSpace.xxl;
     if (_isUser(previous)) return ChatMetrics.rowGap;
+    if (_isReply(row) && _isReply(previous)) return AppSpace.md;
     if (_isProcess(row) && _isProcess(previous)) return 0;
     if (row is ApprovalRow || row is QuestionRow || row is ChangeCardRow || row is ArtifactCardRow) {
       return AppSpace.md;
@@ -1495,6 +1538,7 @@ class _ChatListState extends ConsumerState<ChatList> with SingleTickerProviderSt
         onAllowAll: _allowAll,
         autoAnswered: _autoAnswered,
         onOpenSubagent: _openSubagent,
+        elapsed: _elapsed[item.callId],
       ),
       ToolGroupRow(:final tools, :final live) => ToolGroup(
         tools: tools,
@@ -1503,6 +1547,7 @@ class _ChatListState extends ConsumerState<ChatList> with SingleTickerProviderSt
         onAllowAll: _allowAll,
         autoAnswered: _autoAnswered,
         onOpenSubagent: _openSubagent,
+        elapsed: _elapsed,
       ),
       final TurnProcessRow row => TurnProcess(
         row: row,
@@ -1670,28 +1715,41 @@ class _JumpToBottom extends StatelessWidget {
       ),
     );
 
+    // 出现的方式:从下面 12 像素升上来,并且从"半透明"加强到实心。
+    //
+    // 为什么不是淡入:它是一个**从下面被带上来**的控件(内容在它上面长大,
+    // 它才浮出来),淡入会读成"凭空多了一颗按钮"。升 12 和"半透明 → 实心"
+    // 是同一条曲线上的两件事:先有形状,再变实。
+    // 消失时不走这段(直接落回):那时候视线已经在底部的输入条上了。
     return ValueListenableBuilder<bool>(
       valueListenable: visible,
-      builder: (context, show, _) => IgnorePointer(
-        ignoring: !show,
-        child: AnimatedScale(
-          scale: show ? 1 : (fluid ? 0.6 : 0.8),
-          duration: fluid && show ? AppMotion.popCurve.duration : quick,
-          curve: fluid && show ? AppMotion.popCurve : AppMotion.enter,
-          child: AnimatedOpacity(
-            opacity: show ? 1 : 0,
-            duration: quick,
-            child: Semantics(
-              button: true,
-              label: waiting > 0 ? l10n.chatWaitingBackToBottom(waiting) : l10n.chatBackToBottom,
-              excludeSemantics: true,
-              onTap: onTap,
-              child: AnimatedSwitcher(
-                duration: quick,
-                layoutBuilder: (current, previous) =>
-                    Stack(alignment: Alignment.centerRight, children: [...previous, ?current]),
-                child: waiting > 0 ? pill() : circle(),
-              ),
+      builder: (context, show, child) => TweenAnimationBuilder<double>(
+        tween: Tween<double>(begin: 0, end: show ? 1 : 0),
+        duration: AppMotion.of(context, quick),
+        curve: show ? AppMotion.swift : AppMotion.std,
+        builder: (context, t, inner) => IgnorePointer(
+          ignoring: t < 0.5,
+          child: Transform.translate(
+            offset: Offset(0, 12 * (1 - t)),
+            // 12 像素的位移和"先薄后实"是同一条曲线上的两件事:0.45 → 1。
+            child: Opacity(opacity: 0.45 + 0.55 * t, child: inner),
+          ),
+        ),
+        // 外面这层 AnimatedOpacity 只管"在 / 不在"(0 或 1):真正的显隐由它
+        // 决定(读屏与测试都按它判断这颗钮在不在),位移与"加强"由上面那层。
+        child: AnimatedOpacity(
+          opacity: show ? 1 : 0,
+          duration: quick,
+          child: Semantics(
+            button: true,
+            label: waiting > 0 ? l10n.chatWaitingBackToBottom(waiting) : l10n.chatBackToBottom,
+            excludeSemantics: true,
+            onTap: onTap,
+            child: AnimatedSwitcher(
+              duration: quick,
+              layoutBuilder: (current, previous) =>
+                  Stack(alignment: Alignment.centerRight, children: [...previous, ?current]),
+              child: waiting > 0 ? pill() : circle(),
             ),
           ),
         ),

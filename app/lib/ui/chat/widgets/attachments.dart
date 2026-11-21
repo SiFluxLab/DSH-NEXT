@@ -23,7 +23,11 @@ Future<AttachSource?> showAttachMenu(BuildContext context, {bool files = true}) 
   return choice is AttachChoice ? choice.source : null;
 }
 
-/// 40dp round ＋ at the composer's leading edge.
+/// 36dp round ＋ at the composer's leading edge: 和发送键同一尺寸的端盖。
+///
+/// 尺寸和 `composer.dart` 的 `_keySize` 绑在一起(36 / 图标 20):Bot 对话在
+/// 同一格放第三颗 36 的工具键(`ui/bots/bot_mention.dart`),三颗必须一样大。
+/// 命中区比可见的圆大一圈(InkResponse.radius)。
 class AttachButton extends StatelessWidget {
   const AttachButton({super.key, required this.onPressed});
 
@@ -125,6 +129,12 @@ List<ViewerImage> _draftGallery(Iterable<DraftAttachment> images) => [
 
 /// How far the remove badge sticks out past a tray tile's corner.
 const _overhang = 8.0;
+
+// 删除键**不跟着 hover / 长按出现**,永远在。
+//
+// 手机上根本没有 hover:一个"悬停才出现"的删除键,在触屏上等于"第一次点
+// 是删除的第一次机会、第二次才真删",而附件条上的误删代价很大。它固定在
+// 缩略图右上角、20 的圆、跨在边上——看得见就不用猜。
 
 class _Removable extends StatelessWidget {
   const _Removable({required this.child, required this.onRemove, required this.label});

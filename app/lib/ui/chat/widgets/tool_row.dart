@@ -13,6 +13,7 @@ import '../../common/fluid_bits.dart';
 import '../../common/smooth_size.dart';
 import '../../common/tool_glyph.dart';
 import '../../fx/orbs/thinking_orb.dart';
+import '../../kit/kit.dart';
 import '../../plugins/view/plugin_view.dart' show DshUiParsed, PluginToolCard;
 import '../../theme/app_icons.dart';
 import '../../theme/theme.dart';
@@ -20,6 +21,7 @@ import '../render/code_block.dart';
 import '../render/diff_view.dart';
 import '../render/long_text.dart';
 import '../media/media_card.dart';
+import '../run_info.dart' show formatSpan;
 import '../tool_view.dart';
 import '../turn_summary.dart';
 import 'approval_card.dart';
@@ -71,10 +73,15 @@ class ToolRow extends StatefulWidget {
     this.autoAnswered = const {},
     this.onOpenSubagent,
     this.card = ToolCardPlacement.inline,
+    this.elapsed,
   });
 
   final ToolChatItem item;
   final ApprovalResponder onRespond;
+
+  /// 这一次调用跑了多久(引擎轨迹的起止,由列表按 callId 查好送进来)。
+  /// null = 还不知道(还在跑)或轨迹里没这一段:行尾就不写耗时。
+  final Duration? elapsed;
 
   /// 带原生卡片(`meta["dsh-go/view"]`)时卡片画在哪,见 [ToolCardPlacement]。
   /// 不带卡片的调用不受影响。
@@ -139,6 +146,7 @@ class _ToolRowState extends State<ToolRow> {
           view: v,
           autoAllowing: auto,
           expanded: expanded,
+          elapsed: widget.elapsed,
           opens: child != null,
           // 卡片正摊开在下面(标题就在卡片上):行里照旧写参数摘要。
           titled: !(expanded && widget.card == ToolCardPlacement.inline && v.pluginView is DshUiParsed),
@@ -191,6 +199,7 @@ class _ToolHeader extends StatelessWidget {
     required this.expanded,
     this.opens = false,
     this.titled = true,
+    this.elapsed,
     required this.onTap,
   });
 
@@ -203,6 +212,9 @@ class _ToolHeader extends StatelessWidget {
 
   /// 摘要用原生卡片的标题(有的话)。
   final bool titled;
+
+  /// 这一次调用跑了多久(引擎轨迹里的起止);不知道时不写。
+  final Duration? elapsed;
   final VoidCallback onTap;
 
   @override
@@ -215,10 +227,14 @@ class _ToolHeader extends StatelessWidget {
 
     final title = titled ? view.pluginTitle : null;
     final summary = blocked ? l10n.chatToolNeedsApproval : title ?? view.summary;
-    final summaryColor = failed ? dsh.danger : dsh.textTertiary;
+    // 两级里的**下**一级:名 12,明细 12.5 只给 70% 的灰。失败时明细仍是
+    // danger——那是唯一需要抬头看的一行,不让它退到 70%。
+    final summaryColor = failed
+        ? dsh.danger
+        : DshColors.of(context).textTertiary.withValues(alpha: KitMuted.a70);
     final summaryStyle = view.summaryIsCode && !blocked && title == null
         ? AppType.mono(size: 12.5, color: summaryColor, height: 1.3)
-        : StreamRow.detail(context)?.copyWith(color: summaryColor);
+        : StreamRow.toolDetail(context)?.copyWith(color: summaryColor);
 
     return Semantics(
       button: true,
@@ -230,7 +246,7 @@ class _ToolHeader extends StatelessWidget {
           children: [
             if (blocked) const _LockGlyph() else ToolGlyph(name: view.name, size: StreamRow.lead),
             const SizedBox(width: StreamRow.gap),
-            Text(view.verb, style: StreamRow.label(context)),
+            Text(view.verb, style: StreamRow.toolName(context)),
             if (summary.isNotEmpty) ...[
               const StreamDot(),
               Expanded(
@@ -244,6 +260,17 @@ class _ToolHeader extends StatelessWidget {
               ),
             ] else
               const Spacer(),
+            // 耗时:11 号等宽,只在**跑完了**才写。跑着的时候行尾已经是状态
+            // 小环,再放一个跳秒的数字会让这一行比正文还热闹。
+            if (elapsed case final elapsed?) ...[
+              const SizedBox(width: 6),
+              Text(
+                formatSpan(elapsed),
+                maxLines: 1,
+                softWrap: false,
+                style: StreamRow.toolDuration(context),
+              ),
+            ],
             const SizedBox(width: 8),
             SmoothSize(
               duration: AppMotion.of(context, AppMotion.quick),
@@ -642,6 +669,7 @@ class ToolGroup extends StatefulWidget {
     this.autoAnswered = const {},
     this.onOpenSubagent,
     this.live = false,
+    this.elapsed = const {},
   });
 
   final List<ToolChatItem> tools;
@@ -650,6 +678,9 @@ class ToolGroup extends StatefulWidget {
   final ApprovalAllowAll? onAllowAll;
   final Set<String> autoAnswered;
   final SubagentOpener? onOpenSubagent;
+
+  /// 组里每一次调用跑了多久,按 callId;空 = 都还不知道。
+  final Map<String, Duration> elapsed;
 
   @override
   State<ToolGroup> createState() => _ToolGroupState();
@@ -696,6 +727,7 @@ class _ToolGroupState extends State<ToolGroup> {
     onAllowAll: widget.onAllowAll,
     autoAnswered: widget.autoAnswered,
     onOpenSubagent: widget.onOpenSubagent,
+    elapsed: widget.elapsed[tool.callId],
   );
 
   @override
@@ -707,6 +739,15 @@ class _ToolGroupState extends State<ToolGroup> {
     final shown = tools.where((tool) => _liveKeys.contains(tool.key) || _active(tool)).toList();
     final summary = summarizeTools(tools);
     final failed = summary.failed;
+    // 阶段组的上层:13 号(比单条工具行大一号),整组跑完转 40% 灰。
+    //
+    // 为什么"跑完就淡"而不是"跑完打个勾":一组调用结束后,这一行只是
+    // "上面那段里发生过什么"的索引,读者要往下看的是回答。转灰是把
+    // 注意力让回去,而不是再给一次成功反馈——反馈在每一行自己的小环里。
+    final done = active.isEmpty;
+    final titleColor = done
+        ? Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: KitMuted.a40)
+        : Theme.of(context).colorScheme.onSurfaceVariant;
 
     void toggle() => setState(() => _expanded = !_expanded);
     final header = Semantics(
@@ -722,7 +763,12 @@ class _ToolGroupState extends State<ToolGroup> {
             ToolGlyph(name: _leadingTool(tools), size: StreamRow.lead),
             const SizedBox(width: StreamRow.gap),
             Expanded(
-              child: Text(summary.label, maxLines: 1, overflow: TextOverflow.ellipsis, style: StreamRow.label(context)),
+              child: AnimatedDefaultTextStyle(
+                duration: AppMotion.of(context, AppMotion.standard),
+                curve: AppMotion.std,
+                style: (StreamRow.stageTitle(context) ?? const TextStyle()).copyWith(color: titleColor),
+                child: Text(summary.label, maxLines: 1, overflow: TextOverflow.ellipsis),
+              ),
             ),
             if (failed > 0) ...[
               const SizedBox(width: 8),

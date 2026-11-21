@@ -35,6 +35,10 @@ const _lineHeight = 1.45;
 /// 圆角 28 = 键半径 20 + 8,圆键与胶囊两端同心;文字在 40 高里居中。
 /// 多行时键贴底,底边和侧边仍是 8。
 ///
+/// **尺寸只有这一处定**:发送键和工具栏键(＋、上下文环、听写里的 ✕)同是
+/// 36,因为 Bot 对话把第三颗工具键(`ui/bots/bot_mention.dart`,36)也放进
+/// 同一个位置;只把这里的两颗改小,那一页就会变成 36 / 32 混排。
+///
 /// 语音([voice]):草稿为空时发送键是麦克风(和 ＋ 键同样的淡底圆);
 /// 听写时 ＋ 换成 ✕(取消)、发送键换成主色的停止键,中间文字处显示
 /// 识别结果,停止键左边是音量条。四颗键始终同一位置、同一尺寸。
@@ -180,6 +184,9 @@ class Composer extends StatefulWidget {
 const double _keySize = 36;
 const double _keyGap = 6;
 
+/// 200ms:焦点进出时工具栏从 60% 提到 100%(见 [Composer] 的 build)。
+const _toolbarFade = Duration(milliseconds: 200);
+
 /// The composer's own text, a step under body text.
 const double _fontSize = 15.0;
 
@@ -188,6 +195,11 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
   // Keep the editor and its input connection when the footer changes the layout.
   final _fieldKey = GlobalKey();
   late final _draftEmpty = ValueNotifier(widget.controller.text.trim().isEmpty);
+
+  /// 输入框有没有焦点。工具栏的图标就按它明暗(见 build 里的 toolbar()):
+  /// 没在打字的时候它们是"备着的东西",60% 就够看见;一旦开始写,手已经
+  /// 在键盘上,它们回到 100% 才不会和刚打出来的字抢。
+  final _focused = ValueNotifier<bool>(false);
 
   void _draftChanged() {
     _draftEmpty.value = widget.controller.text.trim().isEmpty;
@@ -217,7 +229,9 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
   }
 
   void _focusChanged() {
-    if (widget.focusNode?.hasFocus ?? false) _keyboardDown = false;
+    final has = widget.focusNode?.hasFocus ?? false;
+    if (has) _keyboardDown = false;
+    if (_focused.value != has) _focused.value = has;
     _syncOpen();
   }
 
@@ -305,6 +319,9 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
     widget.controller.addListener(_draftChanged);
     widget.voice?.onMessage = _voiceMessage;
     widget.focusNode?.addListener(_focusChanged);
+    // 挂上来的时候可能已经聚焦(页面重建、键盘一直在):先对齐一次,否则
+    // 工具栏会停在 60%,直到下一次焦点变化。
+    _focused.value = widget.focusNode?.hasFocus ?? false;
   }
 
   @override
@@ -314,6 +331,9 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
       oldWidget.controller.removeListener(_draftChanged);
       widget.controller.addListener(_draftChanged);
       _draftChanged();
+    }
+    if (!identical(oldWidget.focusNode, widget.focusNode)) {
+      _focused.value = widget.focusNode?.hasFocus ?? false;
     }
     if (oldWidget.sessionReady != widget.sessionReady ||
         oldWidget.connected != widget.connected ||
@@ -345,6 +365,7 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
   void dispose() {
     widget.controller.removeListener(_draftChanged);
     _draftEmpty.dispose();
+    _focused.dispose();
     widget.focusNode?.removeListener(_focusChanged);
     _openController.dispose();
     if (widget.voice?.onMessage == _voiceMessage) {
@@ -406,13 +427,18 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
         child: ListenableBuilder(
           // The editor listens to text, selection and composing changes itself.
           // Its surrounding controls only need the draft's empty/nonempty edge.
-          listenable: Listenable.merge([_draftEmpty, ?voice]),
+          listenable: Listenable.merge([_draftEmpty, _focused, ?voice]),
           builder: (context, _) {
             final phase = voice?.phase ?? VoicePhase.idle;
             final dictating = phase == VoicePhase.listening || phase == VoicePhase.transcribing;
             final empty = _draftEmpty.value && !widget.hasAttachments;
             final showStop = widget.running && empty && !dictating;
             final showMic = !dictating && !showStop && empty && !widget.busy && (voice?.available ?? false);
+            // 空输入时发送键**降级,不隐藏**:它留在原位、变成 onSurface 12%
+            // 的禁用圆(见 `_SendButton`),而不是消失。位置固定的一颗键,
+            // 手才知道往哪按;隐藏会让"有字/没字"两次按的位置不一样。
+            // (语音可用时空草稿的发送键由麦克风顶上,那是同一颗键的另一个
+            // 动作,不是隐藏。)
             final enabled =
                 !widget.busy && widget.connected && widget.sessionReady && (showStop || !empty || widget.sendWhenEmpty);
             final emptySend = empty && widget.sendWhenEmpty && !showStop && !showMic && !dictating;
@@ -433,9 +459,21 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
             final leading = dictating
                 ? VoiceCancelKey(key: const ValueKey('voice-cancel'), onPressed: voice!.cancel)
                 : widget.leading;
+            // 工具栏的明暗:没在打字时 60%(它们是"备着的"),一开始写就
+            // 100%。200ms 是因为它跟着焦点走——焦点是自己点的,不需要更快
+            // 的反馈;慢一档反而读得出"这排东西醒了"。
+            Widget toolbar(Widget child) => AnimatedOpacity(
+              duration: AppMotion.of(context, _toolbarFade),
+              curve: AppMotion.std,
+              opacity: _focused.value ? KitMuted.full : KitMuted.a60,
+              child: child,
+            );
             final accessory = dictating
-                ? VoiceWaveform(level: voice!.level, active: phase == VoicePhase.listening)
-                : widget.accessory;
+                ? toolbar(VoiceWaveform(level: voice!.level, active: phase == VoicePhase.listening))
+                : switch (widget.accessory) {
+                    final accessory? => toolbar(accessory),
+                    null => null,
+                  };
 
             final _KeyMode mode;
             if (dictating) {
@@ -455,13 +493,15 @@ class _ComposerState extends State<Composer> with SingleTickerProviderStateMixin
 
             final leadingKey = leading == null
                 ? null
-                : AnimatedSwitcher(
-                    duration: AppMotion.of(context, AppMotion.quick),
-                    transitionBuilder: (child, anim) => FadeTransition(
-                      opacity: anim,
-                      child: ScaleTransition(scale: anim, child: child),
+                : toolbar(
+                    AnimatedSwitcher(
+                      duration: AppMotion.of(context, AppMotion.quick),
+                      transitionBuilder: (child, anim) => FadeTransition(
+                        opacity: anim,
+                        child: ScaleTransition(scale: anim, child: child),
+                      ),
+                      child: KeyedSubtree(key: ValueKey(dictating), child: leading),
                     ),
-                    child: KeyedSubtree(key: ValueKey(dictating), child: leading),
                   );
             final field = Focus(
               key: _fieldKey,

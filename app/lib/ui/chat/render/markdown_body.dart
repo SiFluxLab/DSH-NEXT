@@ -730,6 +730,20 @@ class _MarkdownBodyState extends State<MarkdownBody> {
                 fromEmpty: _shown > 0 && i >= _shown,
                 build: (text) => _markdown(text, body, live: live),
               )
+            // 最后一块自己管自己的"落定"(见 [_SettleBlock]):只有它需要
+            // 在流式结束那一刻动一次,前面的块不该跟着重建。
+            : i == blocks.length - 1
+            ? _SettleBlock(
+                text: text,
+                style: body,
+                live: live,
+                build: (text, style) => _markdown(
+                  text,
+                  style,
+                  live: live,
+                  patterns: live ? MarkdownBody._streamingPatterns : null,
+                ),
+              )
             : _markdown(text, body, live: live, patterns: live ? MarkdownBody._streamingPatterns : null);
         built = (text: text, live: live, widget: RepaintBoundary(child: block));
         if (i < _built.length) {
@@ -811,6 +825,71 @@ class _MarkdownBlocks extends StatelessWidget {
     spacing: blockGap(context, GptMarkdownConfig(style: style)),
     children: children,
   );
+}
+
+/// 回复的**最后一段**:流式结束的那一刻,它有一次 80ms 的"落定"字距回弹
+/// (-0.1 → 0)。
+///
+/// 为什么是字距而不是淡入或位移:文字已经全在屏幕上了,再淡一次会读成
+/// "卡了一下";而打字停下来的时候,整段字本来就会**微微收紧**——字距从
+/// -0.1 回到 0,段落宽一丁点,再落定。这个动作只有 80ms,读者说不出它
+/// 发生过,但"这段话写完了"这件事是被感觉到的。
+///
+/// 为什么只在这一块里做:它是每 32ms 唯一在重建的块,回弹 5 帧只重绘它;
+/// 放在整篇外面会把几千字全部重排五次。
+///
+/// 动画闸门:移除动画时 AppMotion.of 给 0,直接落到终态(字距 0),
+/// 等于没有这一下。灵动档([MarkdownBody.reveal])走 [_RevealBlock] 的
+/// 逐块淡入,那里不加这一层——同时淡入又收字距会读成两次动作。
+class _SettleBlock extends StatefulWidget {
+  const _SettleBlock({required this.text, required this.style, required this.live, required this.build});
+
+  final String text;
+  final TextStyle style;
+
+  /// 还在写(这一块是光标所在的那一块)。
+  final bool live;
+  final Widget Function(String text, TextStyle style) build;
+
+  @override
+  State<_SettleBlock> createState() => _SettleBlockState();
+}
+
+class _SettleBlockState extends State<_SettleBlock> {
+  /// 从多紧开始回弹。0.1 在 16 号中文上约是"一个字宽的 1/160",几乎量不出,
+  /// 但整段一收一放是看得见的。
+  static const _from = -0.1;
+  static const _for = Duration(milliseconds: 80);
+
+  /// 这一次结束要不要播(播过一次就回静止,直到下一次开始写)。
+  bool _settling = false;
+
+  @override
+  void didUpdateWidget(_SettleBlock oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // 写完的那一刻:true → false。重新开始写(插话续上、分块又长了一块)时
+    // 复位,下一次结束再播。
+    if (oldWidget.live && !widget.live) _settling = true;
+    if (!oldWidget.live && widget.live) _settling = false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_settling) return widget.build(widget.text, widget.style);
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: _from, end: 0),
+      duration: AppMotion.of(context, _for),
+      // 和列表其它"落位"共一条曲线:快落定、尾巴极轻。
+      curve: AppMotion.swift,
+      builder: (context, spacing, _) =>
+          widget.build(widget.text, widget.style.copyWith(letterSpacing: spacing)),
+      // 回弹结束回到原样式(字距 null):长期挂一个 0 会让这一块和别的块
+      // 不是同一个 TextStyle,缓存和复用都对不上。
+      onEnd: () {
+        if (mounted) setState(() => _settling = false);
+      },
+    );
+  }
 }
 
 /// One block of a revealed reply. A GptMarkdown shows the text it mounts with

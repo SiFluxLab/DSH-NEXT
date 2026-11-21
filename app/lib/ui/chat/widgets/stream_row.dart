@@ -42,6 +42,54 @@ abstract final class StreamRow {
   static TextStyle? detail(BuildContext context) =>
       Theme.of(context).textTheme.bodySmall
           ?.copyWith(fontSize: 13, color: DshColors.of(context).textTertiary, height: 1.3);
+
+  // ── 工具调用的两层:单条 12 / 阶段组 13 ──────────────────────────────
+  //
+  // 为什么单条的"名"比组标题还小:工具行是**过程里的细节**,阶段组的标题
+  // 是"这一段在干什么"。读的人先看阶段(13、次级色),再落到底下的每一次
+  // 调用(12、三级色)。两级都用字号与透明度分,不加底色、不加线——过程
+  // 里一旦出现两块底,正文的裸排就被打断了。
+  //
+  // 三档合起来是一条完整的阶梯,不是三个随手定的数:
+  //   整轮摘要 14(label,`已完成 · 7 次工具调用`) > 阶段组 13 > 单条 12。
+
+  /// 单条工具行的名(动词):12 号、w500、次级色。
+  static TextStyle? toolName(BuildContext context) => Theme.of(context).textTheme.bodySmall?.copyWith(
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+    color: Theme.of(context).colorScheme.onSurfaceVariant,
+    height: 1.3,
+  );
+
+  /// 单条工具行的明细(命令、路径):12.5 号、三级色 70%。
+  ///
+  /// 70% 是 mute 阶梯里现成的一档([KitMuted.a70]):名字读完,细节还在,
+  /// 但不再和名字抢同一层注意力。
+  static TextStyle? toolDetail(BuildContext context) => Theme.of(context).textTheme.bodySmall?.copyWith(
+    fontSize: 12.5,
+    color: DshColors.of(context).textTertiary.withValues(alpha: KitMuted.a70),
+    height: 1.3,
+  );
+
+  /// 单条工具行的耗时:11 号等宽、60% 三级色。
+  ///
+  /// 等宽 + 等宽数字,换行时数字的位数不跳;60% 让它落在明细之后当注脚,
+  /// 而不是一个"数据"。
+  static TextStyle toolDuration(BuildContext context) => AppType.tabular(
+    AppType.mono(
+      size: 11,
+      color: DshColors.of(context).textTertiary.withValues(alpha: KitMuted.a60),
+      height: 1.3,
+    ),
+  );
+
+  /// 阶段组标题(并行调用压成的一组):13 号、w500。
+  static TextStyle? stageTitle(BuildContext context) => Theme.of(context).textTheme.bodySmall?.copyWith(
+    fontSize: 13,
+    fontWeight: FontWeight.w500,
+    color: Theme.of(context).colorScheme.onSurfaceVariant,
+    height: 1.3,
+  );
 }
 
 /// 一行过程行的外壳:最小 32 高、上下 4、点按高亮向两侧溢出 8。

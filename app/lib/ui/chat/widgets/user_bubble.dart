@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import '../../../state/composer_quote.dart' show splitQuote;
 import '../../common/expand_reveal.dart';
 import '../../common/fluid_bits.dart';
+import '../../kit/kit.dart';
 import '../../theme/app_icons.dart';
 import '../../theme/theme.dart';
 import '../media/generate_header.dart';
@@ -251,8 +252,12 @@ class _PendingMeta extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final muted = DshColors.of(context).textTertiary;
-    final style = theme.textTheme.labelSmall?.copyWith(color: muted);
+    // 状态与时间这一层是**元信息**:11 号 + 次级色的 60%。
+    //
+    // 11 是这一页最小的字号,再小在手机上就不是"安静"而是"看不清";60%
+    // 让它退到气泡之后——它是给"这条发出去了没有"一个答复,不是内容。
+    final muted = theme.colorScheme.onSurfaceVariant.withValues(alpha: KitMuted.a60);
+    final style = theme.textTheme.labelSmall?.copyWith(fontSize: 11, color: muted);
     return Padding(
       padding: EdgeInsets.only(top: actions.isEmpty ? 4 : 0, right: actions.isEmpty ? 8 : 0),
       child: Wrap(

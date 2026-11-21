@@ -54,13 +54,28 @@ class _StreamPressState extends State<StreamPress> {
 /// 整列"顿"地跳上去一截(卡片、整段回复尤其明显)。
 ///
 /// [rise]:刚发出的气泡。灵动档下它从输入框方向弹着升起来,高度还是原来的节奏。
+///
+/// [drop]:额外多低 6 像素起步。**一问问答不该同帧落地**:气泡是"我按下去
+/// 的东西",回复是"那边开始说话了",两者同帧出现会读成一次刷新。回复比
+/// 气泡晚 [index] 一格(30ms)起步、再多低 6 像素,落定时合成一个整块——
+/// 这一格差只在入场那 240ms 里看得见,静止时两行间距仍是列表的规矩。
 class StreamFadeIn extends StatefulWidget {
-  const StreamFadeIn({super.key, required this.child, this.enabled = true, this.index = 0, this.rise = false});
+  const StreamFadeIn({
+    super.key,
+    required this.child,
+    this.enabled = true,
+    this.index = 0,
+    this.rise = false,
+    this.drop = 0,
+  });
 
   final Widget child;
   final bool enabled;
   final int index;
   final bool rise;
+
+  /// 入场时比默认多低多少像素(只影响入场,不影响布局)。
+  final double drop;
 
   @override
   State<StreamFadeIn> createState() => _StreamFadeInState();
@@ -145,7 +160,7 @@ class _StreamFadeInState extends State<StreamFadeIn> with SingleTickerProviderSt
               child: Opacity(
                 opacity: v,
                 child: lift == null
-                    ? Transform.translate(offset: Offset(0, 8 * (1 - v)), child: child)
+                    ? Transform.translate(offset: Offset(0, (8 + widget.drop) * (1 - v)), child: child)
                     : Transform.translate(
                         offset: Offset(0, _riseBy * (1 - lift)),
                         child: Transform.scale(

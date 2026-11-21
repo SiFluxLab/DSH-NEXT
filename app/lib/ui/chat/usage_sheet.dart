@@ -86,6 +86,7 @@ class ContextRing extends StatelessWidget {
       child: InkResponse(
         onTap: onTap,
         radius: 26,
+        // 36:和 ＋ / 发送键同一高度,这一排小件在同一条基线上。
         child: SizedBox(
           height: 36,
           child: Padding(

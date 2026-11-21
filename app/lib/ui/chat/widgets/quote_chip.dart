@@ -175,6 +175,12 @@ class _ComposerTrayStackState extends State<ComposerTrayStack> {
 /// The quote a sent message opens with, at the top of its bubble: a thin
 /// bar and up to two quiet lines (secondary text: the only quiet colour that
 /// passes AA on the bubble).
+///
+/// 左边那条 2px 是**主色**:整个对话页只有主色一种强调色(发送键、链接、
+/// 选中),引用是全页唯一"这段话属于别处"的结构标记,用它最省。
+///
+/// 它只做装饰(不是文字),所以可以带透明度:45% 的主色在气泡的中性底上
+/// 是一条"看得见但不喊"的线;引文本身仍是次级色 14 号(在气泡底上过 AA)。
 class BubbleQuote extends StatelessWidget {
   const BubbleQuote(this.quote, {super.key});
 
@@ -184,7 +190,6 @@ class BubbleQuote extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final surfaces = DshSurfaces.of(context);
     // One step under the message text, still on the chat text scale.
     final style = AppType.chatBody(context, scale: 14 / 16, color: theme.colorScheme.onSurfaceVariant);
     return Semantics(
@@ -192,7 +197,7 @@ class BubbleQuote extends StatelessWidget {
       excludeSemantics: true,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          border: Border(left: BorderSide(color: surfaces.onUserBubble.withValues(alpha: 0.25), width: 2)),
+          border: Border(left: BorderSide(color: theme.colorScheme.primary.withValues(alpha: 0.45), width: 2)),
         ),
         child: Padding(
           padding: const EdgeInsets.only(left: 8),

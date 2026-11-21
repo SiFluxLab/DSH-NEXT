@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../l10n/l10n.dart';
 import '../../../state/subscriptions_state.dart' show subscriptionLabel;
 import '../../common/expand_reveal.dart';
+import '../../kit/kit.dart';
 import '../../onboarding/api_key_page.dart';
 import '../../providers/providers_page.dart';
 import '../../providers/subscription_sheet.dart';
@@ -99,12 +100,19 @@ class _NoticeRowState extends State<NoticeRow> {
     final lapsed = isError ? lapsedSubscription(item.failure, item.text) : null;
     final (icon, text) = _content(lapsed);
     // 出错这一行**不整行变红**(规格 §5.3:对话内的错误卡刻意不用红色)。
-    // 红只留在一个小图标上:大面积红字会把注意力从"这轮说了什么"抢到
-    // "出事了"上,而真正要读的是错误本身。文字回到主色 85%
-    // (规格标题 `text-foreground/85`),其余行的次级灰不变。
+    // 红只留在一个 11 号的小图标上:大面积红字会把注意力从"这轮说了什么"
+    // 抢到"出事了"上,而真正要读的是错误本身。
+    //
+    // 三层的灰度是按"要读的顺序"排的,不是随便三档灰:
+    //   标题 13 / 主色 85%  —— 发生了什么(这一行唯一要读完的句子);
+    //   建议 12.5 / 80%     —— 接下来能做什么(按钮文字、展开的原文);
+    //   图标 11 / danger    —— 只做标记,不参与阅读。
     final detail = StreamRow.detail(context)?.copyWith(height: 1.45);
     final style = isError
-        ? detail?.copyWith(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.85))
+        ? detail?.copyWith(
+            fontSize: 13,
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.85),
+          )
         : detail;
 
     // 一行最多一个键:登录失效、缺 Key 有自己的去处,其余用列表给的。
@@ -125,7 +133,7 @@ class _NoticeRowState extends State<NoticeRow> {
     final failure = item.failure;
     final details = failure == null ? null : '${failure.code}\n${failure.message}'.trim();
 
-    return Column(
+    final body = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -137,7 +145,8 @@ class _NoticeRowState extends State<NoticeRow> {
               // 图形格不铺底(规格的错误卡没有红块):出错只让图标自己是
               // danger 色,和右边 85% 的主色文字形成"标记 + 内容"两层,
               // 而不是把整行涂红。其余行照旧三级灰。
-              StreamLead(child: Icon(icon, size: 16, color: isError ? dsh.danger : dsh.textTertiary)),
+              // 11 号:标记要小到不打断阅读,又能让眼睛在整屏里扫到它。
+              StreamLead(child: Icon(icon, size: isError ? 11 : 16, color: isError ? dsh.danger : dsh.textTertiary)),
               const SizedBox(width: StreamRow.gap),
               Expanded(
                 // 文字首行与 24 的图形格竖直居中。
@@ -153,7 +162,13 @@ class _NoticeRowState extends State<NoticeRow> {
                     : Padding(
                         key: ValueKey(action.label),
                         padding: const EdgeInsets.only(left: 8),
-                        child: _NoticeKey(label: action.label, onPressed: action.onPressed),
+                        child: _NoticeKey(
+                          label: action.label,
+                          onPressed: action.onPressed,
+                          // 错误卡里这一键也是"建议"层(80% 主色),不用主色
+                          // 去和正文抢;其它提示行照旧用主色的可点键。
+                          quiet: isError,
+                        ),
                       ),
               ),
             ],
@@ -163,20 +178,55 @@ class _NoticeRowState extends State<NoticeRow> {
           open: _expanded,
           child: Padding(
             padding: const EdgeInsets.only(left: StreamRow.indent, bottom: 8),
-            child: SelectableText(details ?? '', style: StreamRow.detail(context)),
+            // 原文(错误码 + 后端那句话)是"建议"这一层:12.5 / 80%,
+            // 等宽,好让人能对着它去搜。
+            child: SelectableText(
+              details ?? '',
+              style: AppType.mono(
+                size: 12.5,
+                height: 1.4,
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.80),
+              ),
+            ),
           ),
         ),
       ],
+    );
+    if (!isError) return body;
+    // 出错单独成一张**中性卡**:bg-secondary 的面 + 40% 的发丝线。
+    //
+    // 为什么要一张卡而不是继续裸排:错误不是这一轮说的话,是"这一轮没说完"
+    // 的注脚;裸排会让它和前后的正文连成一段,读成"模型这么说了"。卡的四边
+    // 也不带状态色——颜色只在小图标上,卡的职责是"这段不是正文"。
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: DecoratedBox(
+        decoration: ShapeDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerHigh,
+          shape: Squircle.border(
+            AppShape.md,
+            side: BorderSide(
+              color: Theme.of(context).colorScheme.outline.withValues(alpha: KitMuted.a40),
+              width: 1,
+            ),
+          ),
+        ),
+        // 帧自己左右各留 8:卡内 4 + 帧的 8 = 12,和正文的 16 留白只差 4。
+        child: Padding(padding: const EdgeInsets.all(4), child: body),
+      ),
     );
   }
 }
 
 /// 行尾的键:和图形格同高(24)的胶囊。
 class _NoticeKey extends StatelessWidget {
-  const _NoticeKey({required this.label, required this.onPressed});
+  const _NoticeKey({required this.label, required this.onPressed, this.quiet = false});
 
   final String label;
   final VoidCallback onPressed;
+
+  /// 安静一档:主色 80%(错误卡里),而不是主色本身。
+  final bool quiet;
 
   @override
   Widget build(BuildContext context) {
@@ -191,7 +241,8 @@ class _NoticeKey extends StatelessWidget {
           tapTargetSize: MaterialTapTargetSize.padded,
           visualDensity: VisualDensity.compact,
           shape: const StadiumBorder(),
-          textStyle: theme.textTheme.labelLarge?.copyWith(fontSize: 13),
+          foregroundColor: quiet ? theme.colorScheme.onSurface.withValues(alpha: 0.80) : null,
+          textStyle: theme.textTheme.labelLarge?.copyWith(fontSize: 12.5, fontWeight: FontWeight.w500),
         ),
         child: Text(label),
       ),

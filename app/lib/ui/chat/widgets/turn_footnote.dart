@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import '../../../l10n/l10n.dart';
 import '../../../plugins/native/native_model.dart' show NativeTurnNotes;
+import '../../kit/kit.dart';
 import '../../plugins/native/native_tone.dart';
 import '../../theme/app_icons.dart';
 import '../../theme/theme.dart';
@@ -46,8 +47,16 @@ class TurnFootnote extends StatelessWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final dsh = DshColors.of(context);
+    // 回合元信息:11 号等宽数字 + 次级色的 60%(和气泡下的状态同一档)。
+    //
+    // 它是**这一轮的账**,不是这一轮说的话:小一号、淡一档,读的时候可以
+    // 整块跳过,需要时又一定在。
     final style = AppType.tabular(
-      theme.textTheme.labelSmall!.copyWith(fontSize: 12, color: dsh.textTertiary, height: 1.3),
+      theme.textTheme.labelSmall!.copyWith(
+        fontSize: 11,
+        color: theme.colorScheme.onSurfaceVariant.withValues(alpha: KitMuted.a60),
+        height: 1.3,
+      ),
     );
     final notes = this.notes;
     final options = variants(trace, note: notes?.text);
