@@ -146,8 +146,8 @@ class BackdropVeil extends StatelessWidget {
           backdrop: _BackdropPainter(
             top: s.backdropTop,
             bottom: s.backdropBottom,
-            glowPrimary: glow ? s.glowPrimary : null,
-            glowSecondary: glow ? s.glowSecondary : null,
+            glowPrimary: glow && Optics.of(context).blurSigma > 0 ? s.glowPrimary : null,
+            glowSecondary: glow && Optics.of(context).blurSigma > 0 ? s.glowSecondary : null,
             area: frame?.area ?? MediaQuery.sizeOf(context),
             origin: frame?.origin ?? Offset.zero,
             picture: _BackdropScope.of(context),
