@@ -39,6 +39,8 @@ class AppBackdrop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = DshSurfaces.of(context);
+    // 静默档（blurSigma = 0）不画大面积辉光：它是最贵的一层渐变，也是"发亮"的来源。
+    final glows = glow && Optics.of(context).blurSigma > 0;
     return _BackdropScope(
       picture: picture,
       child: Stack(
@@ -51,8 +53,8 @@ class AppBackdrop extends StatelessWidget {
                   painter: _BackdropPainter(
                     top: s.backdropTop,
                     bottom: s.backdropBottom,
-                    glowPrimary: glow ? s.glowPrimary : null,
-                    glowSecondary: glow ? s.glowSecondary : null,
+                    glowPrimary: glows ? s.glowPrimary : null,
+                    glowSecondary: glows ? s.glowSecondary : null,
                     picture: picture,
                   ),
                 ),
