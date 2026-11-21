@@ -29,8 +29,6 @@ import '../settings_widgets.dart';
 import 'app_icon_picker.dart';
 import 'icon_shortcut_sheet.dart';
 import 'launch_screen_section.dart';
-import 'optics_section.dart';
-import 'scene_preset_section.dart';
 import 'surface_palette_section.dart';
 import 'tile_style_picker.dart';
 import 'wallpaper_section.dart';
@@ -88,13 +86,11 @@ class AppearancePage extends ConsumerWidget {
     return AppPage.list(
       title: l10n.pluginsTheme,
       children: [
-        const ScenePresetSection(),
         const SurfacePaletteSection(),
         SettingsSection(
           title: l10n.hubThemeLightDark,
           children: [SpotAnchor(spot: Spots.darkMode, child: const ThemeModePicker())],
         ),
-        const OpticsSection(),
         SettingsSection(
           title: l10n.pluginsColors,
           children: [
@@ -133,13 +129,6 @@ class AppearancePage extends ConsumerWidget {
               subtitle: l10n.uiKitSegmentedHint,
               value: ref.watch(uiKitProvider).segmented,
               onChanged: (value) => ref.read(uiKitProvider.notifier).setSegmented(value),
-            ),
-            SettingsSwitchTile(
-              key: const ValueKey('dual-toggle'),
-              title: l10n.uiKitDual,
-              subtitle: l10n.uiKitDualHint,
-              value: ref.watch(uiKitProvider).dualToggle,
-              onChanged: (value) => ref.read(uiKitProvider.notifier).setDualToggle(value),
             ),
           ],
         ),
