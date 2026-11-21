@@ -6,6 +6,7 @@ import '../common/pressable.dart';
 import '../common/ui_trace.dart';
 
 import 'motion.dart';
+import 'optics.dart';
 import 'shapes.dart';
 import 'surfaces.dart';
 
@@ -110,7 +111,12 @@ class GlassSurface extends StatelessWidget {
     final s = style ?? surfaces.glass(tier);
     final highContrast = MediaQuery.maybeHighContrastOf(context) ?? false;
     final reduce = !surfaces.blurEnabled || highContrast || uiTraceNoBlur;
-    final useBlur = !reduce && (blur ?? s.blurs);
+    // 光感档位是模糊与描边的上限：silent 档不给模糊，focus 档把 sigma 压到一半。
+    final optics = Optics.of(context);
+    final blurCap = optics.blurSigma;
+    final useBlur = !reduce && (blur ?? s.blurs) && blurCap > 0;
+    // 镜面强度直接改写在描边与内缘的透明度上：0.095 是"完整光感"的基准。
+    final rimScale = optics.specular <= 0 ? 0.45 : (0.45 + (optics.specular / 0.095).clamp(0.0, 1.0) * 0.55);
     if (uiTraceEnabled) {
       uiTrace('glass', 'build', {'tier': tier.name, 'blur': useBlur, 'grouped': grouped});
     }
@@ -141,7 +147,7 @@ class GlassSurface extends StatelessWidget {
         shape: shape,
         hairline: s.hairline,
         hairlineWidth: s.hairlineWidth,
-        rim: s.rim,
+        rim: s.rim.withValues(alpha: (s.rim.a * rimScale).clamp(0.0, 1.0)),
         textDirection: textDirection,
       ),
       child: DecoratedBox(
@@ -151,7 +157,8 @@ class GlassSurface extends StatelessWidget {
     );
 
     if (useBlur) {
-      final config = _filterFor(s.blurs ? s.blurSigma : 14, s.saturation);
+      final sigma = math.min(s.blurs ? s.blurSigma : 14, blurCap);
+      final config = _filterFor(sigma, s.saturation);
       final sampling = settled != 0;
       content = grouped
           ? BackdropFilter.grouped(filterConfig: config, enabled: sampling, child: content)
