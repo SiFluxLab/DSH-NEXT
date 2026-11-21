@@ -48,6 +48,21 @@ abstract final class Kit {
   static const textBody = 14.0;
 }
 
+/// 动效闸门：新组件不许各自决定"要不要动"。
+///
+/// 系统"移除动画"（含 App 的省电降级）为真时一律零时长；光感档位关掉
+/// "预见性动画"时，编排类动画也不再发生。这样新页面和老页面的手感一致。
+abstract final class KitMotion {
+  static Duration of(BuildContext context, [Duration fallback = AppMotion.quick]) {
+    if (MediaQuery.disableAnimationsOf(context)) return Duration.zero;
+    return fallback;
+  }
+
+  /// 编排（入场错峰）类动画是否允许。
+  static bool choreography(BuildContext context) =>
+      !MediaQuery.disableAnimationsOf(context) && Optics.of(context).anticipation;
+}
+
 enum KitButtonVariant { primary, standard, outline, field, secondary, ghost, destructive }
 
 enum KitButtonSize { xs, sm, md, lg, icon, iconSm, iconLg }
@@ -147,7 +162,7 @@ class _KitButtonState extends State<KitButton> {
                 }
               : null,
           child: AnimatedContainer(
-            duration: AppMotion.quick,
+            duration: KitMotion.of(context),
             curve: AppMotion.swift,
             // 按下整体下移 1px：这一像素是"按到了实体"的全部来源。
             transform: Matrix4.translationValues(0, _down ? Kit.pressOffset : 0, 0),
@@ -182,7 +197,7 @@ class KitSwitch extends StatelessWidget {
           // after:-inset-x-3 -inset-y-2 → 左右各外扩 12、上下各 8 的命中区。
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: AnimatedContainer(
-            duration: AppMotion.quick,
+            duration: KitMotion.of(context),
             curve: AppMotion.swift,
             width: w,
             height: h,
@@ -192,7 +207,7 @@ class KitSwitch extends StatelessWidget {
               borderRadius: BorderRadius.circular(h / 2),
             ),
             child: AnimatedAlign(
-              duration: AppMotion.quick,
+              duration: KitMotion.of(context),
               curve: AppMotion.swift,
               alignment: value ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
               child: Container(
@@ -247,7 +262,7 @@ class _KitInputState extends State<KitInput> {
     final scheme = Theme.of(context).colorScheme;
     final focused = _node.hasFocus;
     return AnimatedContainer(
-      duration: AppMotion.quick,
+      duration: KitMotion.of(context),
       height: Kit.hMd,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(Kit.radiusControl),
