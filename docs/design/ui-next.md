@@ -96,6 +96,11 @@
 
 ## 7. 验收
 
+静态预算检查由 `tool/optics_audit.py` 生成，结果见 [optics-audit.md](./optics-audit.md)：
+它数的是绘制层（BackdropFilter / ShaderMask / MaskFilter.blur / RepaintBoundary），
+注释里提到的词不算——数错了会误导优化方向。
+
+
 - `flutter analyze` 与构建在 CI 通过；
 - 三档预设切换后，**同一屏**能看出差别（预览条是硬要求）；
 - 系统开"移除动画"后，光刃消失、转场变淡入，功能不受影响；
