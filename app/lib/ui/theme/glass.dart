@@ -157,7 +157,12 @@ class GlassSurface extends StatelessWidget {
     );
 
     if (useBlur) {
-      final sigma = math.min(s.blurs ? s.blurSigma : 14.0, blurCap);
+      // 大面积的弹层把模糊半径压到 14：再往上肉眼几乎分不出来，但填充率是实打实的
+      // 成本（prism 的做法更彻底——它干脆不再对大面板做常驻背景模糊）。
+      final sigma = math.min(
+        math.min(s.blurs ? s.blurSigma : 14.0, blurCap),
+        tier == GlassTier.sheet ? 14.0 : double.infinity,
+      );
       final config = _filterFor(sigma, s.saturation);
       final sampling = settled != 0;
       content = grouped

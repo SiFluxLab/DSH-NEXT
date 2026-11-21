@@ -41,6 +41,10 @@ class FrameStatsService {
   final _samples = Queue<double>();
   bool _installed = false;
   FrameStats _last = const FrameStats();
+  DateTime _computedAt = DateTime.fromMillisecondsSinceEpoch(0);
+
+  /// 聚合节流：排序是 O(n log n)，而页面每秒只读一次，没必要每帧都算。
+  static const _recomputeEvery = Duration(milliseconds: 200);
 
   FrameStats get latest => _last;
 
@@ -61,6 +65,9 @@ class FrameStatsService {
       }
     }
     if (_samples.isEmpty) return;
+    final now = DateTime.now();
+    if (now.difference(_computedAt) < _recomputeEvery) return;
+    _computedAt = now;
     final sorted = _samples.toList()..sort();
     final total = sorted.fold<double>(0, (a, b) => a + b);
     final jank = sorted.where((v) => v > FrameStats.jankBudgetMs).length;
