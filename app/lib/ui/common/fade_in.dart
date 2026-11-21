@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import '../theme/motion.dart';
+import '../theme/optics.dart';
 
 /// First-appearance entrance: fades in while rising [AppMotion.rise] (8dp).
 ///
@@ -108,6 +109,8 @@ class _FadeSlideInState extends State<FadeSlideIn> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
+    // 光感里的"预见性动画"关掉时，列表直接呈现，不做编排——省帧，也符合"我只要结果"的选择。
+    if (!Optics.of(context).anticipation) return widget.child;
     final curve = _curve;
     if (curve == null) return widget.child;
     final rise = _rise;

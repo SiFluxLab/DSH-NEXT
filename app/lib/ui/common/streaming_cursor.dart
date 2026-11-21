@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/motion.dart';
+import '../theme/optics.dart';
 
 /// 流式输出末尾的呼吸竖线光标。
 ///
@@ -56,13 +57,26 @@ class _StreamingCursorState extends State<StreamingCursor> with SingleTickerProv
   @override
   Widget build(BuildContext context) {
     final color = widget.color ?? Theme.of(context).colorScheme.primary;
-    return FadeTransition(
-      opacity: _opacity,
-      child: Container(
-        width: widget.width,
-        height: widget.height,
-        decoration: BoxDecoration(color: color, borderRadius: const BorderRadius.all(Radius.circular(1.5))),
+    final optics = Optics.of(context);
+    // 流光：开着时，光标是一段上淡下实的光，而不是一根实心竖线；
+    // 关掉时连呼吸都停，只留一条静止的淡线——省一帧是一帧。
+    final bar = Container(
+      width: widget.width,
+      height: widget.height,
+      decoration: BoxDecoration(
+        color: optics.inkFade ? null : color.withValues(alpha: 0.75),
+        gradient: optics.inkFade
+            ? LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [color.withValues(alpha: 0.15), color, color.withValues(alpha: 0.35)],
+                stops: const [0, 0.62, 1],
+              )
+            : null,
+        borderRadius: const BorderRadius.all(Radius.circular(1.5)),
       ),
     );
+    if (!optics.inkFade) return bar;
+    return FadeTransition(opacity: _opacity, child: bar);
   }
 }
