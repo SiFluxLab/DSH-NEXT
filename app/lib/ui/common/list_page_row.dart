@@ -113,13 +113,16 @@ class ListPageRow extends StatelessWidget {
         leading ??
         (icon == null
             ? null
-            : Icon(icon, size: 20, color: iconColor ?? (danger ? colors.danger : scheme.onSurfaceVariant)));
+            : Icon(icon, size: 18, color: iconColor ?? (danger ? colors.danger : scheme.onSurfaceVariant)));
     final resolvedTitle = title ?? spot!.title(context.l10n);
     final resolvedTitleStyle =
         titleStyle ??
         theme.textTheme.bodyLarge?.copyWith(
-          fontSize: 15,
-          height: 1.4,
+          // vetta 的列表标题是 13/500，靠字重与 muted 阶梯拉层级而不是变大。
+          // 手机触控密度下取 14，字重降到 500。
+          fontSize: 14,
+          height: 1.35,
+          fontWeight: FontWeight.w500,
           color: danger ? colors.danger : scheme.onSurface,
         );
     final note = titleNote;
@@ -142,7 +145,7 @@ class ListPageRow extends StatelessWidget {
     Widget row(double maxValueWidth) => InkWell(
       onTap: onTap,
       child: ConstrainedBox(
-        constraints: BoxConstraints(minHeight: two ? 64 : 52),
+        constraints: BoxConstraints(minHeight: two ? 56 : 44),
         child: Padding(
           padding: EdgeInsets.fromLTRB(
             horizontal,
@@ -180,7 +183,11 @@ class ListPageRow extends StatelessWidget {
                         subtitle!,
                         maxLines: subtitleMaxLines,
                         overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodySmall?.copyWith(color: subtitleColor ?? colors.textTertiary),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontSize: 12,
+                          height: 1.4,
+                          color: subtitleColor ?? colors.textTertiary.withValues(alpha: 0.85),
+                        ),
                       ),
                     ],
                   ],
