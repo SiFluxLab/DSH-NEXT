@@ -100,8 +100,19 @@ object YinglongLaunch {
             "ZT_ROOT=${root.path}", "ZT_LD=${loader.path}", "ZT_LIBPATH=$libraries",
             "/bin/sh", "-c", "exec /opt/node/bin/node --version")
         return try {
-            val p = ProcessBuilder(cmd).directory(File(root, "root"))
-                .redirectErrorStream(true).start()
+            // The loader's own children translate only when ZT_* are in the
+            // environment they inherit (arguing them through `env -i` alone is not
+            // enough: `env` itself has to translate its exec of /bin/sh).
+            val builder = ProcessBuilder(cmd).directory(File(root, "root")).redirectErrorStream(true)
+            val environment = builder.environment()
+            environment.clear()
+            environment["PATH"] = "/system/bin:/system/xbin"
+            environment["HOME"] = File(root, "root").path
+            environment["ZT_ROOT"] = root.path
+            environment["ZT_FAKE_ROOT"] = "1"
+            environment["ZT_LD"] = loader.path
+            environment["ZT_LIBPATH"] = libraries
+            val p = builder.start()
             val out = p.inputStream.bufferedReader().use { reader ->
                 val text = StringBuilder()
                 val reader2 = Thread {
