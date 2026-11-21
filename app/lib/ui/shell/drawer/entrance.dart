@@ -14,7 +14,6 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../kit/kit.dart';
-import '../../kit/kit_reveal.dart' show KitReveal;
 import '../../theme/theme.dart';
 
 /// 一屏入场的总时长：最后一项的 30ms 偏移 + 一项自己的 240ms。
