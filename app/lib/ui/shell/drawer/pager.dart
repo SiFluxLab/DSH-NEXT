@@ -99,8 +99,10 @@ class DrawerTabBar extends StatelessWidget {
                 ),
                 // 高光片：滑动，而不是两格各自变色。
                 AnimatedPositioned(
-                  duration: KitMotion.of(context, AppMotion.flip),
-                  curve: AppMotion.swift,
+                  // 滑块搬家的那一档（[KitMotion.slide] + [AppMotion.springCurve]）：
+                  // 末段 1.9% 的过冲在 100 多像素的片子上约 2px，读作"扣进去了"。
+                  duration: KitMotion.of(context, KitMotion.slide),
+                  curve: AppMotion.springCurve,
                   left: cellWidth * index + _inset,
                   top: _inset,
                   bottom: _inset,
@@ -241,7 +243,8 @@ class _TabCellState extends State<_TabCell> {
                     // 字重与字距一起走 160ms：选中那一格"收紧一点、压实一点"，
                     // 不是啪地换一套字。两条隐式动画都只跑一次，停下就不再有帧。
                     child: AnimatedDefaultTextStyle(
-                      duration: KitMotion.of(context, AppMotion.quick),
+                      // "点亮"比"搬家"快一档：字先定，片再滑到它下面。
+                      duration: KitMotion.of(context, KitMotion.pick),
                       curve: AppMotion.std,
                       style: TextStyle(
                         fontSize: 13.5,
