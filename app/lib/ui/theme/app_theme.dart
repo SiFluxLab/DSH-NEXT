@@ -42,7 +42,7 @@ ThemeData buildLightTheme({
 }) => _build(
   palette.apply(DshPalette.lightScheme(accent)),
   DshColors.forAccent(Brightness.light, accent),
-  DshSurfaces.light(accent, blurEnabled: glassBlur),
+  DshSurfaces.light(accent, blurEnabled: glassBlur, palette: palette),
   accent,
   glyphLocale,
   instantPages,
@@ -60,7 +60,7 @@ ThemeData buildDarkTheme({
 }) => _build(
   palette.apply(DshPalette.darkScheme(accent)),
   DshColors.forAccent(Brightness.dark, accent),
-  DshSurfaces.dark(accent, blurEnabled: glassBlur),
+  DshSurfaces.dark(accent, blurEnabled: glassBlur, palette: palette),
   accent,
   glyphLocale,
   instantPages,

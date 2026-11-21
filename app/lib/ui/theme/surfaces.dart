@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'accent.dart';
 import 'palette.dart';
+import 'surface_palette.dart';
 
 /// 玻璃层级。决定填充透明度、是否模糊、描边与阴影。
 ///
@@ -156,13 +157,15 @@ class DshSurfaces extends ThemeExtension<DshSurfaces> {
 
   /// 浅色:晨雾渐变 + 白玻璃。渐变、阴影、实色兜底跟配色的中性色走;
   /// 玻璃本身是白的,高光也是白的 —— 换了配色,玻璃还是玻璃。
-  factory DshSurfaces.light(AppAccent accent, {bool blurEnabled = true}) {
+  factory DshSurfaces.light(AppAccent accent, {bool blurEnabled = true, SurfacePalette palette = SurfacePalette.obsidian}) {
     final n = NeutralTones.forAccent(accent);
+    // 底色来自表面配色（黑曜 / 暖炭），强调色只决定主色与光晕。
+    final t = palette.tones(Brightness.light);
     final ink = n.shadowInk;
     const white = Color(0xFFFFFFFF);
     return DshSurfaces(
-      backdropTop: n.mistTop,
-      backdropBottom: n.mistBottom,
+      backdropTop: t.surface1,
+      backdropBottom: t.background,
       glowPrimary: accent.glow.withValues(alpha: 0.42),
       glowSecondary: accent.haze.withValues(alpha: 0.38),
       userBubble: accent.bubble,
@@ -172,7 +175,7 @@ class DshSurfaces extends ThemeExtension<DshSurfaces> {
       blurEnabled: blurEnabled,
       chrome: GlassStyle(
         fill: white.withValues(alpha: 0.70),
-        fallbackFill: n.mistLowest.withValues(alpha: 0.96),
+        fallbackFill: t.surface1.withValues(alpha: 0.96),
         hairline: ink.withValues(alpha: 0.08),
         rim: white.withValues(alpha: 0.85),
         blurSigma: 18,
@@ -183,8 +186,8 @@ class DshSurfaces extends ThemeExtension<DshSurfaces> {
         ],
       ),
       sheet: GlassStyle(
-        fill: n.mistLow.withValues(alpha: 0.82),
-        fallbackFill: n.mistLow,
+        fill: t.surface2.withValues(alpha: 0.82),
+        fallbackFill: t.surface2,
         hairline: ink.withValues(alpha: 0.07),
         rim: white.withValues(alpha: 0.90),
         blurSigma: 24,
@@ -207,15 +210,16 @@ class DshSurfaces extends ThemeExtension<DshSurfaces> {
   }
 
   /// 深色:深海石板渐变 + 烟灰玻璃(石板与烟灰跟配色的中性色走)。
-  factory DshSurfaces.dark(AppAccent accent, {bool blurEnabled = true}) {
+  factory DshSurfaces.dark(AppAccent accent, {bool blurEnabled = true, SurfacePalette palette = SurfacePalette.obsidian}) {
     final n = NeutralTones.forAccent(accent);
+    final t = palette.tones(Brightness.dark);
     const white = Color(0xFFFFFFFF);
     const black = Color(0xFF000000);
     // 雾蓝里是 OKLCH(0.30, 0.022, 266):比页面高一档的石板灰。
-    final smoke = n.smoke;
+    final smoke = t.surface2;
     return DshSurfaces(
-      backdropTop: n.nightTop,
-      backdropBottom: n.nightBottom,
+      backdropTop: t.surface1,
+      backdropBottom: t.background,
       glowPrimary: accent.glowDark.withValues(alpha: 0.28),
       glowSecondary: accent.hazeDark.withValues(alpha: 0.24),
       userBubble: accent.bubbleDark,
