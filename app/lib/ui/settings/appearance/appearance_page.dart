@@ -15,6 +15,7 @@ import '../../../l10n/l10n.dart';
 import '../../../state/android_features.dart';
 import '../../../state/appearance_state.dart';
 import '../../../state/settings_state.dart';
+import '../../../state/drawer_pager_state.dart';
 import '../../../state/surface_palette_state.dart';
 import '../../../ui_config/ui_config.dart';
 import '../../common/expand_reveal.dart';
@@ -103,6 +104,22 @@ class AppearancePage extends ConsumerWidget {
         SettingsSection(
           title: l10n.pluginsFeatureIcons,
           children: [SpotAnchor(spot: Spots.tileStyle, child: const TileStylePicker())],
+        ),
+        SettingsSection(
+          title: l10n.drawerPagerTitle,
+          footer: Text(l10n.drawerPagerFooter),
+          children: [
+            SpotAnchor(
+              spot: Spots.drawerPager,
+              child: SettingsSwitchTile(
+                key: const ValueKey('drawer-pager'),
+                title: l10n.drawerPagerTitle,
+                subtitle: l10n.drawerPagerHint,
+                value: ref.watch(drawerPagerEnabledProvider),
+                onChanged: (value) => ref.read(drawerPagerEnabledProvider.notifier).set(value),
+              ),
+            ),
+          ],
         ),
         SettingsSection(
           title: l10n.pluginsAppIcon,

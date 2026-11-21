@@ -28100,6 +28100,13 @@ class L10nEn extends L10n {
   String get performanceWorstFrame => 'Worst frame';
   String get performanceJankRatio => 'Jank ratio';
   String get opticsBlockedNote => 'Some items are off because the system asked for less motion or transparency';
+  String get drawerTabSessions => 'Sessions';
+  String get drawerTabFiles => 'Files';
+  String get drawerFilesEmptyTitle => 'No conversation open';
+  String get drawerFilesEmptyNote => 'Pick a conversation and its workspace files appear here.';
+  String get drawerPagerTitle => 'Sidebar pager';
+  String get drawerPagerHint => 'A row of tabs on top; swipe left and right to turn pages';
+  String get drawerPagerFooter => 'Turned off, the sidebar goes back to a single long list. Nothing about your data or actions changes.';
   String get workshopTitle => 'Workshop';
 
   @override

@@ -26662,6 +26662,13 @@ class L10nZh extends L10n {
   String get performanceWorstFrame => '最差一帧';
   String get performanceJankRatio => '掉帧比例';
   String get opticsBlockedNote => '有项目被系统偏好关闭（移除动画 / 降低透明度）';
+  String get drawerTabSessions => '会话';
+  String get drawerTabFiles => '文件';
+  String get drawerFilesEmptyTitle => '还没有打开的会话';
+  String get drawerFilesEmptyNote => '选一个会话后，这里会列出它的工作区文件。';
+  String get drawerPagerTitle => '侧边栏翻页器';
+  String get drawerPagerHint => '顶上一排页签，左右滑动即可翻页';
+  String get drawerPagerFooter => '关掉后侧边栏回到一屏到底的长列表；数据与操作完全不变。';
   String get workshopTitle => '创意工坊';
 
   @override

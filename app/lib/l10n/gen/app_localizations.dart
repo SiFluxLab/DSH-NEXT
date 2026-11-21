@@ -48920,6 +48920,48 @@ abstract class L10n {
   /// **'有项目被系统偏好关闭（移除动画 / 降低透明度）'**
   String get opticsBlockedNote;
 
+  /// No description provided for @drawerTabSessions.
+  ///
+  /// In zh, this message translates to:
+  /// **'会话'**
+  String get drawerTabSessions;
+
+  /// No description provided for @drawerTabFiles.
+  ///
+  /// In zh, this message translates to:
+  /// **'文件'**
+  String get drawerTabFiles;
+
+  /// No description provided for @drawerFilesEmptyTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没有打开的会话'**
+  String get drawerFilesEmptyTitle;
+
+  /// No description provided for @drawerFilesEmptyNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'选一个会话后，这里会列出它的工作区文件。'**
+  String get drawerFilesEmptyNote;
+
+  /// No description provided for @drawerPagerTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'侧边栏翻页器'**
+  String get drawerPagerTitle;
+
+  /// No description provided for @drawerPagerHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'顶上一排页签，左右滑动即可翻页'**
+  String get drawerPagerHint;
+
+  /// No description provided for @drawerPagerFooter.
+  ///
+  /// In zh, this message translates to:
+  /// **'关掉后侧边栏回到一屏到底的长列表；数据与操作完全不变。'**
+  String get drawerPagerFooter;
+
   /// No description provided for @workshopTitle.
   ///
   /// In zh, this message translates to:

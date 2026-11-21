@@ -843,6 +843,13 @@ abstract final class Spots {
     freq: Freq.medium,
     link: 'optics',
   );
+  static final drawerPager = SettingSpot(
+    'drawer-pager',
+    page: SettingsPageId.appearance,
+    title: (l) => l.drawerPagerTitle,
+    freq: Freq.medium,
+    link: 'drawer-pager',
+  );
   static final scene = SettingSpot(
     'scene-preset',
     page: SettingsPageId.appearance,
@@ -1283,6 +1290,7 @@ final _rows = <SettingSpot>[
   Spots.phoneBackgroundGuide,
   Spots.pluginsMarket,
   Spots.webSearchKey,
+  Spots.drawerPager,
   Spots.scene,
   Spots.surface,
   Spots.optics,

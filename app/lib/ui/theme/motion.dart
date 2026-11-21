@@ -25,6 +25,10 @@ abstract final class AppMotion {
   /// 小块展开收起、列表项进出。
   static const standard = Duration(milliseconds: 240);
 
+  /// 抽屉里翻一页（会话 ↔ 文件）。180ms 取自 pi-web 侧边栏的 `SIDEBAR_MOTION_MS`：
+  /// 比 standard 快一档，"翻过去"要看得出方向，但不能等。
+  static const flip = Duration(milliseconds: 180);
+
   /// 思考块 / 工具行的折叠展开(大块高度变化,慢一拍才不"啪"一下)。
   static const collapse = Duration(milliseconds: 280);
 

@@ -19,6 +19,7 @@ import '../../state/bots_state.dart';
 import '../../state/connection_state.dart';
 import '../../state/engine_control.dart';
 import '../../state/hosts_state.dart';
+import '../../state/drawer_pager_state.dart';
 import '../../state/drawer_view_state.dart';
 import '../../state/session_attention_state.dart';
 import '../../state/session_deletion_state.dart';
@@ -54,6 +55,8 @@ import 'drawer/drawer_destination.dart';
 import 'drawer/archive_notice.dart';
 import 'drawer/drawer_filter_bar.dart';
 import 'drawer/drawer_list.dart';
+import 'drawer/page_files.dart';
+import 'drawer/pager.dart';
 import 'drawer/selection_bars.dart';
 import 'drawer/session_deletion.dart';
 import 'session_search_page.dart';
@@ -142,10 +145,12 @@ class SessionsDrawer extends ConsumerWidget {
       });
     }
     final quick = AppMotion.of(context, AppMotion.quick);
+    final pager = ref.watch(drawerPagerEnabledProvider);
+    final tab = ref.watch(drawerTabProvider);
     // A phone on its side: the top of the drawer (brand, search, filters)
     // would leave room for two conversations, so it scrolls away with them.
     final short = MediaQuery.sizeOf(context).height < WindowClass.compactHeight;
-    final top = <Widget>[
+    final brand = <Widget>[
       AnimatedSwitcher(
         duration: quick,
         child: selecting
@@ -187,6 +192,8 @@ class SessionsDrawer extends ConsumerWidget {
         padding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
         onDetails: () => onOpen(DrawerDestination.engine),
       ),
+    ];
+    final sessionTop = <Widget>[
       SessionSearchBar(onClose: onClose),
       // The workspace switcher (once the host's workspace list has
       // arrived) and the list's options, then the status filters.
@@ -221,19 +228,44 @@ class SessionsDrawer extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (short)
+              // 横屏或矮窗：页签栏会把两行会话挤没，这里保持"一屏到底"的老样子。
               Expanded(
                 child: NestedScrollView(
                   headerSliverBuilder: (context, _) => [
                     SliverToBoxAdapter(
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: top),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [...brand, ...sessionTop],
+                      ),
                     ),
                   ],
                   body: list,
                 ),
               )
             else ...[
-              ...top,
-              Expanded(child: list),
+              ...brand,
+              if (pager)
+                // 页签栏的两格就是"翻页器"的页：会话 / 文件。
+                DrawerTabBar(
+                  selected: tab,
+                  onSelect: (next) => ref.read(drawerTabProvider.notifier).set(next),
+                ),
+              Expanded(
+                child: pager
+                    ? DrawerPager(
+                        tab: tab,
+                        onTabChanged: (next) => ref.read(drawerTabProvider.notifier).set(next),
+                        sessions: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [...sessionTop, Expanded(child: list)],
+                        ),
+                        files: const DrawerFilesPage(),
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [...sessionTop, Expanded(child: list)],
+                      ),
+              ),
             ],
             // The action bar lies exactly over the identity bar, which
             // keeps its size while hidden: same height at any text size.
