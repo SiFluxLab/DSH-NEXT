@@ -93,7 +93,16 @@ object YinglongLaunch {
         val shim = shim(root) ?: return "selfTest:noShim"
         // Exactly the chain the launch uses: loader → node. A shell or /usr/bin/env
         // in between would be a second, differently-shaped exec path.
-        val cmd = listOf(loader.path, "--library-path", libraries, File(root, shim.node.trimStart('/')).path, "--version")
+        // 自检要回答的是"node 能不能**透过路径翻译**看到入口"，不是"node 能不能跑"。
+        // 之前只跑 --version，于是只证明了解释器可用，入口看不见这件事查不出来。
+        val probe = "const fs=require('fs');let bad=0;" +
+            "for (const p of process.argv.slice(1)) {" +
+            " try { fs.accessSync(p); console.log('OK   '+p); }" +
+            " catch (e) { bad++; console.log('FAIL '+p+' '+e.code); } } process.exit(bad?1:0);"
+        val cmd = listOf(
+            loader.path, "--library-path", libraries, File(root, shim.node.trimStart('/')).path,
+            "-e", probe, shim.entry, "/opt/dsh/package.json",
+        )
         return try {
             val builder = ProcessBuilder(cmd).directory(File(root, "root")).redirectErrorStream(true)
             val environment = builder.environment()
@@ -166,18 +175,10 @@ object YinglongLaunch {
             if (guestPath == "/") continue // a root override has no meaning under translation
             binds[guestPath] = host
         }
-        // 4. 顶层目录一律显式绑定。
-        //
-        // PRoot 只传了 /dev /proc /sys /system /apex /storage 这几个，其余靠"根被替换"。
-        // 真机上 `node /opt/dsh/node_modules/@deepseek-ai/dsh/lib/bin.js` 报
-        // MODULE_NOT_FOUND，而同一个文件在 PRoot 里能跑——说明应龙的翻译对 **/opt**
-        // 没有生效（patches 在 /etc 下，我们从没走到那一步，所以也没有反证）。
-        // 与其猜它的假根语义，不如把镜像里的顶层目录逐个绑上：多几条字符串，换掉一类偶发。
-        for (name in TOP_LEVEL_GUESTS) {
-            if (binds.keys.any { it == "/$name" || it.startsWith("/$name/") }) continue
-            val dir = File(root, name)
-            if (dir.isDirectory) binds["/$name"] = dir.path
-        }
+        // 不再自己加顶层绑定。/opt 与其它目录走同一条规则（先 ZT_BIND、再加 ZT_ROOT），
+        // 而 ZT_BIND 有 **16 项 / 1024 字节**的硬上限，超了会被整表静默丢弃——
+        // 我上一版给 11 个顶层目录各加一条，PRoot 那 14 条再加上去必然超限。
+        // 让 /opt 走 ZT_ROOT 前缀即可。
         val ztBind = binds.entries.joinToString(";") { (guestPath, host) -> "$guestPath=$host" }
 
         // 3. Loader, libraries and the first executable — all host paths. No shell
@@ -211,14 +212,14 @@ object YinglongLaunch {
         // /opt/dsh-go/boot-cache.mjs，必然 ERR_MODULE_NOT_FOUND 并以 1 退出。
         // boot cache 只是冷启动加速，缺了它不影响正确性；PRoot 路径仍由 shim 自己带。
         // 之前那句"存在性判断"在真机上永远为真，等于没判断，所以整段去掉。
-        // 入口用**宿主路径**，不用 guest 路径。
+        // 入口用 guest 路径：假根生效时它会被翻译成 <root>/opt/dsh/…；
         //
         // 事实链：node 自己就是按宿主路径（root/opt/node/bin/node）被加载器拉起来的，能跑；
         // 而它收到 guest 路径 /opt/dsh/.../bin.js 后报 MODULE_NOT_FOUND —— 说明 Zero-Trap
         // 对 open() 的路径翻译没有覆盖到 /opt（我们显式绑了 /opt 也没用，格式或在它那侧
         // 另有约定，仓库里没有文档）。宿主路径是真实存在的文件，绕开翻译即可。
         // 若这样也不行，下一次日志会显示同样的 MODULE_NOT_FOUND，届时改成"探测两条路径"。
-        cmd += entryHost.path
+        cmd += shim.entry
         cmd += web
 
         val environment = LinkedHashMap<String, String>()
