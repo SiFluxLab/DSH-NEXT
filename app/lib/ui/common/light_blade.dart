@@ -144,7 +144,7 @@ class _BladePainter extends CustomPainter {
     final head = math.max(span * 0.34, 24.0);
     final (start, alpha) = switch (state) {
       // 呼吸：整体亮度起伏，位置不动（不位移就不会抢注意力）。
-      BladeState.idle => (left, 0.35 + 0.25 * (0.5 - 0.5 * math.cos(t * 2 * math.pi))),
+      BladeState.idle => (left, 0.55 + 0.25 * (0.5 - 0.5 * math.cos(t * 2 * math.pi))),
       // 流式：从左走到右，到了就重来。
       BladeState.streaming => (left + (span - head) * t, 0.85),
       // 工具在跑：中段来回，用三角波。
@@ -154,7 +154,7 @@ class _BladePainter extends CustomPainter {
     };
 
     final rect = Rect.fromLTWH(start, 0, head, thickness);
-    final fade = animate ? 1.0 : 0.6;
+    final fade = animate ? 1.0 : 0.9;
 
     // 主体：一段 accent 的渐变，两端透明。
     final body = Paint()
@@ -162,7 +162,7 @@ class _BladePainter extends CustomPainter {
         colors: [
           accent.withValues(alpha: 0),
           accent.withValues(alpha: 0.55 * strength * alpha * fade),
-          accent.withValues(alpha: 0.9 * strength * alpha * fade),
+          accent.withValues(alpha: strength * alpha * fade),
           accent.withValues(alpha: 0.55 * strength * alpha * fade),
           accent.withValues(alpha: 0),
         ],

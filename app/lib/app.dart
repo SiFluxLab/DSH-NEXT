@@ -249,6 +249,15 @@ class _DshAppState extends ConsumerState<DshApp> with WidgetsBindingObserver {
                         ? EasedKeyboardInset(child: MirroredSideInsets(child: child!))
                         : MirroredSideInsets(child: child!),
                   ),
+                  // 光刃：全 App 只有一条，画在根 Stack 最上层——它表达的是"引擎在干什么"，
+                  // 与当前是哪一页无关。之前放在页面内容之下，被顶栏和内容整块盖住了，
+                  // 这就是"光刃没生效"的真正原因。
+                  Positioned(
+                    left: 10,
+                    right: 10,
+                    top: media.padding.top + 2,
+                    child: const AppBlade(),
+                  ),
                   const Positioned.fill(child: IgnorePointer(child: EdgeAfterglow())),
                   const LaunchLayer(),
                 ],
