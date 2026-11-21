@@ -180,7 +180,7 @@ class _Starfield extends CustomPainter {
       final base = 0.5 + 0.5 * near;
       // 档位越高整体越亮
       final a = (base * (0.35 + 0.65 * t)).clamp(0.0, 1.0);
-      paint.color = Color.lerp(tint.withValues(alpha: a * 0.55), hot.withValues(alpha: a), near * t);
+      paint.color = Color.lerp(tint.withValues(alpha: a * 0.55), hot.withValues(alpha: a), near * t)!;
       final r = 1.2 + 0.6 * near;
       canvas.drawCircle(Offset(x, y), r, paint);
     }
