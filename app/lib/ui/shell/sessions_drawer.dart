@@ -224,8 +224,23 @@ class SessionsDrawer extends ConsumerWidget {
         ),
       ),
     ];
-    final list = _EdgeFade(
-      child: _SessionList(onClose: onClose, now: now),
+    // 右缘贯穿线：画在列表这一层，于是它自然止于身份栏之上（vetta 的 bottom-11），
+    // 让底部动作条读作"浮在这条线之外"，而不是被一条通到底的线切开。
+    final list = Stack(
+      children: [
+        _EdgeFade(child: _SessionList(onClose: onClose, now: now)),
+        Positioned(
+          top: 0,
+          bottom: 0,
+          right: 0,
+          child: IgnorePointer(
+            child: Container(
+              width: 1,
+              color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.6),
+            ),
+          ),
+        ),
+      ],
     );
 
     const radius = BorderRadius.only(topRight: Radius.circular(AppShape.xl), bottomRight: Radius.circular(AppShape.xl));
