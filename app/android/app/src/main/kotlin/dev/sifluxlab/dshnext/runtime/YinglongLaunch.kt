@@ -68,6 +68,9 @@ object YinglongLaunch {
      */
     internal data class Shim(val node: String, val preload: String?, val entry: String)
 
+    /** 需要显式绑定的顶层目录：镜像里的系统结构与安装位置。 */
+    private val TOP_LEVEL_GUESTS = listOf("opt", "etc", "usr", "lib", "lib64", "bin", "sbin", "root", "tmp", "home", "var")
+
     internal fun shim(root: File): Shim? {
         val text = runCatching { File(root, "usr/local/bin/dsh").readText() }.getOrNull() ?: return null
         val m = Regex("""exec\s+(/\S*node)\s+(?:--import=(\S+)\s+)?(/\S*bin\.js)""").find(text) ?: return null
@@ -163,6 +166,18 @@ object YinglongLaunch {
             if (guestPath == "/") continue // a root override has no meaning under translation
             binds[guestPath] = host
         }
+        // 4. 顶层目录一律显式绑定。
+        //
+        // PRoot 只传了 /dev /proc /sys /system /apex /storage 这几个，其余靠"根被替换"。
+        // 真机上 `node /opt/dsh/node_modules/@deepseek-ai/dsh/lib/bin.js` 报
+        // MODULE_NOT_FOUND，而同一个文件在 PRoot 里能跑——说明应龙的翻译对 **/opt**
+        // 没有生效（patches 在 /etc 下，我们从没走到那一步，所以也没有反证）。
+        // 与其猜它的假根语义，不如把镜像里的顶层目录逐个绑上：多几条字符串，换掉一类偶发。
+        for (name in TOP_LEVEL_GUESTS) {
+            if (binds.keys.any { it == "/$name" || it.startsWith("/$name/") }) continue
+            val dir = File(root, name)
+            if (dir.isDirectory) binds["/$name"] = dir.path
+        }
         val ztBind = binds.entries.joinToString(";") { (guestPath, host) -> "$guestPath=$host" }
 
         // 3. Loader, libraries and the first executable — all host paths. No shell
@@ -180,6 +195,13 @@ object YinglongLaunch {
             "ZT_LIBPATH" to libraries,
         )
         if (ztBind.isNotEmpty()) zt["ZT_BIND"] = ztBind
+
+        // 预检：入口文件必须在镜像里真的存在。缺了就别 spawn——一次明确的日志，
+        // 胜过十次 120ms 的崩溃重启。
+        val entryHost = File(root, shim.entry.trimStart('/'))
+        require(entryHost.isFile) { "yinglong: entry ${shim.entry} missing in rootfs" }
+        val nodeHost = File(root, shim.node.trimStart('/'))
+        require(nodeHost.isFile) { "yinglong: node ${shim.node} missing in rootfs" }
 
         val cmd = arrayListOf(loader, "--library-path", libraries, node)
         // 应龙路径**不传 --import**。
