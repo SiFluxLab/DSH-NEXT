@@ -198,17 +198,15 @@ class _RingPainter extends CustomPainter {
 
 /// How each launcher icon is drawn: the gradient of its background layer
 /// (`res/drawable/ic_launcher[_<name>]_background.xml`, the same diagonal for
-/// all four) and its glyph.
+/// both) and its glyph.
 class AppIconArt {
-  const AppIconArt._(this.from, this.to, this.glyph, [this.mono]);
+  const AppIconArt._(this.from, this.to, this.glyph);
 
   /// Top-left and bottom-right of the background gradient.
   final Color from;
   final Color to;
   final AppIconGlyph glyph;
 
-  /// The flat glyph colour, for [AppIconGlyph.mono].
-  final Color? mono;
 
   /// The gradient's ends in the launcher's 108 grid (ic_launcher_background.xml).
   static const start = Offset(7.57, -5.87);
@@ -217,15 +215,15 @@ class AppIconArt {
   static AppIconArt of(AppIcon icon) => switch (icon) {
     // The default icon; on the phone its glyph is the original art, here the
     // brand master's glass (the same fit).
-    AppIcon.mist => const AppIconArt._(Color(0xFF9AB0E8), Color(0xFF405AAD), AppIconGlyph.glassDark),
-    AppIcon.night => const AppIconArt._(Color(0xFF2C3D6C), Color(0xFF0C122D), AppIconGlyph.glassDark),
-    AppIcon.frost => const AppIconArt._(Color(0xFFFCFDFF), Color(0xFFDDE5F8), AppIconGlyph.glassLight),
-    AppIcon.ink => const AppIconArt._(Color(0xFF292B30), Color(0xFF0D0E11), AppIconGlyph.mono, Color(0xFFF5F7FB)),
+    // 只剩两枚图标（原 frost / ink 已被新画面取代并删除）：
+    // 玄墨是墨褐底、鎏金是香槟金底，取色与新 drawable 对齐。
+    AppIcon.mist => const AppIconArt._(Color(0xFF2A231A), Color(0xFF14110B), AppIconGlyph.glassDark),
+    AppIcon.night => const AppIconArt._(Color(0xFFFFF0CB), Color(0xFFE8C98C), AppIconGlyph.glassLight),
   };
 }
 
 /// The brand glyph's three renderings (`assets/brand/glyph-*.svg`).
-enum AppIconGlyph { glassDark, glassLight, mono }
+enum AppIconGlyph { glassDark, glassLight }
 
 /// [icon] as the launcher shows it: [size] square, cut to [mask] (an outline
 /// in 0…1, see [AppIconState.mask]; a rounded square when null), with a
@@ -267,11 +265,6 @@ class _IconPainter extends CustomPainter {
         Paint()..shader = ui.Gradient.linear(AppIconArt.start, AppIconArt.end, [art.from, art.to]),
       );
     switch (art.glyph) {
-      case AppIconGlyph.mono:
-        final paint = Paint()..color = art.mono!;
-        canvas
-          ..drawPath(BrandGlyph.body, paint)
-          ..drawPath(BrandGlyph.bubble, paint);
       case AppIconGlyph.glassDark || AppIconGlyph.glassLight:
         final dark = art.glyph == AppIconGlyph.glassDark;
         canvas

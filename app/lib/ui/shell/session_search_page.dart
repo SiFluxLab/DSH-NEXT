@@ -16,7 +16,6 @@ import '../common/empty_view.dart';
 import '../common/fade_in.dart';
 import '../common/side_insets.dart';
 import '../common/status_dot.dart';
-import '../kit/kit.dart';
 import '../theme/app_icons.dart';
 import '../theme/theme.dart';
 import 'drawer/session_deletion.dart';
@@ -210,7 +209,6 @@ class _SessionSearchPageState extends ConsumerState<SessionSearchPage> {
                   child: _SearchBody(
                     now: widget.now,
                     archivedOnly: widget.archivedOnly,
-                    onClear: _clear,
                     onPick: (id) => Navigator.of(context).pop(id),
                   ),
                 ),
@@ -223,7 +221,7 @@ class _SessionSearchPageState extends ConsumerState<SessionSearchPage> {
   }
 }
 
-class _SearchField extends StatefulWidget {
+class _SearchField extends StatelessWidget {
   const _SearchField({
     required this.controller,
     required this.focusNode,
@@ -240,130 +238,57 @@ class _SearchField extends StatefulWidget {
   final VoidCallback onClear;
 
   @override
-  State<_SearchField> createState() => _SearchFieldState();
-}
-
-class _SearchFieldState extends State<_SearchField> {
-  bool _focused = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _focused = widget.focusNode.hasFocus;
-    widget.focusNode.addListener(_syncFocus);
-  }
-
-  @override
-  void didUpdateWidget(_SearchField oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.focusNode != widget.focusNode) {
-      oldWidget.focusNode.removeListener(_syncFocus);
-      widget.focusNode.addListener(_syncFocus);
-      _focused = widget.focusNode.hasFocus;
-    }
-  }
-
-  @override
-  void dispose() {
-    widget.focusNode.removeListener(_syncFocus);
-    super.dispose();
-  }
-
-  void _syncFocus() {
-    if (mounted && _focused != widget.focusNode.hasFocus) {
-      setState(() => _focused = widget.focusNode.hasFocus);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
     final tertiary = DshColors.of(context).textTertiary;
     const none = InputBorder.none;
-    final height = math.max(44.0, MediaQuery.textScalerOf(context).scale(15) * 1.3 + 22);
-    return Stack(
-      children: [
-        GlassSurface(
-          tier: GlassTier.chrome,
-          stadium: true,
-          grouped: true,
-          // As tall as the 44 dp back button (a bare TextField takes 48); large
-          // text grows it.
-          child: SizedBox(
-            height: height,
-            child: TextField(
-              controller: widget.controller,
-              focusNode: widget.focusNode,
-              autofocus: widget.autofocus,
-              textInputAction: TextInputAction.search,
-              inputFormatters: [LengthLimitingTextInputFormatter(200)],
-              // The search key shows the results the keyboard was hiding.
-              onSubmitted: (_) => widget.focusNode.unfocus(),
-              style: theme.textTheme.bodyLarge?.copyWith(fontSize: 15, height: 1.3),
-              textAlignVertical: TextAlignVertical.center,
-              decoration: InputDecoration(
-                filled: false,
-                border: none,
-                enabledBorder: none,
-                focusedBorder: none,
-                isCollapsed: true,
-                hintText: widget.hint ?? l10n.shellSearchChats,
-                hintStyle: theme.textTheme.bodyLarge?.copyWith(fontSize: 15, height: 1.3, color: tertiary),
-                // 聚焦时放大镜也换成主色：玻璃里的焦点只有一处值得用强调色。
-                prefixIcon: Icon(AppIcons.search, size: 20, color: _focused ? scheme.primary : tertiary),
-                prefixIconConstraints: const BoxConstraints(minWidth: 42, minHeight: 44),
-                suffixIcon: ValueListenableBuilder<TextEditingValue>(
-                  valueListenable: widget.controller,
-                  builder: (context, value, _) => AnimatedSwitcher(
-                    // 清除键不是"突然出现的一枚图标"：80% 起来、160ms 到位；
-                    // 删掉最后一个字时它同样缩着退回去，光标不跳。
-                    duration: KitMotion.of(context, AppMotion.quick),
-                    transitionBuilder: (child, animation) => FadeTransition(
-                      opacity: animation,
-                      child: ScaleTransition(scale: Tween<double>(begin: 0.86, end: 1).animate(animation), child: child),
+    return GlassSurface(
+      tier: GlassTier.chrome,
+      stadium: true,
+      grouped: true,
+      // As tall as the 44 dp back button (a bare TextField takes 48); large
+      // text grows it.
+      child: SizedBox(
+        height: math.max(44, MediaQuery.textScalerOf(context).scale(15) * 1.3 + 22),
+        child: TextField(
+          controller: controller,
+          focusNode: focusNode,
+          autofocus: autofocus,
+          textInputAction: TextInputAction.search,
+          inputFormatters: [LengthLimitingTextInputFormatter(200)],
+          // The search key shows the results the keyboard was hiding.
+          onSubmitted: (_) => focusNode.unfocus(),
+          style: theme.textTheme.bodyLarge?.copyWith(fontSize: 15, height: 1.3),
+          textAlignVertical: TextAlignVertical.center,
+          decoration: InputDecoration(
+            filled: false,
+            border: none,
+            enabledBorder: none,
+            focusedBorder: none,
+            isCollapsed: true,
+            hintText: hint ?? l10n.shellSearchChats,
+            hintStyle: theme.textTheme.bodyLarge?.copyWith(fontSize: 15, height: 1.3, color: tertiary),
+            prefixIcon: Icon(AppIcons.search, size: 20, color: tertiary),
+            prefixIconConstraints: const BoxConstraints(minWidth: 42, minHeight: 44),
+            suffixIcon: ValueListenableBuilder<TextEditingValue>(
+              valueListenable: controller,
+              builder: (context, value, _) => value.text.isEmpty
+                  ? const SizedBox.shrink()
+                  : IconButton(
+                      tooltip: l10n.commonClear,
+                      onPressed: onClear,
+                      style: IconButton.styleFrom(
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        minimumSize: const Size(40, 40),
+                      ),
+                      icon: Icon(AppIcons.clear, size: 18, color: tertiary),
                     ),
-                    child: value.text.isEmpty
-                        ? const SizedBox.shrink(key: ValueKey('no-clear'))
-                        : IconButton(
-                            key: const ValueKey('clear'),
-                            tooltip: l10n.commonClear,
-                            onPressed: widget.onClear,
-                            style: IconButton.styleFrom(
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              minimumSize: const Size(40, 40),
-                            ),
-                            icon: Icon(AppIcons.clear, size: 18, color: tertiary),
-                          ),
-                  ),
-                ),
-                suffixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 44),
-              ),
             ),
+            suffixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 44),
           ),
         ),
-        // 聚焦的高亮：1px 主色描边 + 一层很淡的外发光。画在玻璃之上、不吃事件，
-        // 于是它不改变字段的位置和尺寸（玻璃是圆角胶囊，描边必须同一条边）。
-        Positioned.fill(
-          child: IgnorePointer(
-            child: AnimatedOpacity(
-              opacity: _focused ? 1 : 0,
-              // 与全站输入框的聚焦同一个时长（[KitMotion.focus]）。
-              duration: KitMotion.of(context, KitMotion.focus),
-              curve: AppMotion.std,
-              child: DecoratedBox(
-                decoration: ShapeDecoration(
-                  shape: StadiumBorder(side: BorderSide(color: scheme.primary.withValues(alpha: 0.85), width: 1)),
-                  shadows: [
-                    BoxShadow(color: scheme.primary.withValues(alpha: 0.16), blurRadius: 12, spreadRadius: 0),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
@@ -371,14 +296,11 @@ class _SearchFieldState extends State<_SearchField> {
 enum _ArchivedAction { restore, delete }
 
 class _SearchBody extends ConsumerWidget {
-  const _SearchBody({required this.onPick, this.onClear, this.now, this.archivedOnly = false});
+  const _SearchBody({required this.onPick, this.now, this.archivedOnly = false});
 
   final bool archivedOnly;
 
   final ValueChanged<String> onPick;
-
-  /// 清空关键词并回到输入框：无结果时这是唯一的那个动作。
-  final VoidCallback? onClear;
   final DateTime? now;
 
   @override
@@ -435,13 +357,7 @@ class _SearchBody extends ConsumerWidget {
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         padding: EdgeInsets.zero,
         children: [
-          // 空态只给一个动作：清掉关键词，回到"再试一个"这件事本身。
-          _Notice(
-            icon: AppIcons.noResults,
-            title: l10n.shellNoMatchingChats,
-            body: l10n.shellSearchDifferentKeywords,
-            action: onClear == null ? null : (l10n.commonClear, onClear!),
-          ),
+          _Notice(icon: AppIcons.noResults, title: l10n.shellNoMatchingChats, body: l10n.shellSearchDifferentKeywords),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: _ContentFooter(view: view, centered: true),

@@ -34,7 +34,6 @@ import '../common/pressable.dart';
 import '../common/smooth_size.dart';
 import '../common/read_list_status.dart';
 import '../common/status_dot.dart';
-import '../kit/kit.dart';
 import '../onboarding/local_install.dart';
 import '../modes/mode_switch.dart';
 import '../remote/host_status.dart';
@@ -56,7 +55,6 @@ import 'drawer/drawer_view_button.dart';
 import 'drawer/drawer_destination.dart';
 import 'drawer/archive_notice.dart';
 import 'drawer/drawer_list.dart';
-import 'drawer/entrance.dart';
 import 'drawer/filter_capsule.dart';
 import 'drawer/page_files.dart';
 import 'drawer/pager.dart';
@@ -208,8 +206,7 @@ class SessionsDrawer extends ConsumerWidget {
       ),
     ];
     final sessionTop = <Widget>[
-      // 四段节奏的第一档：搜索框到页签 8（页签自己再让 8 到轨道）。
-      SessionSearchBar(onClose: onClose, padding: const EdgeInsets.fromLTRB(10, 2, 10, 8)),
+      SessionSearchBar(onClose: onClose),
       // The workspace switcher (once the host's workspace list has
       // arrived) and the list's options, then the status filters.
       SmoothSize(
@@ -229,25 +226,21 @@ class SessionsDrawer extends ConsumerWidget {
     ];
     // 右缘贯穿线：画在列表这一层，于是它自然止于身份栏之上（vetta 的 bottom-11），
     // 让底部动作条读作"浮在这条线之外"，而不是被一条通到底的线切开。
-    // 抽屉打开的那一下，首屏的行按序号错峰入场（关闭时不播，见 [DrawerEntrance]）。
-    final list = DrawerEntrance(
-      motion: drawerMotion,
-      child: Stack(
-        children: [
-          _EdgeFade(child: _SessionList(onClose: onClose, now: now)),
-          Positioned(
-            top: 0,
-            bottom: 0,
-            right: 0,
-            child: IgnorePointer(
-              child: Container(
-                width: 1,
-                color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.6),
-              ),
+    final list = Stack(
+      children: [
+        _EdgeFade(child: _SessionList(onClose: onClose, now: now)),
+        Positioned(
+          top: 0,
+          bottom: 0,
+          right: 0,
+          child: IgnorePointer(
+            child: Container(
+              width: 1,
+              color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.6),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
 
     const radius = BorderRadius.only(topRight: Radius.circular(AppShape.xl), bottomRight: Radius.circular(AppShape.xl));
@@ -296,7 +289,7 @@ class SessionsDrawer extends ConsumerWidget {
                       )
                     : Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [...sessionTop, const SizedBox(height: 12), Expanded(child: list)],
+                        children: [...sessionTop, Expanded(child: list)],
                       ),
               ),
             ],
@@ -319,22 +312,6 @@ class SessionsDrawer extends ConsumerWidget {
                           onFeatures: () => onOpen(DrawerDestination.features),
                           onSettings: () => onOpen(DrawerDestination.settings),
                           onSettingsHold: () => onOpen(DrawerDestination.settingsSearch),
-                        ),
-                      ),
-                    ),
-                  ),
-                  // 列表与身份栏之间的一条发丝线：列表自己的 16 + 身份栏的 8 = 24，
-                  // 是四段节奏的最后一档。画在栏的顶沿（不占高度），端点停在内容
-                  // 两条 10 的线上，动作条与通知的既有对齐都不动。
-                  PositionedDirectional(
-                    start: contentEdge,
-                    end: contentEdge,
-                    top: 0,
-                    child: IgnorePointer(
-                      child: SizedBox(
-                        height: 0.5,
-                        child: ColoredBox(
-                          color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: KitMuted.a60),
                         ),
                       ),
                     ),
@@ -511,12 +488,9 @@ class _ViewOptionsKey extends ConsumerWidget {
 }
 
 /// Soft top and bottom edges on the list, so rows fade into the header and
-/// the identity bar instead of being cut.
-///
-/// 遮罩**不是常驻的**：滚到最上面时头顶没有内容要淡，那条就撤掉；滚到最下面时
-/// 底下也没有了。于是"还能往下翻"只在真能翻的时候被画出来，列表短到一屏放得下
-/// 时两条都不出现——静止的界面不该带装饰。
-class _EdgeFade extends StatefulWidget {
+/// the identity bar instead of being cut. At rest nothing is under either fade
+/// (the list's own padding is deeper).
+class _EdgeFade extends StatelessWidget {
   const _EdgeFade({required this.child});
 
   final Widget child;
@@ -525,74 +499,20 @@ class _EdgeFade extends StatefulWidget {
   static const _top = 24.0;
   static const _bottom = 24.0;
 
-  /// 多近算"到头了"（亚像素的越界校正不算滚动）。
-  static const _epsilon = 0.5;
-
-  @override
-  State<_EdgeFade> createState() => _EdgeFadeState();
-}
-
-class _EdgeFadeState extends State<_EdgeFade> {
-  /// 静止在顶上：上面没有内容压在遮罩下面（抽屉打开时就是如此）。
-  bool _atTop = true;
-
-  /// 底下还有内容可以翻。默认按"没有了"算：真能翻时第一条度量通知会把它打开。
-  /// 两个默认值都取"不画"的那一侧——宁可少一条提示，也不要把最后一行的底边
-  /// 泡进渐变里（那看起来像加载没完成）。
-  bool _atBottom = true;
-
-  void _read(ScrollMetrics metrics) {
-    if (metrics.axis != Axis.vertical) return;
-    final top = metrics.extentBefore <= _EdgeFade._epsilon;
-    final bottom = metrics.extentAfter <= _EdgeFade._epsilon;
-    if (top == _atTop && bottom == _atBottom) return;
-    // 这些通知也可能来自布局中的尺寸更正，那时不能直接 setState。
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      if (mounted && (top != _atTop || bottom != _atBottom)) {
-        setState(() {
-          _atTop = top;
-          _atBottom = bottom;
-        });
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    // 两种通知都要接：滚动位移，以及内容尺寸变化时补发的度量（收起文件夹、
-    // 列表变短、换了筛选）。后者不是 ScrollNotification，只能在这一层接。
-    return NotificationListener<Notification>(
-      onNotification: (notification) {
-        switch (notification) {
-          case ScrollUpdateNotification(:final metrics):
-            _read(metrics);
-          case ScrollMetricsNotification(:final metrics):
-            _read(metrics);
-          default:
-            break;
-        }
-        return false;
+    return ShaderMask(
+      blendMode: BlendMode.dstIn,
+      shaderCallback: (rect) {
+        final h = rect.height <= 0 ? 1.0 : rect.height;
+        return LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: const [Color(0x00000000), Color(0xFF000000), Color(0xFF000000), Color(0x00000000)],
+          stops: [0, (_top / h).clamp(0.0, 0.5), (1 - _bottom / h).clamp(0.5, 1.0), 1],
+        ).createShader(rect);
       },
-      child: ShaderMask(
-        blendMode: BlendMode.dstIn,
-        shaderCallback: (rect) {
-          final h = rect.height <= 0 ? 1.0 : rect.height;
-          // 关掉的那一端用全透明：同一条渐变，只是那半边不再吃掉内容。
-          Color edge(bool faded) => const Color(0xFF000000).withValues(alpha: faded ? 1.0 : 0.0);
-          return LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [edge(!_atTop), edge(true), edge(true), edge(!_atBottom)],
-            stops: [
-              0,
-              (_EdgeFade._top / h).clamp(0.0, 0.5),
-              (1 - _EdgeFade._bottom / h).clamp(0.5, 1.0),
-              1,
-            ],
-          ).createShader(rect);
-        },
-        child: widget.child,
-      ),
+      child: child,
     );
   }
 }
@@ -1126,7 +1046,7 @@ class IdentityBar extends ConsumerWidget {
       // avatar on the 20 text line, the last button's edge at 10. The host
       // pill is as tall as the round keys beside it (44; taller only for
       // large text).
-      padding: const EdgeInsets.fromLTRB(10, 8, 10, 13),
+      padding: const EdgeInsets.fromLTRB(10, 9, 10, 13),
       child: Row(
         children: [
           Expanded(
@@ -1179,12 +1099,7 @@ class IdentityBar extends ConsumerWidget {
                                     Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        // 6 的圆点，只在"连接中"呼吸（[StatusDot] 自己保证
-                                        // idle 时停帧）。换档时交叉淡入，不做颜色跳变。
-                                        AnimatedSwitcher(
-                                          duration: AppMotion.of(context, AppMotion.quick),
-                                          child: StatusDot(key: ValueKey(view.tone), tone: view.tone, size: 6),
-                                        ),
+                                        StatusDot(tone: view.tone, size: 6),
                                         const SizedBox(width: 6),
                                         Flexible(
                                           child: AnimatedSwitcher(
