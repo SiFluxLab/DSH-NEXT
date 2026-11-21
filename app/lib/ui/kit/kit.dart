@@ -46,6 +46,23 @@ abstract final class Kit {
   static const textControl = 12.0;
   static const textRow = 13.0;
   static const textBody = 14.0;
+
+  /// 分区标题：`text-[15px] font-semibold text-foreground`（`SettingChrome` 的 `h2`）。
+  static const sectionTitleSize = 15.0;
+
+  /// 行高：单行 44、两行 56。
+  ///
+  /// vetta 的设置行是 `px-4 py-2.5` + 13px 正文 ≈ 40；手机触控要 44 才够拇指，
+  /// 所以这里取 44 —— 但这一个数只写在这一处，设置页与列表页都从这里取，
+  /// 免得两处各写一份再慢慢分叉。
+  static const rowHeight = 44.0;
+  static const rowHeightTwo = 56.0;
+
+  /// 设置行右侧控件的宽度上限：`max-w-[min(100%,24rem)]` = 384。
+  ///
+  /// 上限挡住的是"值比标题还长"的情况（一串快捷入口名、一个主机地址）：超过
+  /// 24rem 的值会换行，而不是把左边的标题挤成两三个字。
+  static const controlMaxWidth = 384.0;
 }
 
 /// 动效闸门：新组件不许各自决定"要不要动"。
@@ -182,6 +199,14 @@ class KitSwitch extends StatelessWidget {
   final ValueChanged<bool>? onChanged;
   final bool small;
 
+  /// 命中区在轨道外各留的距离（`after:-inset-x-3 -inset-y-2`）。
+  ///
+  /// 这一段是**布局**的一部分，不是看不见的手势区：把开关放进行里时，行的
+  /// 右内边距要减掉 [hitPadX]，轨道才会和右侧的值、箭头停在同一竖线上
+  /// （M3 开关的轨道只在盒子里内缩 4，换成这个开关后原来那 4 就不成立了）。
+  static const hitPadX = 12.0;
+  static const hitPadY = 8.0;
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -195,7 +220,7 @@ class KitSwitch extends StatelessWidget {
         onTap: onChanged == null ? null : () => onChanged!(!value),
         child: Padding(
           // after:-inset-x-3 -inset-y-2 → 左右各外扩 12、上下各 8 的命中区。
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: hitPadX, vertical: hitPadY),
           child: AnimatedContainer(
             duration: KitMotion.of(context),
             curve: AppMotion.swift,
@@ -339,6 +364,33 @@ class KitCard extends StatelessWidget {
   }
 }
 
+/// 卡片里的多行：行与行之间一条 0.5px 细线（`SettingRow` 的 `border-b` 落点）。
+///
+/// vetta 的分区卡在每行底部画 `border-b border-border`，末行去掉；手机上 1px 会和
+/// 卡自己的 1px 外框抢分量，所以取半像素：还是一道线，但不是两道一样粗的线叠在
+/// 一起。这条线必须**画出来**——之前用的是 `SizedBox(height: 0.5)` 的缝，而行本身
+/// 没有底色，缝里露出的是卡的底面，等于什么都没画，一列行就读成了一整块。
+class KitRowList extends StatelessWidget {
+  const KitRowList({super.key, required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final line = ColoredBox(color: Theme.of(context).colorScheme.outlineVariant);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final (index, child) in children.indexed) ...[
+          if (index > 0) SizedBox(height: 0.5, child: line),
+          child,
+        ],
+      ],
+    );
+  }
+}
+
 /// 分区标题：vetta 的 SectionHeader 是 `text-[15px] font-semibold` + 下方 12。
 class KitSectionHeader extends StatelessWidget {
   const KitSectionHeader({super.key, required this.title, this.note});
@@ -347,6 +399,17 @@ class KitSectionHeader extends StatelessWidget {
 
   /// 计数或补充说明，`text-[12px] muted`，与标题同一基线。
   final String? note;
+
+  /// 分区标题的字：`text-[15px] font-semibold text-foreground`。
+  ///
+  /// 弹层 / 抽屉里的分组标题也取这一份（`groupTitleStyle` 转调这里）：同一个
+  /// "分组"在卡片上和弹层里长得不一样，是最容易被看出来的一种不一致。
+  static TextStyle? titleStyle(BuildContext context) => TextStyle(
+    fontSize: Kit.sectionTitleSize,
+    fontWeight: FontWeight.w600,
+    height: 1.25,
+    color: Theme.of(context).colorScheme.onSurface,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -357,12 +420,7 @@ class KitSectionHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.baseline,
         textBaseline: TextBaseline.alphabetic,
         children: [
-          Expanded(
-            child: Text(
-              title,
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, height: 1.25, color: scheme.onSurface),
-            ),
-          ),
+          Expanded(child: Text(title, style: titleStyle(context))),
           if (note case final note?)
             Text(
               note,
@@ -405,6 +463,199 @@ class KitChip extends StatelessWidget {
             style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, height: 1.2, color: tint),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 页内分段（prism 的 `.ag-cs-home-tab` 规格）。
+///
+/// 每枚自带胶囊底，**没有**滑动指示条：高 24（字号 12/行高 18 + 上下 2 + 左右 9），
+/// 圆角 999；未选是次字色 + 透明边，悬停前景 5.5%，选中 前景 9% 底 + 前景 9.5% 边 + w500。
+/// 过渡 120ms —— 比分段滑块快得多，因为它只是"点亮"，不是"搬东西"。
+class KitSegmented<T> extends StatelessWidget {
+  const KitSegmented({super.key, required this.items, required this.value, required this.onChanged});
+
+  final List<(T, String)> items;
+  final T value;
+  final ValueChanged<T> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final fg = scheme.onSurface;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final (i, item) in items.indexed) ...[
+          if (i > 0) const SizedBox(width: 2),
+          _Segment(
+            label: item.$2,
+            selected: item.$1 == value,
+            onTap: () => onChanged(item.$1),
+            fg: fg,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _Segment extends StatefulWidget {
+  const _Segment({required this.label, required this.selected, required this.onTap, required this.fg});
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  final Color fg;
+
+  @override
+  State<_Segment> createState() => _SegmentState();
+}
+
+class _SegmentState extends State<_Segment> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final tint = widget.fg;
+    final background = widget.selected
+        ? tint.withValues(alpha: 0.09)
+        : _hover
+        ? tint.withValues(alpha: 0.055)
+        : Colors.transparent;
+    return Semantics(
+      button: true,
+      selected: widget.selected,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _hover = true),
+        onExit: (_) => setState(() => _hover = false),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: widget.onTap,
+          child: AnimatedContainer(
+            duration: KitMotion.of(context, const Duration(milliseconds: 120)),
+            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 2),
+            decoration: BoxDecoration(
+              color: background,
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(
+                color: widget.selected ? tint.withValues(alpha: 0.095) : Colors.transparent,
+              ),
+            ),
+            child: Text(
+              widget.label,
+              style: TextStyle(
+                fontSize: 12,
+                height: 18 / 12,
+                fontWeight: widget.selected ? FontWeight.w500 : FontWeight.w400,
+                color: widget.selected ? scheme.onSurface : scheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 双极胶囊（prism 的 `.ag-prism-sb-seg` 规格）：两格，滑块 300ms 滑过去。
+///
+/// 这一枚是"搬东西"而不是"点亮"，所以用它自己的曲线
+/// `cubic-bezier(0.34, 1.24, 0.64, 1)`——带一点回弹，手感比 linear 活。
+class KitDualToggle extends StatelessWidget {
+  const KitDualToggle({
+    super.key,
+    required this.left,
+    required this.right,
+    required this.rightSelected,
+    required this.onChanged,
+  });
+
+  final (IconData, String) left;
+  final (IconData, String) right;
+  final bool rightSelected;
+  final ValueChanged<bool> onChanged;
+
+  /// 300ms + 回弹。
+  static const curve = Cubic(0.34, 1.24, 0.64, 1);
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final track = dark ? Colors.white.withValues(alpha: 0.052) : const Color(0xFF0F172A).withValues(alpha: 0.055);
+    final knob = dark ? Colors.white.withValues(alpha: 0.13) : Colors.white;
+    return SizedBox(
+      height: 31,
+      child: LayoutBuilder(
+        builder: (context, box) => Stack(
+          children: [
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(color: track, borderRadius: BorderRadius.circular(999)),
+              ),
+            ),
+            AnimatedAlign(
+              duration: KitMotion.of(context, const Duration(milliseconds: 300)),
+              curve: curve,
+              alignment: rightSelected ? AlignmentDirectional.centerEnd : AlignmentDirectional.centerStart,
+              child: FractionallySizedBox(
+                widthFactor: 0.5,
+                child: Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(color: knob, borderRadius: BorderRadius.circular(999)),
+                  ),
+                ),
+              ),
+            ),
+            Positioned.fill(
+              child: Row(
+                children: [
+                  Expanded(child: _Half(item: left, selected: !rightSelected, onTap: () => onChanged(false))),
+                  Expanded(child: _Half(item: right, selected: rightSelected, onTap: () => onChanged(true))),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Half extends StatelessWidget {
+  const _Half({required this.item, required this.selected, required this.onTap});
+
+  final (IconData, String) item;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Center(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(item.$1, size: 12.5, color: selected ? scheme.onSurface : scheme.onSurfaceVariant),
+            const SizedBox(width: 4),
+            Text(
+              item.$2,
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w500,
+                color: selected ? scheme.onSurface : scheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
