@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'backdrop_frame.dart';
+import 'optics.dart';
 import 'surfaces.dart';
 
 /// 全屏页面背景:**竖向雾蓝渐变 + 两团极淡的光**。
