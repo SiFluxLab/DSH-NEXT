@@ -17,7 +17,6 @@ import 'state/surface_palette_state.dart';
 import 'state/star_prompt.dart' show starPromptGateProvider, starPromptProvider;
 import 'state/tile_style_state.dart';
 import 'ui/chat/dsh_ui/dsh_ui_model.dart' show DshUiAppAccent;
-import 'ui/common/app_blade.dart';
 import 'ui/common/ui_trace.dart';
 import 'ui/common/keyboard_motion.dart';
 import 'ui/common/side_insets.dart';
@@ -249,16 +248,6 @@ class _DshAppState extends ConsumerState<DshApp> with WidgetsBindingObserver {
                         ? EasedKeyboardInset(child: MirroredSideInsets(child: child!))
                         : MirroredSideInsets(child: child!),
                   ),
-                  // 光刃：全 App 只有一条，画在根 Stack 最上层——它表达的是"引擎在干什么"，
-                  // 与当前是哪一页无关。之前放在页面内容之下，被顶栏和内容整块盖住了，
-                  // 这就是"光刃没生效"的真正原因。
-                  Positioned(
-                    left: 10,
-                    right: 10,
-                    top: media.padding.top + 2,
-                    child: const AppBlade(),
-                  ),
-                  const Positioned.fill(child: IgnorePointer(child: EdgeAfterglow())),
                   const LaunchLayer(),
                 ],
                 ),

@@ -85,17 +85,16 @@ class _TabCell extends StatelessWidget {
           duration: AppMotion.of(context, AppMotion.flip),
           curve: AppMotion.swift,
           decoration: BoxDecoration(
-            color: selected ? scheme.surfaceContainerHigh : Colors.transparent,
-            // 顶部那条线才是"当前页"的标记：它和光刃是同一套语言（光在顶沿）。
-            border: Border(
-              top: BorderSide(color: selected ? scheme.primary : Colors.transparent, width: 2),
-            ),
+            // 选中是一枚主色淡底胶囊 —— 与站内其它选中态同一种写法。
+            // vetta 那种"顶沿 2px 线 + 平底"是桌面侧栏的语言，混进玻璃抽屉会显得格格不入。
+            color: selected ? scheme.primary.withValues(alpha: 0.12) : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
           ),
           child: Center(
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(tab.icon, size: 13, color: foreground),
+                Icon(tab.icon, size: 15, color: foreground),
                 const SizedBox(width: 6),
                 Flexible(
                   child: Text(
@@ -103,9 +102,9 @@ class _TabCell extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 13.5,
                       height: 1.2,
-                      fontWeight: selected ? FontWeight.w500 : FontWeight.w400,
+                      fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
                       color: foreground,
                     ),
                   ),

@@ -55,8 +55,8 @@ abstract final class Kit {
   /// vetta 的设置行是 `px-4 py-2.5` + 13px 正文 ≈ 40；手机触控要 44 才够拇指，
   /// 所以这里取 44 —— 但这一个数只写在这一处，设置页与列表页都从这里取，
   /// 免得两处各写一份再慢慢分叉。
-  static const rowHeight = 44.0;
-  static const rowHeightTwo = 56.0;
+  static const rowHeight = 48.0;
+  static const rowHeightTwo = 60.0;
 
   /// 设置行右侧控件的宽度上限：`max-w-[min(100%,24rem)]` = 384。
   ///

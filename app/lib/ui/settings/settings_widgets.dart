@@ -22,7 +22,7 @@ export 'index/spots.dart' show SettingSpot, SettingsIndex, SettingsPageId, Spots
 /// Page-level group spacing: groups sit 24 apart,
 /// flush with the 16 page gutter.
 // 页面左右 20（vetta 的 20 档留白），分组之间 24（`mb-6`）。
-const kSettingsGroupMargin = EdgeInsets.fromLTRB(20, 0, 20, 24);
+const kSettingsGroupMargin = EdgeInsets.fromLTRB(20, 0, 20, 28);
 
 /// The measured geometry every settings-style row shares. Change it here and in
 /// `test/settings/settings_geometry_test.dart` together.

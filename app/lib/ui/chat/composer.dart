@@ -15,6 +15,7 @@ import 'package:flutter/services.dart';
 
 import '../../l10n/l10n.dart';
 import 'context_tide.dart';
+import 'widgets/composer_aura.dart';
 import '../common/expand_reveal.dart';
 import '../common/smooth_size.dart';
 import '../fx/voice_glow/voice_beam.dart';
@@ -658,13 +659,19 @@ class _ComposerGlass extends StatelessWidget {
   Widget build(BuildContext context) {
     final open = this.open;
     final body = top == null ? child : Column(mainAxisSize: MainAxisSize.min, children: [top!, child]);
-    if (open == null) return GlassSurface(tier: GlassTier.chrome, borderRadius: AppShape.radiusXl, child: body);
+    // 输入卡外沿一圈流光：随引擎状态变，贴在玻璃边缘上（不是屏幕顶沿）。
+    Widget aura(Widget inner) => ComposerAura(radius: const BorderRadius.all(Radius.circular(AppShape.xl)), child: inner);
+    if (open == null) {
+      return aura(GlassSurface(tier: GlassTier.chrome, borderRadius: AppShape.radiusXl, child: body));
+    }
     return AnimatedBuilder(
       animation: open,
-      builder: (context, child) => GlassSurface(
-        tier: GlassTier.chrome,
-        borderRadius: BorderRadius.lerp(AppShape.radiusXl, _opened, open.value),
-        child: child,
+      builder: (context, child) => aura(
+        GlassSurface(
+          tier: GlassTier.chrome,
+          borderRadius: BorderRadius.lerp(AppShape.radiusXl, _opened, open.value),
+          child: child,
+        ),
       ),
       child: body,
     );
