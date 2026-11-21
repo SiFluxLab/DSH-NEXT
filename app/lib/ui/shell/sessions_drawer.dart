@@ -53,8 +53,8 @@ import 'brand_mark.dart';
 import 'drawer/drawer_actions.dart';
 import 'drawer/drawer_destination.dart';
 import 'drawer/archive_notice.dart';
-import 'drawer/drawer_filter_bar.dart';
 import 'drawer/drawer_list.dart';
+import 'drawer/filter_capsule.dart';
 import 'drawer/page_files.dart';
 import 'drawer/pager.dart';
 import 'drawer/selection_bars.dart';
@@ -213,15 +213,12 @@ class SessionsDrawer extends ConsumerWidget {
         child: Row(
           children: [
             Expanded(child: WorkspaceSwitcher(onManage: manageWorkspaces)),
+            // 状态筛选收成一枚胶囊，放在这一行；原来那行整行胶囊就空出来了。
+            const DrawerFilterCapsule(),
+            const SizedBox(width: 6),
             _ViewOptionsKey(onClose: onClose),
           ],
         ),
-      ),
-      SmoothSize(
-        duration: AppMotion.of(context, AppMotion.standard),
-        curve: AppMotion.std,
-        alignment: Alignment.topCenter,
-        child: const DrawerFilterBar(),
       ),
     ];
     final list = _EdgeFade(
