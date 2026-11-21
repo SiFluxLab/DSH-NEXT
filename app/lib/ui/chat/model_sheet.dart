@@ -18,6 +18,7 @@ import '../../state/settings_state.dart';
 import '../common/app_sheet.dart';
 import '../common/empty_view.dart';
 import '../common/pressable.dart';
+import 'widgets/provider_glyph.dart';
 import '../common/segmented_pill.dart';
 import '../common/sheet_title_bar.dart';
 import '../common/smooth_size.dart';
@@ -860,24 +861,23 @@ class _ModelCard extends StatelessWidget {
       excludeSemantics: true,
       child: Pressable(
         onTap: onTap,
-        child: GlassSurface(
-          tier: GlassTier.card,
-          borderRadius: radius,
-          child: AnimatedContainer(
+        child: AnimatedContainer(
             duration: duration,
             curve: AppMotion.std,
-            padding: const EdgeInsets.all(16),
+            // prism 的模型行：内距 7/10/7/9、圆角 6、总高约 46；
+            // 选中是"前景 9.5% 底 + 边框"，不是主色染底——主色留给"当前生效"那一个勾。
+            padding: const EdgeInsets.fromLTRB(9, 7, 10, 7),
             decoration: ShapeDecoration(
               color: selected
-                  ? colors.primary.withValues(alpha: dark ? 0.14 : 0.07)
-                  : colors.primary.withValues(alpha: 0),
+                  ? colors.onSurface.withValues(alpha: dark ? 0.095 : 0.06)
+                  : Colors.transparent,
               shape: RoundedSuperellipseBorder(
-                borderRadius: radius,
+                borderRadius: BorderRadius.circular(6),
                 side: BorderSide(
                   color: selected
-                      ? colors.primary.withValues(alpha: dark ? 0.7 : 0.55)
-                      : colors.primary.withValues(alpha: 0),
-                  width: 1.5,
+                      ? colors.onSurface.withValues(alpha: dark ? 0.14 : 0.10)
+                      : colors.outlineVariant.withValues(alpha: 0.5),
+                  width: 1,
                 ),
               ),
             ),
@@ -890,12 +890,18 @@ class _ModelCard extends StatelessWidget {
                     // 14 / two lines: the row leaves the name ~109 dp on a
                     // 390 dp phone, so "GPT 5.6 Terra" at titleMedium's 16 was
                     // cut after the first words.
+                    ProviderGlyph(providerId: model.provider, modelId: model.id, size: 18),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         name,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleSmall?.copyWith(height: 1.35),
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          fontSize: 13,
+                          height: 1.35,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -913,7 +919,6 @@ class _ModelCard extends StatelessWidget {
                 ],
               ],
             ),
-          ),
         ),
       ),
     );
