@@ -26610,10 +26610,10 @@ class L10nZh extends L10n {
   String get builtinPluginTavernHint => '角色扮演：SillyTavern 兼容的角色卡、世界书与预设';
   String get builtinPluginWorkshopHint => '下载与投稿桌宠包、伙伴包（需要一个工坊服务端）';
   String get builtinPluginCompanionHint => '伙伴小屋：Live2D 舞台与长期角色';
-  String get yinglongEngine => '应龙引擎';
+  String get yinglongEngine => 'Zero Trap 引擎';
   String get yinglongEngineHint => '在打过补丁的 glibc 上直接运行，不再经过 PRoot，系统调用快得多';
-  String get yinglongEngineUnavailable => '这个运行时没有对应架构的应龙，仍用 PRoot';
-  String get yinglongEngineFailedHint => '上次用应龙没能起来，已自动退回 PRoot；打开再试一次';
+  String get yinglongEngineUnavailable => '这个运行时没有对应架构的 Zero Trap，仍用 PRoot';
+  String get yinglongEngineFailedHint => '上次用 Zero Trap 没能起来，本次已退回兼容启动；重开 App 会再试一次';
   String get opticsTitle => '光感与动效';
   String get opticsFooter => '系统开启「移除动画」或关闭玻璃模糊时，这里的效果会自动减弱，不用手动关；换档位会重置下面的单项开关。';
   String get opticsPreset => '光感强度';
@@ -26684,6 +26684,10 @@ class L10nZh extends L10n {
   String get uiKitSegmentedHint => '一排小胶囊，选中靠底色点亮（工坊的三个视图先接它）';
   String get uiKitDual => '双极滑块';
   String get uiKitDualHint => '两格之间有一个会滑过去的滑块（上游默认关闭，属 Beta）';
+  String get launchEngine => '兼容启动';
+  String get launchEngineZeroTrap => 'Zero Trap';
+  String get launchEngineZeroTrapHint => '默认。打过补丁的 glibc，路径翻译在进程内完成，启动最快';
+  String get launchEngineTawc => 'TawcRoot';
   String get workshopTitle => '创意工坊';
 
   @override

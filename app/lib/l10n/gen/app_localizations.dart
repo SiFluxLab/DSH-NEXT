@@ -48608,6 +48608,18 @@ abstract class L10n {
   /// **'伙伴小屋：Live2D 舞台与长期角色'**
   String get builtinPluginCompanionHint;
 
+  /// No description provided for @launchEngine.
+  String get launchEngine;
+
+  /// No description provided for @launchEngineZeroTrap.
+  String get launchEngineZeroTrap;
+
+  /// No description provided for @launchEngineZeroTrapHint.
+  String get launchEngineZeroTrapHint;
+
+  /// No description provided for @launchEngineTawc.
+  String get launchEngineTawc;
+
   /// No description provided for @yinglongEngine.
   ///
   /// In zh, this message translates to:

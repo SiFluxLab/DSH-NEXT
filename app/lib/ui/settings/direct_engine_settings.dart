@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/l10n.dart';
 import '../../runtime/runtime_bridge.dart';
 import '../../runtime/runtime_state.dart';
+import '../common/app_sheet.dart';
 import '../common/brief_notice.dart';
+import '../common/list_page_row.dart';
 import 'settings_widgets.dart';
 
 /// Direct launch (off by default) and tawcroot launch (on by default), at most one on; a
@@ -88,51 +90,64 @@ class _DirectEngineSettingsState extends ConsumerState<DirectEngineSettings> {
             subtitle: stopped ? null : l10n.phoneDirectStopFirst,
             onTap: enabled ? () => _change(false) : null,
           ),
-        SettingsSwitchTile(
-          title: l10n.phoneDirectEngine,
-          subtitle: hint,
-          value: status.directEngineEnabled,
-          onChanged: enabled ? _change : null,
-        ),
-        // 应龙 (Zero-Trap) is the default where the image carries it: no PRoot.
-        SettingsSwitchTile(
-          key: const ValueKey('yinglong-engine'),
-          title: l10n.yinglongEngine,
-          subtitle: ztHint,
-          value: status.yinglongEngineEnabled,
-          onChanged: ztEnabled ? _changeZt : null,
-        ),
-        SettingsSwitchTile(
-          title: l10n.phoneTawcEngine,
-          subtitle: tawcHint,
-          value: status.tawcEngineEnabled,
-          onChanged: tawcEnabled ? _changeTawc : null,
+        // 兼容启动：**只有两种**——Zero Trap（默认）与 TawcRoot。
+        // 之前是三枚独立开关（direct / 应龙 / tawc），互斥关系靠"至多开一个"的约定维持，
+        // 用户看不懂"为什么开了一个会关掉另一个"。改成单选的入口行。
+        SettingsTile(
+          key: const ValueKey('launch-engine'),
+          title: l10n.launchEngine,
+          subtitle: status.yinglongEngineEnabled ? l10n.launchEngineZeroTrapHint : tawcHint,
+          value: status.yinglongEngineEnabled ? l10n.launchEngineZeroTrap : l10n.launchEngineTawc,
+          chevron: true,
+          onTap: enabled ? _pickEngine : null,
         ),
       ],
     );
   }
 
-  Future<void> _changeZt(bool value) async {
+  Future<void> _pickEngine() async {
+    final l10n = context.l10n;
+    final zt = statusOf(ref);
+    final pick = await showAppSheet<String>(
+      context,
+      builder: (sheet) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListPageRow(
+            title: l10n.launchEngineZeroTrap,
+            subtitle: l10n.launchEngineZeroTrapHint,
+            trailing: zt ? const Icon(Icons.check, size: 18) : null,
+            onTap: () => Navigator.of(sheet).pop('zt'),
+          ),
+          ListPageRow(
+            title: l10n.launchEngineTawc,
+            subtitle: l10n.phoneTawcHint,
+            trailing: zt ? null : const Icon(Icons.check, size: 18),
+            onTap: () => Navigator.of(sheet).pop('tawc'),
+          ),
+        ],
+      ),
+    );
+    if (pick == null) return;
     setState(() => _saving = true);
     try {
-      await ref.read(runtimeBridgeProvider).setYinglongEngine(value);
+      final bridge = ref.read(runtimeBridgeProvider);
+      if (pick == 'zt') {
+        if (ref.read(runtimeStatusProvider).value?.tawcEngineEnabled ?? false) await bridge.setTawcEngine(false);
+        await bridge.setYinglongEngine(true);
+      } else {
+        if (ref.read(runtimeStatusProvider).value?.yinglongEngineEnabled ?? false) await bridge.setYinglongEngine(false);
+        await bridge.setTawcEngine(true);
+      }
     } catch (_) {
-      if (mounted) showBriefNotice(context, context.l10n.phoneDirectChangeFailed);
+      if (mounted) showBriefNotice(context, l10n.phoneDirectChangeFailed);
     } finally {
       if (mounted) setState(() => _saving = false);
     }
   }
 
-  Future<void> _changeTawc(bool value) async {
-    setState(() => _saving = true);
-    try {
-      await ref.read(runtimeBridgeProvider).setTawcEngine(value);
-    } catch (_) {
-      if (mounted) showBriefNotice(context, context.l10n.phoneDirectChangeFailed);
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
-  }
+  bool statusOf(WidgetRef ref) =>
+      ref.read(runtimeStatusProvider).value?.yinglongEngineEnabled ?? true;
 
   Future<void> _change(bool value) async {
     setState(() => _saving = true);

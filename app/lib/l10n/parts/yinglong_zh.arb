@@ -1,6 +1,10 @@
 {
-  "yinglongEngine": "应龙引擎",
+  "yinglongEngine": "Zero Trap 引擎",
   "yinglongEngineHint": "在打过补丁的 glibc 上直接运行，不再经过 PRoot，系统调用快得多",
-  "yinglongEngineUnavailable": "这个运行时没有对应架构的应龙，仍用 PRoot",
-  "yinglongEngineFailedHint": "上次用应龙没能起来，已自动退回 PRoot；打开再试一次"
+  "yinglongEngineUnavailable": "这个运行时没有对应架构的 Zero Trap，仍用 PRoot",
+  "yinglongEngineFailedHint": "上次用 Zero Trap 没能起来，本次已退回兼容启动；重开 App 会再试一次",
+  "launchEngine": "兼容启动",
+  "launchEngineZeroTrap": "Zero Trap",
+  "launchEngineZeroTrapHint": "默认。打过补丁的 glibc，路径翻译在进程内完成，启动最快",
+  "launchEngineTawc": "TawcRoot"
 }

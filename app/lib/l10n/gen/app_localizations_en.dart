@@ -28048,10 +28048,10 @@ class L10nEn extends L10n {
   String get builtinPluginTavernHint => 'Role play: SillyTavern-compatible cards, lorebooks and presets';
   String get builtinPluginWorkshopHint => 'Download and publish pet and companion packs (needs a workshop server)';
   String get builtinPluginCompanionHint => 'Companion room: a Live2D stage and a long-lived character';
-  String get yinglongEngine => 'Yinglong engine';
+  String get yinglongEngine => 'Zero Trap engine';
   String get yinglongEngineHint => 'Runs on the patched glibc instead of PRoot, so syscalls cost far less';
-  String get yinglongEngineUnavailable => 'This runtime has no Yinglong build for this ABI; PRoot stays in use';
-  String get yinglongEngineFailedHint => 'The Yinglong launch did not come up; it fell back to PRoot. Turn it on to try again';
+  String get yinglongEngineUnavailable => 'This runtime has no Zero Trap build for this ABI; PRoot stays in use';
+  String get yinglongEngineFailedHint => 'The Zero Trap launch did not come up, so this session fell back; reopening the app tries again';
   String get opticsTitle => 'Light and motion';
   String get opticsFooter => 'Effects step down on their own when the system turns off animations or glass blur; changing the preset resets the switches below.';
   String get opticsPreset => 'Intensity';
@@ -28122,6 +28122,10 @@ class L10nEn extends L10n {
   String get uiKitSegmentedHint => 'Small capsules where the selected one lights up (the workshop\'s three views use it first)';
   String get uiKitDual => 'Two-pole slider';
   String get uiKitDualHint => 'A knob that travels between two cells (off by default upstream, it is beta there)';
+  String get launchEngine => 'Compatible launch';
+  String get launchEngineZeroTrap => 'Zero Trap';
+  String get launchEngineZeroTrapHint => 'Default. Patched glibc with in-process path translation, the fastest start';
+  String get launchEngineTawc => 'TawcRoot';
   String get workshopTitle => 'Workshop';
 
   @override
