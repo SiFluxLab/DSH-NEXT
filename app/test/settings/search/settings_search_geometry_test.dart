@@ -3,6 +3,7 @@
 // screen on both sides like the cards under it.
 
 import 'package:dsh_app/runtime/runtime_state.dart';
+import 'package:dsh_app/ui/kit/kit.dart';
 import 'package:dsh_app/state/hosts_state.dart';
 import 'package:dsh_app/state/settings_state.dart';
 import 'package:dsh_app/ui/common/list_page_row.dart';
@@ -52,7 +53,7 @@ void main() {
       expect(capsule.left, moreOrLessEquals(16, epsilon: _tol));
       expect(_width - capsule.right, moreOrLessEquals(16, epsilon: _tol));
       final card = tester.getRect(
-        find.descendant(of: find.byType(OverviewCard), matching: find.byType(GlassSurface)).first,
+        find.descendant(of: find.byType(OverviewCard), matching: find.byType(KitCard)).first,
       );
       expect(capsule.left, moreOrLessEquals(card.left, epsilon: _tol));
       expect(capsule.right, moreOrLessEquals(card.right, epsilon: _tol));
@@ -100,7 +101,7 @@ void main() {
     await tester.pumpAndSettle();
     final field = tester.getRect(find.byType(SearchCapsule));
     final card = tester.getRect(
-      find.descendant(of: find.byType(ListPageCard), matching: find.byType(GlassSurface)).first,
+      find.descendant(of: find.byType(ListPageCard), matching: find.byType(KitCard)).first,
     );
     expect(field.left, moreOrLessEquals(16, epsilon: _tol));
     expect(_width - field.right, moreOrLessEquals(16, epsilon: _tol));

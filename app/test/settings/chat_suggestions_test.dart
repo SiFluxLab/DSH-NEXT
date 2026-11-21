@@ -1,4 +1,5 @@
 import 'package:dsh_app/l10n/l10n.dart';
+import 'package:dsh_app/ui/kit/kit.dart';
 import 'package:dsh_app/state/engine_settings_state.dart';
 import 'package:dsh_app/state/settings_state.dart';
 import 'package:dsh_app/ui/chat/chat_screen.dart';
@@ -60,7 +61,7 @@ void _expectCards(bool visible) {
   expect(find.text(appL10n.viewEmptySubtitle), findsOneWidget);
 }
 
-Finder _switch() => find.descendant(of: find.widgetWithText(SettingsSwitchTile, '聊天建议'), matching: find.byType(Switch));
+Finder _switch() => find.descendant(of: find.widgetWithText(SettingsSwitchTile, '聊天建议'), matching: find.byType(KitSwitch));
 
 Future<void> _openSettings(WidgetTester tester) async {
   Navigator.of(tester.element(find.byType(ChatScreen)))

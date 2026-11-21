@@ -7,6 +7,7 @@
 // The goldens show the whole page, tile styles, launcher icons and launch screen included.
 
 import 'package:dsh_app/app.dart';
+import 'package:dsh_app/ui/kit/kit.dart';
 import 'package:dsh_app/state/app_icon_state.dart';
 import 'package:dsh_app/state/appearance_state.dart';
 import 'package:dsh_app/state/settings_state.dart';
@@ -200,7 +201,7 @@ void main() {
   testWidgets('every picker sits on one grid: 16 from the card, 12 apart, columns aligned', (tester) async {
     await _pumpApp(tester);
     Rect cardOf(Type picker) =>
-        tester.getRect(find.ancestor(of: find.byType(picker), matching: find.byType(GlassSurface)).first);
+        tester.getRect(find.ancestor(of: find.byType(picker), matching: find.byType(KitCard)).first);
 
     // Mode previews and tile-style previews: same three columns.
     final modeCard = cardOf(ThemeModePicker);
@@ -233,7 +234,7 @@ void main() {
   testWidgets('swatch row and mode tiles are symmetric in their card', (tester) async {
     await _pumpApp(tester);
     final card = tester.getRect(
-      find.ancestor(of: find.byType(PalettePicker), matching: find.byType(GlassSurface)).first,
+      find.ancestor(of: find.byType(PalettePicker), matching: find.byType(KitCard)).first,
     );
     final discs = [
       for (final p in [...AppAccent.presets.map((p) => p.label), '自定义'])
@@ -252,7 +253,7 @@ void main() {
     }
 
     final modeCard = tester.getRect(
-      find.ancestor(of: find.byType(ThemeModePicker), matching: find.byType(GlassSurface)).first,
+      find.ancestor(of: find.byType(ThemeModePicker), matching: find.byType(KitCard)).first,
     );
     final tiles = [
       for (final m in ['浅色', '深色', '跟随系统']) tester.getRect(find.bySemanticsLabel(m)),

@@ -4,6 +4,7 @@
 // overview card on the same edges; a group's discs share its hue.
 
 import 'package:dsh_app/l10n/l10n.dart';
+import 'package:dsh_app/ui/kit/kit.dart';
 import 'package:dsh_app/runtime/runtime_state.dart';
 import 'package:dsh_app/state/hosts_state.dart';
 import 'package:dsh_app/state/settings_state.dart';
@@ -50,7 +51,7 @@ void main() {
     final capsule = tester.getRect(find.byType(SearchCapsuleButton));
     for (final section in find.byType(SettingsSection).evaluate()) {
       final card = tester.getRect(
-        find.descendant(of: find.byWidget(section.widget), matching: find.byType(GlassSurface)).first,
+        find.descendant(of: find.byWidget(section.widget), matching: find.byType(KitCard)).first,
       );
       expect(card.left, moreOrLessEquals(16, epsilon: _tol));
       expect(_width - card.right, moreOrLessEquals(16, epsilon: _tol));

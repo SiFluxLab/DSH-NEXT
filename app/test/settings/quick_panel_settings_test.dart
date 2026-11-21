@@ -4,6 +4,7 @@
 //   flutter test test/settings/quick_panel_settings_test.dart
 
 import 'package:dsh_app/state/quick_panel_state.dart';
+import 'package:dsh_app/ui/kit/kit.dart';
 import 'package:dsh_app/ui/settings/interface_page.dart';
 import 'package:dsh_app/ui/settings/quick_panel_items_sheet.dart';
 import 'package:dsh_app/ui/shell/sessions_drawer.dart' show DrawerDestination;
@@ -78,7 +79,7 @@ void main() {
   testWidgets('an install that never chose anything: on, 插件、本机引擎、设置, nothing stored', (tester) async {
     await _pump(tester);
     expect(
-      tester.widget<Switch>(find.descendant(of: find.byKey(_swipeRow), matching: find.byType(Switch))).value,
+      tester.widget<Switch>(find.descendant(of: find.byKey(_swipeRow), matching: find.byType(KitSwitch))).value,
       isTrue,
     );
     expect(find.descendant(of: find.byKey(_itemsRow), matching: find.text('插件、本机引擎、设置')), findsOneWidget);

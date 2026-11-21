@@ -1,4 +1,5 @@
 import 'package:dsh_app/app.dart';
+import 'package:dsh_app/ui/kit/kit.dart';
 import 'package:dsh_app/l10n/l10n.dart';
 import 'package:dsh_app/state/appearance_state.dart';
 import 'package:dsh_app/state/locale_state.dart';
@@ -59,7 +60,7 @@ Future<ProviderContainer> _pump(
 Finder _choice(String label) => find.bySemanticsLabel(appL10n.pluginsColorLabel(label));
 
 List<Rect> _rings(WidgetTester tester, {required bool custom}) {
-  final card = tester.getRect(find.ancestor(of: find.byType(PalettePicker), matching: find.byType(GlassSurface)).first);
+  final card = tester.getRect(find.ancestor(of: find.byType(PalettePicker), matching: find.byType(KitCard)).first);
   final rings = [
     for (final label in [...AppAccent.presets.map((p) => p.label), if (custom) appL10n.pluginsCustomColor])
       tester.getRect(find.descendant(of: _choice(label), matching: find.byType(CustomPaint)).first),

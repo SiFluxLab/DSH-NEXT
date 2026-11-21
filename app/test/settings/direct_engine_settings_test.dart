@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dsh_app/l10n/l10n.dart';
+import 'package:dsh_app/ui/kit/kit.dart';
 import 'package:dsh_app/runtime/runtime_bridge.dart';
 import 'package:dsh_app/runtime/runtime_state.dart';
 import 'package:dsh_app/ui/settings/direct_engine_settings.dart';
@@ -193,7 +194,7 @@ void main() {
     expect(tile(tester).value, isFalse);
     expect(tile(tester).subtitle, l10n.phoneDirectFailedHint);
     expect(find.text(l10n.phoneReturnCompatible), findsNothing);
-    await tester.tap(find.byType(Switch).first);
+    await tester.tap(find.byType(KitSwitch).first);
     await tester.pumpAndSettle();
     expect(bridge.changes, [true]);
     // Native now reports it on; the last launch's reason no longer explains the switch.
@@ -237,7 +238,7 @@ void main() {
     await show(tester, runtime, bridge);
     expect(tile(tester).value, isFalse);
     expect(tile(tester).onChanged, isNotNull);
-    await tester.tap(find.byType(Switch).first);
+    await tester.tap(find.byType(KitSwitch).first);
     await tester.pump();
     expect(bridge.changes, [true]);
     expect(tile(tester).onChanged, isNull);
@@ -265,7 +266,7 @@ void main() {
     runtime.update(const RuntimeStatus(phase: RuntimePhase.installed, directEngineEnabled: true));
     await tester.pumpAndSettle();
     expect(tile(tester).onChanged, isNotNull);
-    await tester.tap(find.byType(Switch).first);
+    await tester.tap(find.byType(KitSwitch).first);
     await tester.pumpAndSettle();
     expect(bridge.changes, [false]);
   });
@@ -276,7 +277,7 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
     final bridge = _Bridge()..fail = true;
     await show(tester, _Runtime(stopped), bridge);
-    await tester.tap(find.byType(Switch).first);
+    await tester.tap(find.byType(KitSwitch).first);
     await tester.pumpAndSettle();
     expect(tile(tester).value, isFalse);
     expect(find.text(lookupL10n(AppLocale.zhCN).phoneDirectChangeFailed), findsOneWidget);
@@ -292,7 +293,7 @@ void main() {
     final l10n = lookupL10n(AppLocale.zhCN);
     expect(tawcTile(tester).value, isFalse);
     expect(tawcTile(tester).subtitle, l10n.phoneTawcHint);
-    await tester.tap(find.byType(Switch).last);
+    await tester.tap(find.byType(KitSwitch).last);
     await tester.pumpAndSettle();
     expect(bridge.tawcChanges, [true]);
     expect(bridge.changes, isEmpty);

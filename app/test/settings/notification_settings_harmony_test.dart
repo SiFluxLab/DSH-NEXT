@@ -4,6 +4,7 @@
 // no resume, so the status is read again when it closes.
 
 import 'package:dsh_app/l10n/l10n.dart';
+import 'package:dsh_app/ui/kit/kit.dart';
 import 'package:dsh_app/notify/notify_channel.dart';
 import 'package:dsh_app/runtime/runtime_bridge.dart';
 import 'package:dsh_app/runtime/runtime_state.dart';
@@ -111,7 +112,7 @@ void main() {
     final toggle = tester.widget<Switch>(
       find.descendant(
         of: find.ancestor(of: find.text(zh.harmonyLiveSwitch), matching: find.byType(SettingsSwitchTile)),
-        matching: find.byType(Switch),
+        matching: find.byType(KitSwitch),
       ),
     );
     expect(toggle.value, isTrue);
@@ -129,7 +130,7 @@ void main() {
   Switch progressSwitch(WidgetTester tester) => tester.widget<Switch>(
     find.descendant(
       of: find.ancestor(of: find.text(zh.harmonyLiveSwitch), matching: find.byType(SettingsSwitchTile)),
-      matching: find.byType(Switch),
+      matching: find.byType(KitSwitch),
     ),
   );
 

@@ -7,6 +7,7 @@
 // width evenly.
 
 import 'package:dsh_app/runtime/runtime_bridge.dart';
+import 'package:dsh_app/ui/kit/kit.dart';
 import 'package:dsh_app/runtime/runtime_state.dart';
 import 'package:dsh_app/ui/common/app_sheet.dart';
 import 'package:dsh_app/ui/common/list_page_row.dart';
@@ -50,7 +51,7 @@ Future<void> _pump(WidgetTester tester, Widget child, {double textScale = 1}) as
 }
 
 Rect _card(WidgetTester tester, Finder inside) =>
-    tester.getRect(find.ancestor(of: inside, matching: find.byType(GlassSurface)).first);
+    tester.getRect(find.ancestor(of: inside, matching: find.byType(KitCard)).first);
 
 void main() {
   testWidgets('rows: 16 from both card edges, 52 / 64 tall', (tester) async {
@@ -82,7 +83,7 @@ void main() {
     expect(tester.getRect(find.text('手机操控')).left, tester.getRect(find.text('引擎')).left);
 
     // Right: switch track, chevron ink and a bare value all end 16 in.
-    final sw = tester.getRect(find.byType(Switch));
+    final sw = tester.getRect(find.byType(KitSwitch));
     expect(
       card.right - (sw.right - 4),
       moreOrLessEquals(16, epsilon: _tol),
