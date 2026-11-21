@@ -58,6 +58,12 @@ class L10nZh extends L10n {
   String get a11yRestoreCopied => '授权命令已复制';
 
   @override
+  String get phoneAccentCobalt => '钴蓝';
+
+  @override
+  String get phoneAccentIris => '鸢尾';
+
+  @override
   String get accessPickTitle => '想让 DSH NEXT 帮你做哪些事';
 
   @override
@@ -3395,6 +3401,42 @@ class L10nZh extends L10n {
   String get brandZhihu => '知乎';
 
   @override
+  String get builtinPluginsTitle => '内置插件';
+
+  @override
+  String get builtinPluginsIntro => '关掉的插件会从界面里隐藏：模式、入口和深链都会停用。';
+
+  @override
+  String get builtinPluginsKeywords => '插件, 开关, 启用, 停用, 酒馆, 创意工坊, 伙伴小屋, 精简';
+
+  @override
+  String get builtinPluginsAllOn => '全部开启';
+
+  @override
+  String get builtinPluginsSomeOff => '有已关闭';
+
+  @override
+  String get builtinPluginsReset => '全部重新开启';
+
+  @override
+  String get builtinPluginKeepData => '关闭不会删除已有数据；重新开启后角色卡、对话、伙伴包都还在。';
+
+  @override
+  String get builtinPluginOffAction => '去设置里开启';
+
+  @override
+  String get builtinPluginOffMessage => '这个功能已经关闭。';
+
+  @override
+  String get builtinPluginTavernHint => '角色扮演：SillyTavern 兼容的角色卡、世界书与预设';
+
+  @override
+  String get builtinPluginWorkshopHint => '下载与投稿桌宠包、伙伴包（需要一个工坊服务端）';
+
+  @override
+  String get builtinPluginCompanionHint => '伙伴小屋：Live2D 舞台与长期角色';
+
+  @override
   String get catalogCurrentChat => '当前对话';
 
   @override
@@ -4784,6 +4826,14 @@ class L10nZh extends L10n {
   }
 
   @override
+  String get chatFoldCode => '收起长代码';
+
+  @override
+  String chatShowAllLines(int count) {
+    return '展开全部 $count 行';
+  }
+
+  @override
   String get commonCancel => '取消';
 
   @override
@@ -5867,6 +5917,24 @@ class L10nZh extends L10n {
   String get companionAdaptNetwork => '网络不通';
 
   @override
+  String get contextTideTitle => '上下文用量';
+
+  @override
+  String get contextTideUsed => '上次请求占用';
+
+  @override
+  String get contextTideCached => '其中命中缓存';
+
+  @override
+  String get contextTideOutput => '上次输出';
+
+  @override
+  String get contextTideWindow => '上下文窗口';
+
+  @override
+  String get contextTideUnknown => '这个模型未声明';
+
+  @override
   String get automaticDiagnosticsRecover => '恢复本地记录';
 
   @override
@@ -6004,6 +6072,30 @@ class L10nZh extends L10n {
 
   @override
   String get systemImeMemory => '证据仅存内存，重启清除；新采集会替换旧证据。仅手动“让 AI 看诊断”或导出 ZIP 时包含。清除不会撤回已写入的快照或导出文件。';
+
+  @override
+  String get drawerTabSessions => '会话';
+
+  @override
+  String get drawerTabFiles => '文件';
+
+  @override
+  String get drawerFilesEmptyTitle => '还没有打开的会话';
+
+  @override
+  String get drawerFilesEmptyNote => '选一个会话后，这里会列出它的工作区文件。';
+
+  @override
+  String get drawerPagerTitle => '侧边栏翻页器';
+
+  @override
+  String get drawerPagerHint => '顶上一排页签，左右滑动即可翻页';
+
+  @override
+  String get drawerPagerFooter => '关掉后侧边栏回到一屏到底的长列表；数据与操作完全不变。';
+
+  @override
+  String get stateDrawerFilterTitle => '筛选对话';
 
   @override
   String get engineNewChatDefaultsLast => '新对话默认（上次选择）';
@@ -10998,6 +11090,99 @@ class L10nZh extends L10n {
 
   @override
   String get nearbyChange => '更换';
+
+  @override
+  String get opticsTitle => '光感与动效';
+
+  @override
+  String get opticsFooter => '系统开启「移除动画」或关闭玻璃模糊时，这里的效果会自动减弱，不用手动关；换档位会重置下面的单项开关。';
+
+  @override
+  String get opticsPreset => '光感强度';
+
+  @override
+  String get opticsFull => '完整光感';
+
+  @override
+  String get opticsFocus => '专注';
+
+  @override
+  String get opticsSilent => '静默省电';
+
+  @override
+  String get opticsFullHint => '玻璃、光刃、颗粒与棱镜边缘全开，动画最丰富';
+
+  @override
+  String get opticsFocusHint => '玻璃与光刃保留，去掉颗粒，光刃只反映引擎状态';
+
+  @override
+  String get opticsSilentHint => '不做模糊、不画光刃，只留必要的描边与淡入';
+
+  @override
+  String get opticsBlade => '光刃';
+
+  @override
+  String get opticsBladeHint => '顶栏上沿的一道高光，反映引擎在空闲、生成、跑工具还是等你决定';
+
+  @override
+  String get opticsPrism => '棱镜边缘';
+
+  @override
+  String get opticsPrismHint => '玻璃边缘极淡的冷青/品红/暖金色散，只在深色背景上明显';
+
+  @override
+  String get opticsAnticipation => '预见性动画';
+
+  @override
+  String get opticsAnticipationHint => '目标页面的骨架与描边先就位，内容到达后再填入，避免空白跳变';
+
+  @override
+  String get opticsAfterglow => '边缘余晖';
+
+  @override
+  String get opticsAfterglowHint => '等待你决定、异常中止、后台任务完成时，屏幕边缘给一层极淡的光，不弹窗';
+
+  @override
+  String get opticsInkFade => '流光文字';
+
+  @override
+  String get opticsInkFadeHint => '流式输出的新字由淡到实，五级过渡，旧字不动';
+
+  @override
+  String get opticsFollowPreset => '跟随所选档位';
+
+  @override
+  String get opticsEffective => '当前生效';
+
+  @override
+  String get opticsOn => '开';
+
+  @override
+  String get opticsOff => '关';
+
+  @override
+  String get opticsBlockedNote => '有项目被系统偏好关闭（移除动画 / 降低透明度）';
+
+  @override
+  String get performanceMeasured => '实测';
+
+  @override
+  String get performanceMeasuredHint => '打开这一页才开始采样（最近 240 帧）。16.7 ms 是一帧的预算，掉帧比例超过 10% 说明这一档对当前设备偏重。';
+
+  @override
+  String get performanceMeasuredWaiting => '采样中，等一秒';
+
+  @override
+  String get performanceAvgFrame => '平均帧耗时';
+
+  @override
+  String get performanceP95Frame => '95 分位';
+
+  @override
+  String get performanceWorstFrame => '最差一帧';
+
+  @override
+  String get performanceJankRatio => '掉帧比例';
 
   @override
   String get performanceTitle => '性能';
@@ -16844,7 +17029,8 @@ class L10nZh extends L10n {
   String get remotePairNeedsDeepSeek => '先登录 DeepSeek 账号';
 
   @override
-  String get remotePairNeedsDeepSeekBody => '扫码配对要先在 DSH NEXT 里登录 DeepSeek 账号。配对时只附带账号 ID 用来标记这台手机，不传密码、Cookie 或 Token。';
+  String get remotePairNeedsDeepSeekBody =>
+      '扫码配对要先在 DSH NEXT 里登录 DeepSeek 账号。配对时只附带账号 ID 用来标记这台手机，不传密码、Cookie 或 Token。';
 
   @override
   String get remotePairScanHint => '对准电脑上 Remote 插件显示的配对二维码';
@@ -17153,6 +17339,33 @@ class L10nZh extends L10n {
 
   @override
   String get phoneRuntimeUpgradeRunning => '引擎或遗留进程尚未确认停止，更新未开始。请先停止本机引擎，等待清理完成后重试；不要重置环境。';
+
+  @override
+  String get sceneTitle => '一键设置';
+
+  @override
+  String get sceneFooter => '这三档会同时改光感、动画、玻璃模糊与刷新率；下面每一项仍可单独微调。';
+
+  @override
+  String get sceneCustomFooter => '你调过下面的细项，现在不在任何一档上；选一档可以一键回到该档的默认。';
+
+  @override
+  String get sceneFull => '完整光效';
+
+  @override
+  String get sceneFullHint => '玻璃、光刃、颗粒、棱镜全开，动画最丰富，刷新率跟满';
+
+  @override
+  String get sceneFocus => '专注';
+
+  @override
+  String get sceneFocusHint => '玻璃与光刃保留、去掉颗粒，动画只保留必要的反馈';
+
+  @override
+  String get sceneQuiet => '静默省电';
+
+  @override
+  String get sceneQuietHint => '不做模糊、不画光刃、关动画，刷新率交给系统';
 
   @override
   String get schemaDocumentationTitle => '字段说明';
@@ -19327,18 +19540,6 @@ class L10nZh extends L10n {
   String get statePreparing => '准备中';
 
   @override
-  String get stateIconMist => '雾蓝';
-
-  @override
-  String get stateIconNight => '夜幕';
-
-  @override
-  String get stateIconFrost => '霜白';
-
-  @override
-  String get stateIconInk => '墨';
-
-  @override
   String get stateAppDisclaimer => '基于 DeepSeek Harness 构建 · 非 DeepSeek 官方应用';
 
   @override
@@ -20355,6 +20556,30 @@ class L10nZh extends L10n {
 
   @override
   String get statePasteFailed => '无法读取剪贴板，请重试或手动输入。';
+
+  @override
+  String get stateIconInk => '玄墨';
+
+  @override
+  String get stateIconGold => '鎏金';
+
+  @override
+  String get surfacePaletteTitle => '表面配色';
+
+  @override
+  String get surfacePaletteFooter => '只换底色冷暖，与强调色分开；深浅仍由上面的「深色模式」决定。';
+
+  @override
+  String get surfaceObsidian => '黑曜';
+
+  @override
+  String get surfaceObsidianHint => '真中性近黑，冷调雾蓝浅底，四段表面阶梯';
+
+  @override
+  String get surfaceWarm => '暖炭';
+
+  @override
+  String get surfaceWarmHint => '暖炭褐底，暖白画册浅底，低蓝光夜间更舒服';
 
   @override
   String get systemActionsTitle => '系统操作';
@@ -24381,6 +24606,24 @@ class L10nZh extends L10n {
   }
 
   @override
+  String get uiKitTitle => '页签与分段';
+
+  @override
+  String get uiKitFooter => '两枚控件取自 obsidian-prism。关掉就回到我们原来的写法，功能不变。';
+
+  @override
+  String get uiKitSegmented => '页签胶囊';
+
+  @override
+  String get uiKitSegmentedHint => '一排小胶囊，选中靠底色点亮（工坊的三个视图先接它）';
+
+  @override
+  String get uiKitDual => '双极滑块';
+
+  @override
+  String get uiKitDualHint => '两格之间有一个会滑过去的滑块（上游默认关闭，属 Beta）';
+
+  @override
   String get updateCheck => '检查更新';
 
   @override
@@ -26598,96 +26841,6 @@ class L10nZh extends L10n {
   }
 
   @override
-  String get builtinPluginsTitle => '内置插件';
-  String get builtinPluginsIntro => '关掉的插件会从界面里隐藏：模式、入口和深链都会停用。';
-  String get builtinPluginsKeywords => '插件, 开关, 启用, 停用, 酒馆, 创意工坊, 伙伴小屋, 精简';
-  String get builtinPluginsAllOn => '全部开启';
-  String get builtinPluginsSomeOff => '有已关闭';
-  String get builtinPluginsReset => '全部重新开启';
-  String get builtinPluginKeepData => '关闭不会删除已有数据；重新开启后角色卡、对话、伙伴包都还在。';
-  String get builtinPluginOffAction => '去设置里开启';
-  String get builtinPluginOffMessage => '这个功能已经关闭。';
-  String get builtinPluginTavernHint => '角色扮演：SillyTavern 兼容的角色卡、世界书与预设';
-  String get builtinPluginWorkshopHint => '下载与投稿桌宠包、伙伴包（需要一个工坊服务端）';
-  String get builtinPluginCompanionHint => '伙伴小屋：Live2D 舞台与长期角色';
-  String get yinglongEngine => 'Zero Trap 引擎';
-  String get yinglongEngineHint => '在打过补丁的 glibc 上直接运行，不再经过 PRoot，系统调用快得多';
-  String get yinglongEngineUnavailable => '这个运行时没有对应架构的 Zero Trap，仍用 PRoot';
-  String get yinglongEngineFailedHint => '上次用 Zero Trap 没能起来，本次已退回兼容启动；重开 App 会再试一次';
-  String get opticsTitle => '光感与动效';
-  String get opticsFooter => '系统开启「移除动画」或关闭玻璃模糊时，这里的效果会自动减弱，不用手动关；换档位会重置下面的单项开关。';
-  String get opticsPreset => '光感强度';
-  String get opticsFull => '完整光感';
-  String get opticsFocus => '专注';
-  String get opticsSilent => '静默省电';
-  String get opticsFullHint => '玻璃、光刃、颗粒与棱镜边缘全开，动画最丰富';
-  String get opticsFocusHint => '玻璃与光刃保留，去掉颗粒，光刃只反映引擎状态';
-  String get opticsSilentHint => '不做模糊、不画光刃，只留必要的描边与淡入';
-  String get opticsBlade => '光刃';
-  String get opticsBladeHint => '顶栏上沿的一道高光，反映引擎在空闲、生成、跑工具还是等你决定';
-  String get opticsPrism => '棱镜边缘';
-  String get opticsPrismHint => '玻璃边缘极淡的冷青/品红/暖金色散，只在深色背景上明显';
-  String get opticsAnticipation => '预见性动画';
-  String get opticsAnticipationHint => '目标页面的骨架与描边先就位，内容到达后再填入，避免空白跳变';
-  String get opticsAfterglow => '边缘余晖';
-  String get opticsAfterglowHint => '等待你决定、异常中止、后台任务完成时，屏幕边缘给一层极淡的光，不弹窗';
-  String get opticsInkFade => '流光文字';
-  String get opticsInkFadeHint => '流式输出的新字由淡到实，五级过渡，旧字不动';
-  String get opticsFollowPreset => '跟随所选档位';
-  String get surfacePaletteTitle => '表面配色';
-  String get surfacePaletteFooter => '只换底色冷暖，与强调色分开；深浅仍由上面的「深色模式」决定。';
-  String get surfaceObsidian => '黑曜';
-  String get surfaceObsidianHint => '真中性近黑，冷调雾蓝浅底，四段表面阶梯';
-  String get surfaceWarm => '暖炭';
-  String get surfaceWarmHint => '暖炭褐底，暖白画册浅底，低蓝光夜间更舒服';
-  String get sceneTitle => '一键设置';
-  String get sceneFooter => '这三档会同时改光感、动画、玻璃模糊与刷新率；下面每一项仍可单独微调。';
-  String get sceneCustomFooter => '你调过下面的细项，现在不在任何一档上；选一档可以一键回到该档的默认。';
-  String get sceneFull => '完整光效';
-  String get sceneFullHint => '玻璃、光刃、颗粒、棱镜全开，动画最丰富，刷新率跟满';
-  String get sceneFocus => '专注';
-  String get sceneFocusHint => '玻璃与光刃保留、去掉颗粒，动画只保留必要的反馈';
-  String get sceneQuiet => '静默省电';
-  String get sceneQuietHint => '不做模糊、不画光刃、关动画，刷新率交给系统';
-  String get phoneAccentCobalt => '钴蓝';
-  String get phoneAccentIris => '鸢尾';
-  String get opticsEffective => '当前生效';
-  String get opticsOn => '开';
-  String get opticsOff => '关';
-  String get performanceMeasured => '实测';
-  String get performanceMeasuredHint => '打开这一页才开始采样（最近 240 帧）。16.7 ms 是一帧的预算，掉帧比例超过 10% 说明这一档对当前设备偏重。';
-  String get performanceMeasuredWaiting => '采样中，等一秒';
-  String get performanceAvgFrame => '平均帧耗时';
-  String get performanceP95Frame => '95 分位';
-  String get performanceWorstFrame => '最差一帧';
-  String get performanceJankRatio => '掉帧比例';
-  String get opticsBlockedNote => '有项目被系统偏好关闭（移除动画 / 降低透明度）';
-  String get drawerTabSessions => '会话';
-  String get drawerTabFiles => '文件';
-  String get drawerFilesEmptyTitle => '还没有打开的会话';
-  String get drawerFilesEmptyNote => '选一个会话后，这里会列出它的工作区文件。';
-  String get drawerPagerTitle => '侧边栏翻页器';
-  String get drawerPagerHint => '顶上一排页签，左右滑动即可翻页';
-  String get drawerPagerFooter => '关掉后侧边栏回到一屏到底的长列表；数据与操作完全不变。';
-  String get contextTideTitle => '上下文用量';
-  String get contextTideUsed => '上次请求占用';
-  String get contextTideCached => '其中命中缓存';
-  String get contextTideOutput => '上次输出';
-  String get contextTideWindow => '上下文窗口';
-  String get contextTideUnknown => '这个模型未声明';
-  String get chatFoldCode => '收起长代码';
-  String chatShowAllLines(int count) => '展开全部 $count 行';
-  String get stateDrawerFilterTitle => '筛选对话';
-  String get uiKitTitle => '页签与分段';
-  String get uiKitFooter => '两枚控件取自 obsidian-prism。关掉就回到我们原来的写法，功能不变。';
-  String get uiKitSegmented => '页签胶囊';
-  String get uiKitSegmentedHint => '一排小胶囊，选中靠底色点亮（工坊的三个视图先接它）';
-  String get uiKitDual => '双极滑块';
-  String get uiKitDualHint => '两格之间有一个会滑过去的滑块（上游默认关闭，属 Beta）';
-  String get launchEngine => '兼容启动';
-  String get launchEngineZeroTrap => 'Zero Trap';
-  String get launchEngineZeroTrapHint => '默认。打过补丁的 glibc，路径翻译在进程内完成，启动最快';
-  String get launchEngineTawc => 'TawcRoot';
   String get workshopTitle => '创意工坊';
 
   @override
@@ -27737,4 +27890,28 @@ class L10nZh extends L10n {
 
   @override
   String get workspaceRecoveryFailed => '操作未完成，请查看本机引擎状态和日志。已切换的模式可在本页确认。';
+
+  @override
+  String get yinglongEngine => 'Zero Trap 引擎';
+
+  @override
+  String get yinglongEngineHint => '在打过补丁的 glibc 上直接运行，不再经过 PRoot，系统调用快得多';
+
+  @override
+  String get yinglongEngineUnavailable => '这个运行时没有对应架构的 Zero Trap，仍用 PRoot';
+
+  @override
+  String get yinglongEngineFailedHint => '上次用 Zero Trap 没能起来，本次已退回兼容启动；重开 App 会再试一次';
+
+  @override
+  String get launchEngine => '兼容启动';
+
+  @override
+  String get launchEngineZeroTrap => 'Zero Trap';
+
+  @override
+  String get launchEngineZeroTrapHint => '默认。打过补丁的 glibc，路径翻译在进程内完成，启动最快';
+
+  @override
+  String get launchEngineTawc => 'TawcRoot';
 }

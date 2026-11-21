@@ -60,6 +60,12 @@ class L10nEn extends L10n {
   String get a11yRestoreCopied => 'Command copied';
 
   @override
+  String get phoneAccentCobalt => 'Cobalt';
+
+  @override
+  String get phoneAccentIris => 'Iris';
+
+  @override
   String get accessPickTitle => 'What should DSH NEXT help with?';
 
   @override
@@ -3581,6 +3587,44 @@ class L10nEn extends L10n {
   String get brandZhihu => 'Zhihu';
 
   @override
+  String get builtinPluginsTitle => 'Built-in plugins';
+
+  @override
+  String get builtinPluginsIntro =>
+      'A plugin that is off disappears from the app: its mode, entries and links stop working.';
+
+  @override
+  String get builtinPluginsKeywords => 'plugin, switch, enable, disable, tavern, workshop, companion, lite';
+
+  @override
+  String get builtinPluginsAllOn => 'All on';
+
+  @override
+  String get builtinPluginsSomeOff => 'Some off';
+
+  @override
+  String get builtinPluginsReset => 'Turn everything back on';
+
+  @override
+  String get builtinPluginKeepData =>
+      'Turning one off deletes nothing; cards, chats and packs come back when it is on again.';
+
+  @override
+  String get builtinPluginOffAction => 'Turn it on in settings';
+
+  @override
+  String get builtinPluginOffMessage => 'This feature is switched off.';
+
+  @override
+  String get builtinPluginTavernHint => 'Role play: SillyTavern-compatible cards, lorebooks and presets';
+
+  @override
+  String get builtinPluginWorkshopHint => 'Download and publish pet and companion packs (needs a workshop server)';
+
+  @override
+  String get builtinPluginCompanionHint => 'Companion room: a Live2D stage and a long-lived character';
+
+  @override
   String get catalogCurrentChat => 'Current chat';
 
   @override
@@ -5096,6 +5140,14 @@ class L10nEn extends L10n {
   }
 
   @override
+  String get chatFoldCode => 'Collapse long code';
+
+  @override
+  String chatShowAllLines(int count) {
+    return 'Show all $count lines';
+  }
+
+  @override
   String get commonCancel => 'Cancel';
 
   @override
@@ -6222,6 +6274,24 @@ class L10nEn extends L10n {
   String get companionAdaptNetwork => 'no connection';
 
   @override
+  String get contextTideTitle => 'Context use';
+
+  @override
+  String get contextTideUsed => 'Last request';
+
+  @override
+  String get contextTideCached => 'of which cached';
+
+  @override
+  String get contextTideOutput => 'Last output';
+
+  @override
+  String get contextTideWindow => 'Context window';
+
+  @override
+  String get contextTideUnknown => 'not declared for this model';
+
+  @override
   String get automaticDiagnosticsRecover => 'Recover local records';
 
   @override
@@ -6367,6 +6437,31 @@ class L10nEn extends L10n {
   @override
   String get systemImeMemory =>
       'Memory only; cleared on restart. A new capture replaces old evidence. Included only in manual AI diagnostics or ZIP exports. Clearing does not retract snapshots or files already exported.';
+
+  @override
+  String get drawerTabSessions => 'Sessions';
+
+  @override
+  String get drawerTabFiles => 'Files';
+
+  @override
+  String get drawerFilesEmptyTitle => 'No conversation open';
+
+  @override
+  String get drawerFilesEmptyNote => 'Pick a conversation and its workspace files appear here.';
+
+  @override
+  String get drawerPagerTitle => 'Sidebar pager';
+
+  @override
+  String get drawerPagerHint => 'A row of tabs on top; swipe left and right to turn pages';
+
+  @override
+  String get drawerPagerFooter =>
+      'Turned off, the sidebar goes back to a single long list. Nothing about your data or actions changes.';
+
+  @override
+  String get stateDrawerFilterTitle => 'Filter conversations';
 
   @override
   String get engineNewChatDefaultsLast => 'New chat defaults (last choice)';
@@ -11591,6 +11686,106 @@ class L10nEn extends L10n {
 
   @override
   String get nearbyChange => 'Change';
+
+  @override
+  String get opticsTitle => 'Light and motion';
+
+  @override
+  String get opticsFooter =>
+      'Effects step down on their own when the system turns off animations or glass blur; changing the preset resets the switches below.';
+
+  @override
+  String get opticsPreset => 'Intensity';
+
+  @override
+  String get opticsFull => 'Full';
+
+  @override
+  String get opticsFocus => 'Focus';
+
+  @override
+  String get opticsSilent => 'Quiet';
+
+  @override
+  String get opticsFullHint => 'Glass, the light blade, grain and prism edges, with every animation';
+
+  @override
+  String get opticsFocusHint => 'Glass and the light blade stay, grain goes, and the blade only tracks the engine';
+
+  @override
+  String get opticsSilentHint => 'No blur, no blade: just the strokes and fades a screen needs';
+
+  @override
+  String get opticsBlade => 'Light blade';
+
+  @override
+  String get opticsBladeHint =>
+      'A hairline highlight on the top edge that shows whether the engine is idle, streaming, running tools or waiting on you';
+
+  @override
+  String get opticsPrism => 'Prism edge';
+
+  @override
+  String get opticsPrismHint =>
+      'A very faint cyan / magenta / gold dispersion on glass edges, visible mostly on dark backgrounds';
+
+  @override
+  String get opticsAnticipation => 'Anticipatory motion';
+
+  @override
+  String get opticsAnticipationHint =>
+      'The next screen\'s skeleton and strokes take their place first, so content lands in a settled layout';
+
+  @override
+  String get opticsAfterglow => 'Edge afterglow';
+
+  @override
+  String get opticsAfterglowHint =>
+      'A faint rim of light for waiting-on-you, aborted and finished-in-background states, instead of a dialog';
+
+  @override
+  String get opticsInkFade => 'Ink fade';
+
+  @override
+  String get opticsInkFadeHint =>
+      'Streamed text arrives from light to solid in five steps; existing text never re-animates';
+
+  @override
+  String get opticsFollowPreset => 'Follow the preset';
+
+  @override
+  String get opticsEffective => 'In effect';
+
+  @override
+  String get opticsOn => 'on';
+
+  @override
+  String get opticsOff => 'off';
+
+  @override
+  String get opticsBlockedNote => 'Some items are off because the system asked for less motion or transparency';
+
+  @override
+  String get performanceMeasured => 'Measured';
+
+  @override
+  String get performanceMeasuredHint =>
+      'Sampling starts when this page opens (last 240 frames). 16.7 ms is the per-frame budget; a jank ratio above 10% means this mode is heavy for the device.';
+
+  @override
+  String get performanceMeasuredWaiting => 'Sampling, one moment';
+
+  @override
+  String get performanceAvgFrame => 'Average frame';
+
+  @override
+  String get performanceP95Frame => '95th percentile';
+
+  @override
+  String get performanceWorstFrame => 'Worst frame';
+
+  @override
+  String get performanceJankRatio => 'Jank ratio';
 
   @override
   String get performanceTitle => 'Performance';
@@ -18077,6 +18272,35 @@ class L10nEn extends L10n {
       'The engine or a leftover process has not been confirmed stopped. The update has not started. Stop the local engine and wait for cleanup before retrying; do not reset the environment.';
 
   @override
+  String get sceneTitle => 'One-tap setup';
+
+  @override
+  String get sceneFooter =>
+      'These three change light, motion, glass blur and refresh rate together; every item below can still be tuned on its own.';
+
+  @override
+  String get sceneCustomFooter =>
+      'You have tuned the items below, so you are not on a preset; pick one to return to its defaults.';
+
+  @override
+  String get sceneFull => 'Full effect';
+
+  @override
+  String get sceneFullHint => 'Glass, blade, grain and prism on, the richest motion, refresh rate unthrottled';
+
+  @override
+  String get sceneFocus => 'Focus';
+
+  @override
+  String get sceneFocusHint => 'Glass and blade stay, grain goes, motion keeps only the feedback that matters';
+
+  @override
+  String get sceneQuiet => 'Quiet and thrifty';
+
+  @override
+  String get sceneQuietHint => 'No blur, no blade, no animations, refresh rate left to the system';
+
+  @override
   String get schemaDocumentationTitle => 'Field descriptions';
 
   @override
@@ -20397,18 +20621,6 @@ class L10nEn extends L10n {
   String get statePreparing => 'Provisioning';
 
   @override
-  String get stateIconMist => 'Mist blue';
-
-  @override
-  String get stateIconNight => 'Nightfall';
-
-  @override
-  String get stateIconFrost => 'Frost white';
-
-  @override
-  String get stateIconInk => 'Ink';
-
-  @override
   String get stateAppDisclaimer => 'Built on DeepSeek Harness · Unofficial DeepSeek app';
 
   @override
@@ -21494,6 +21706,31 @@ class L10nEn extends L10n {
 
   @override
   String get statePasteFailed => 'Could not read the clipboard. Try again or enter the text manually.';
+
+  @override
+  String get stateIconInk => 'Ink';
+
+  @override
+  String get stateIconGold => 'Gold';
+
+  @override
+  String get surfacePaletteTitle => 'Surface palette';
+
+  @override
+  String get surfacePaletteFooter =>
+      'Only the warmth of the background changes; accents stay separate and dark/light is still the switch above.';
+
+  @override
+  String get surfaceObsidian => 'Obsidian';
+
+  @override
+  String get surfaceObsidianHint => 'True neutral near-black, cool mist in daylight, a four-step surface ladder';
+
+  @override
+  String get surfaceWarm => 'Warm charcoal';
+
+  @override
+  String get surfaceWarmHint => 'Warm charcoal at night, album white in daylight, easier on the eyes after dark';
 
   @override
   String get systemActionsTitle => 'System actions';
@@ -25695,6 +25932,26 @@ class L10nEn extends L10n {
   }
 
   @override
+  String get uiKitTitle => 'Tabs and segments';
+
+  @override
+  String get uiKitFooter =>
+      'Both controls come from obsidian-prism. Turned off, the previous control is used and nothing else changes.';
+
+  @override
+  String get uiKitSegmented => 'Capsule tabs';
+
+  @override
+  String get uiKitSegmentedHint =>
+      'Small capsules where the selected one lights up (the workshop\'s three views use it first)';
+
+  @override
+  String get uiKitDual => 'Two-pole slider';
+
+  @override
+  String get uiKitDualHint => 'A knob that travels between two cells (off by default upstream, it is beta there)';
+
+  @override
   String get updateCheck => 'Check for updates';
 
   @override
@@ -28036,96 +28293,6 @@ class L10nEn extends L10n {
   }
 
   @override
-  String get builtinPluginsTitle => 'Built-in plugins';
-  String get builtinPluginsIntro => 'A plugin that is off disappears from the app: its mode, entries and links stop working.';
-  String get builtinPluginsKeywords => 'plugin, switch, enable, disable, tavern, workshop, companion, lite';
-  String get builtinPluginsAllOn => 'All on';
-  String get builtinPluginsSomeOff => 'Some off';
-  String get builtinPluginsReset => 'Turn everything back on';
-  String get builtinPluginKeepData => 'Turning one off deletes nothing; cards, chats and packs come back when it is on again.';
-  String get builtinPluginOffAction => 'Turn it on in settings';
-  String get builtinPluginOffMessage => 'This feature is switched off.';
-  String get builtinPluginTavernHint => 'Role play: SillyTavern-compatible cards, lorebooks and presets';
-  String get builtinPluginWorkshopHint => 'Download and publish pet and companion packs (needs a workshop server)';
-  String get builtinPluginCompanionHint => 'Companion room: a Live2D stage and a long-lived character';
-  String get yinglongEngine => 'Zero Trap engine';
-  String get yinglongEngineHint => 'Runs on the patched glibc instead of PRoot, so syscalls cost far less';
-  String get yinglongEngineUnavailable => 'This runtime has no Zero Trap build for this ABI; PRoot stays in use';
-  String get yinglongEngineFailedHint => 'The Zero Trap launch did not come up, so this session fell back; reopening the app tries again';
-  String get opticsTitle => 'Light and motion';
-  String get opticsFooter => 'Effects step down on their own when the system turns off animations or glass blur; changing the preset resets the switches below.';
-  String get opticsPreset => 'Intensity';
-  String get opticsFull => 'Full';
-  String get opticsFocus => 'Focus';
-  String get opticsSilent => 'Quiet';
-  String get opticsFullHint => 'Glass, the light blade, grain and prism edges, with every animation';
-  String get opticsFocusHint => 'Glass and the light blade stay, grain goes, and the blade only tracks the engine';
-  String get opticsSilentHint => 'No blur, no blade: just the strokes and fades a screen needs';
-  String get opticsBlade => 'Light blade';
-  String get opticsBladeHint => 'A hairline highlight on the top edge that shows whether the engine is idle, streaming, running tools or waiting on you';
-  String get opticsPrism => 'Prism edge';
-  String get opticsPrismHint => 'A very faint cyan / magenta / gold dispersion on glass edges, visible mostly on dark backgrounds';
-  String get opticsAnticipation => 'Anticipatory motion';
-  String get opticsAnticipationHint => 'The next screen\'s skeleton and strokes take their place first, so content lands in a settled layout';
-  String get opticsAfterglow => 'Edge afterglow';
-  String get opticsAfterglowHint => 'A faint rim of light for waiting-on-you, aborted and finished-in-background states, instead of a dialog';
-  String get opticsInkFade => 'Ink fade';
-  String get opticsInkFadeHint => 'Streamed text arrives from light to solid in five steps; existing text never re-animates';
-  String get opticsFollowPreset => 'Follow the preset';
-  String get surfacePaletteTitle => 'Surface palette';
-  String get surfacePaletteFooter => 'Only the warmth of the background changes; accents stay separate and dark/light is still the switch above.';
-  String get surfaceObsidian => 'Obsidian';
-  String get surfaceObsidianHint => 'True neutral near-black, cool mist in daylight, a four-step surface ladder';
-  String get surfaceWarm => 'Warm charcoal';
-  String get surfaceWarmHint => 'Warm charcoal at night, album white in daylight, easier on the eyes after dark';
-  String get sceneTitle => 'One-tap setup';
-  String get sceneFooter => 'These three change light, motion, glass blur and refresh rate together; every item below can still be tuned on its own.';
-  String get sceneCustomFooter => 'You have tuned the items below, so you are not on a preset; pick one to return to its defaults.';
-  String get sceneFull => 'Full effect';
-  String get sceneFullHint => 'Glass, blade, grain and prism on, the richest motion, refresh rate unthrottled';
-  String get sceneFocus => 'Focus';
-  String get sceneFocusHint => 'Glass and blade stay, grain goes, motion keeps only the feedback that matters';
-  String get sceneQuiet => 'Quiet and thrifty';
-  String get sceneQuietHint => 'No blur, no blade, no animations, refresh rate left to the system';
-  String get phoneAccentCobalt => 'Cobalt';
-  String get phoneAccentIris => 'Iris';
-  String get opticsEffective => 'In effect';
-  String get opticsOn => 'on';
-  String get opticsOff => 'off';
-  String get performanceMeasured => 'Measured';
-  String get performanceMeasuredHint => 'Sampling starts when this page opens (last 240 frames). 16.7 ms is the per-frame budget; a jank ratio above 10% means this mode is heavy for the device.';
-  String get performanceMeasuredWaiting => 'Sampling, one moment';
-  String get performanceAvgFrame => 'Average frame';
-  String get performanceP95Frame => '95th percentile';
-  String get performanceWorstFrame => 'Worst frame';
-  String get performanceJankRatio => 'Jank ratio';
-  String get opticsBlockedNote => 'Some items are off because the system asked for less motion or transparency';
-  String get drawerTabSessions => 'Sessions';
-  String get drawerTabFiles => 'Files';
-  String get drawerFilesEmptyTitle => 'No conversation open';
-  String get drawerFilesEmptyNote => 'Pick a conversation and its workspace files appear here.';
-  String get drawerPagerTitle => 'Sidebar pager';
-  String get drawerPagerHint => 'A row of tabs on top; swipe left and right to turn pages';
-  String get drawerPagerFooter => 'Turned off, the sidebar goes back to a single long list. Nothing about your data or actions changes.';
-  String get contextTideTitle => 'Context use';
-  String get contextTideUsed => 'Last request';
-  String get contextTideCached => 'of which cached';
-  String get contextTideOutput => 'Last output';
-  String get contextTideWindow => 'Context window';
-  String get contextTideUnknown => 'not declared for this model';
-  String get chatFoldCode => 'Collapse long code';
-  String chatShowAllLines(int count) => 'Show all $count lines';
-  String get stateDrawerFilterTitle => 'Filter conversations';
-  String get uiKitTitle => 'Tabs and segments';
-  String get uiKitFooter => 'Both controls come from obsidian-prism. Turned off, the previous control is used and nothing else changes.';
-  String get uiKitSegmented => 'Capsule tabs';
-  String get uiKitSegmentedHint => 'Small capsules where the selected one lights up (the workshop\'s three views use it first)';
-  String get uiKitDual => 'Two-pole slider';
-  String get uiKitDualHint => 'A knob that travels between two cells (off by default upstream, it is beta there)';
-  String get launchEngine => 'Compatible launch';
-  String get launchEngineZeroTrap => 'Zero Trap';
-  String get launchEngineZeroTrapHint => 'Default. Patched glibc with in-process path translation, the fastest start';
-  String get launchEngineTawc => 'TawcRoot';
   String get workshopTitle => 'Workshop';
 
   @override
@@ -29226,4 +29393,29 @@ class L10nEn extends L10n {
   @override
   String get workspaceRecoveryFailed =>
       'The operation did not finish. Check the local engine status and logs. This page shows whether the index mode changed.';
+
+  @override
+  String get yinglongEngine => 'Zero Trap engine';
+
+  @override
+  String get yinglongEngineHint => 'Runs on the patched glibc instead of PRoot, so syscalls cost far less';
+
+  @override
+  String get yinglongEngineUnavailable => 'This runtime has no Zero Trap build for this ABI; PRoot stays in use';
+
+  @override
+  String get yinglongEngineFailedHint =>
+      'The Zero Trap launch did not come up, so this session fell back; reopening the app tries again';
+
+  @override
+  String get launchEngine => 'Compatible launch';
+
+  @override
+  String get launchEngineZeroTrap => 'Zero Trap';
+
+  @override
+  String get launchEngineZeroTrapHint => 'Default. Patched glibc with in-process path translation, the fastest start';
+
+  @override
+  String get launchEngineTawc => 'TawcRoot';
 }

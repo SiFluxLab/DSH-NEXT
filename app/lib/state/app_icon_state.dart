@@ -1,4 +1,4 @@
-// 桌面图标: which of the four launcher icons the phone shows. Native side:
+// 桌面图标: which of the two launcher icons the phone shows. Native side:
 // android/.../icons/ (LauncherIconPlugin, LauncherIcons; MethodChannel
 // `dsh/launcher_icon`), one <activity-alias> per icon; on HarmonyOS
 // ohos/.../LauncherIconPlugin.ets, the system's alternate icons.
@@ -13,15 +13,16 @@ import '../l10n/l10n.dart';
 /// The launcher icons, in the picker's order. [mist] is every install's.
 enum AppIcon {
   mist,
-  night,
-  frost,
-  ink;
+  night;
 
+  /// 展示名跟着**画出来的样子**走，不跟着 id 走。
+  ///
+  /// id（mist / night）是原生 activity-alias 的名字，改它会牵动 AndroidManifest，
+  /// 所以保持不变；但图标本身换过：mist 现在是墨褐底（#1B1710），night 是香槟金底
+  /// （#FFFBE5→#FFEDC4）。旧名字"雾蓝 / 夜幕"与新画面对不上，会让人选错。
   String get label => switch (this) {
-    mist => appL10n.stateIconMist,
-    night => appL10n.stateIconNight,
-    frost => appL10n.stateIconFrost,
-    ink => appL10n.stateIconInk,
+    mist => appL10n.stateIconInk,
+    night => appL10n.stateIconGold,
   };
 
   static AppIcon? byId(Object? id) {

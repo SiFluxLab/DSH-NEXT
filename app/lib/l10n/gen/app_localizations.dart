@@ -188,6 +188,18 @@ abstract class L10n {
   /// **'授权命令已复制'**
   String get a11yRestoreCopied;
 
+  /// No description provided for @phoneAccentCobalt.
+  ///
+  /// In zh, this message translates to:
+  /// **'钴蓝'**
+  String get phoneAccentCobalt;
+
+  /// No description provided for @phoneAccentIris.
+  ///
+  /// In zh, this message translates to:
+  /// **'鸢尾'**
+  String get phoneAccentIris;
+
   /// No description provided for @accessPickTitle.
   ///
   /// In zh, this message translates to:
@@ -6260,6 +6272,78 @@ abstract class L10n {
   /// **'知乎'**
   String get brandZhihu;
 
+  /// No description provided for @builtinPluginsTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'内置插件'**
+  String get builtinPluginsTitle;
+
+  /// No description provided for @builtinPluginsIntro.
+  ///
+  /// In zh, this message translates to:
+  /// **'关掉的插件会从界面里隐藏：模式、入口和深链都会停用。'**
+  String get builtinPluginsIntro;
+
+  /// No description provided for @builtinPluginsKeywords.
+  ///
+  /// In zh, this message translates to:
+  /// **'插件, 开关, 启用, 停用, 酒馆, 创意工坊, 伙伴小屋, 精简'**
+  String get builtinPluginsKeywords;
+
+  /// No description provided for @builtinPluginsAllOn.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部开启'**
+  String get builtinPluginsAllOn;
+
+  /// No description provided for @builtinPluginsSomeOff.
+  ///
+  /// In zh, this message translates to:
+  /// **'有已关闭'**
+  String get builtinPluginsSomeOff;
+
+  /// No description provided for @builtinPluginsReset.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部重新开启'**
+  String get builtinPluginsReset;
+
+  /// No description provided for @builtinPluginKeepData.
+  ///
+  /// In zh, this message translates to:
+  /// **'关闭不会删除已有数据；重新开启后角色卡、对话、伙伴包都还在。'**
+  String get builtinPluginKeepData;
+
+  /// No description provided for @builtinPluginOffAction.
+  ///
+  /// In zh, this message translates to:
+  /// **'去设置里开启'**
+  String get builtinPluginOffAction;
+
+  /// No description provided for @builtinPluginOffMessage.
+  ///
+  /// In zh, this message translates to:
+  /// **'这个功能已经关闭。'**
+  String get builtinPluginOffMessage;
+
+  /// No description provided for @builtinPluginTavernHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'角色扮演：SillyTavern 兼容的角色卡、世界书与预设'**
+  String get builtinPluginTavernHint;
+
+  /// No description provided for @builtinPluginWorkshopHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'下载与投稿桌宠包、伙伴包（需要一个工坊服务端）'**
+  String get builtinPluginWorkshopHint;
+
+  /// No description provided for @builtinPluginCompanionHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'伙伴小屋：Live2D 舞台与长期角色'**
+  String get builtinPluginCompanionHint;
+
   /// No description provided for @catalogCurrentChat.
   ///
   /// In zh, this message translates to:
@@ -8798,6 +8882,18 @@ abstract class L10n {
   /// **'{name}，{description}'**
   String chatArtifactSemantics(String name, String description);
 
+  /// No description provided for @chatFoldCode.
+  ///
+  /// In zh, this message translates to:
+  /// **'收起长代码'**
+  String get chatFoldCode;
+
+  /// No description provided for @chatShowAllLines.
+  ///
+  /// In zh, this message translates to:
+  /// **'展开全部 {count} 行'**
+  String chatShowAllLines(int count);
+
   /// No description provided for @commonCancel.
   ///
   /// In zh, this message translates to:
@@ -10898,6 +10994,42 @@ abstract class L10n {
   /// **'网络不通'**
   String get companionAdaptNetwork;
 
+  /// No description provided for @contextTideTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'上下文用量'**
+  String get contextTideTitle;
+
+  /// No description provided for @contextTideUsed.
+  ///
+  /// In zh, this message translates to:
+  /// **'上次请求占用'**
+  String get contextTideUsed;
+
+  /// No description provided for @contextTideCached.
+  ///
+  /// In zh, this message translates to:
+  /// **'其中命中缓存'**
+  String get contextTideCached;
+
+  /// No description provided for @contextTideOutput.
+  ///
+  /// In zh, this message translates to:
+  /// **'上次输出'**
+  String get contextTideOutput;
+
+  /// No description provided for @contextTideWindow.
+  ///
+  /// In zh, this message translates to:
+  /// **'上下文窗口'**
+  String get contextTideWindow;
+
+  /// No description provided for @contextTideUnknown.
+  ///
+  /// In zh, this message translates to:
+  /// **'这个模型未声明'**
+  String get contextTideUnknown;
+
   /// No description provided for @automaticDiagnosticsRecover.
   ///
   /// In zh, this message translates to:
@@ -11173,6 +11305,54 @@ abstract class L10n {
   /// In zh, this message translates to:
   /// **'证据仅存内存，重启清除；新采集会替换旧证据。仅手动“让 AI 看诊断”或导出 ZIP 时包含。清除不会撤回已写入的快照或导出文件。'**
   String get systemImeMemory;
+
+  /// No description provided for @drawerTabSessions.
+  ///
+  /// In zh, this message translates to:
+  /// **'会话'**
+  String get drawerTabSessions;
+
+  /// No description provided for @drawerTabFiles.
+  ///
+  /// In zh, this message translates to:
+  /// **'文件'**
+  String get drawerTabFiles;
+
+  /// No description provided for @drawerFilesEmptyTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'还没有打开的会话'**
+  String get drawerFilesEmptyTitle;
+
+  /// No description provided for @drawerFilesEmptyNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'选一个会话后，这里会列出它的工作区文件。'**
+  String get drawerFilesEmptyNote;
+
+  /// No description provided for @drawerPagerTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'侧边栏翻页器'**
+  String get drawerPagerTitle;
+
+  /// No description provided for @drawerPagerHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'顶上一排页签，左右滑动即可翻页'**
+  String get drawerPagerHint;
+
+  /// No description provided for @drawerPagerFooter.
+  ///
+  /// In zh, this message translates to:
+  /// **'关掉后侧边栏回到一屏到底的长列表；数据与操作完全不变。'**
+  String get drawerPagerFooter;
+
+  /// No description provided for @stateDrawerFilterTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'筛选对话'**
+  String get stateDrawerFilterTitle;
 
   /// No description provided for @engineNewChatDefaultsLast.
   ///
@@ -20425,6 +20605,192 @@ abstract class L10n {
   /// In zh, this message translates to:
   /// **'更换'**
   String get nearbyChange;
+
+  /// No description provided for @opticsTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'光感与动效'**
+  String get opticsTitle;
+
+  /// No description provided for @opticsFooter.
+  ///
+  /// In zh, this message translates to:
+  /// **'系统开启「移除动画」或关闭玻璃模糊时，这里的效果会自动减弱，不用手动关；换档位会重置下面的单项开关。'**
+  String get opticsFooter;
+
+  /// No description provided for @opticsPreset.
+  ///
+  /// In zh, this message translates to:
+  /// **'光感强度'**
+  String get opticsPreset;
+
+  /// No description provided for @opticsFull.
+  ///
+  /// In zh, this message translates to:
+  /// **'完整光感'**
+  String get opticsFull;
+
+  /// No description provided for @opticsFocus.
+  ///
+  /// In zh, this message translates to:
+  /// **'专注'**
+  String get opticsFocus;
+
+  /// No description provided for @opticsSilent.
+  ///
+  /// In zh, this message translates to:
+  /// **'静默省电'**
+  String get opticsSilent;
+
+  /// No description provided for @opticsFullHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'玻璃、光刃、颗粒与棱镜边缘全开，动画最丰富'**
+  String get opticsFullHint;
+
+  /// No description provided for @opticsFocusHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'玻璃与光刃保留，去掉颗粒，光刃只反映引擎状态'**
+  String get opticsFocusHint;
+
+  /// No description provided for @opticsSilentHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'不做模糊、不画光刃，只留必要的描边与淡入'**
+  String get opticsSilentHint;
+
+  /// No description provided for @opticsBlade.
+  ///
+  /// In zh, this message translates to:
+  /// **'光刃'**
+  String get opticsBlade;
+
+  /// No description provided for @opticsBladeHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'顶栏上沿的一道高光，反映引擎在空闲、生成、跑工具还是等你决定'**
+  String get opticsBladeHint;
+
+  /// No description provided for @opticsPrism.
+  ///
+  /// In zh, this message translates to:
+  /// **'棱镜边缘'**
+  String get opticsPrism;
+
+  /// No description provided for @opticsPrismHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'玻璃边缘极淡的冷青/品红/暖金色散，只在深色背景上明显'**
+  String get opticsPrismHint;
+
+  /// No description provided for @opticsAnticipation.
+  ///
+  /// In zh, this message translates to:
+  /// **'预见性动画'**
+  String get opticsAnticipation;
+
+  /// No description provided for @opticsAnticipationHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'目标页面的骨架与描边先就位，内容到达后再填入，避免空白跳变'**
+  String get opticsAnticipationHint;
+
+  /// No description provided for @opticsAfterglow.
+  ///
+  /// In zh, this message translates to:
+  /// **'边缘余晖'**
+  String get opticsAfterglow;
+
+  /// No description provided for @opticsAfterglowHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'等待你决定、异常中止、后台任务完成时，屏幕边缘给一层极淡的光，不弹窗'**
+  String get opticsAfterglowHint;
+
+  /// No description provided for @opticsInkFade.
+  ///
+  /// In zh, this message translates to:
+  /// **'流光文字'**
+  String get opticsInkFade;
+
+  /// No description provided for @opticsInkFadeHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'流式输出的新字由淡到实，五级过渡，旧字不动'**
+  String get opticsInkFadeHint;
+
+  /// No description provided for @opticsFollowPreset.
+  ///
+  /// In zh, this message translates to:
+  /// **'跟随所选档位'**
+  String get opticsFollowPreset;
+
+  /// No description provided for @opticsEffective.
+  ///
+  /// In zh, this message translates to:
+  /// **'当前生效'**
+  String get opticsEffective;
+
+  /// No description provided for @opticsOn.
+  ///
+  /// In zh, this message translates to:
+  /// **'开'**
+  String get opticsOn;
+
+  /// No description provided for @opticsOff.
+  ///
+  /// In zh, this message translates to:
+  /// **'关'**
+  String get opticsOff;
+
+  /// No description provided for @opticsBlockedNote.
+  ///
+  /// In zh, this message translates to:
+  /// **'有项目被系统偏好关闭（移除动画 / 降低透明度）'**
+  String get opticsBlockedNote;
+
+  /// No description provided for @performanceMeasured.
+  ///
+  /// In zh, this message translates to:
+  /// **'实测'**
+  String get performanceMeasured;
+
+  /// No description provided for @performanceMeasuredHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'打开这一页才开始采样（最近 240 帧）。16.7 ms 是一帧的预算，掉帧比例超过 10% 说明这一档对当前设备偏重。'**
+  String get performanceMeasuredHint;
+
+  /// No description provided for @performanceMeasuredWaiting.
+  ///
+  /// In zh, this message translates to:
+  /// **'采样中，等一秒'**
+  String get performanceMeasuredWaiting;
+
+  /// No description provided for @performanceAvgFrame.
+  ///
+  /// In zh, this message translates to:
+  /// **'平均帧耗时'**
+  String get performanceAvgFrame;
+
+  /// No description provided for @performanceP95Frame.
+  ///
+  /// In zh, this message translates to:
+  /// **'95 分位'**
+  String get performanceP95Frame;
+
+  /// No description provided for @performanceWorstFrame.
+  ///
+  /// In zh, this message translates to:
+  /// **'最差一帧'**
+  String get performanceWorstFrame;
+
+  /// No description provided for @performanceJankRatio.
+  ///
+  /// In zh, this message translates to:
+  /// **'掉帧比例'**
+  String get performanceJankRatio;
 
   /// No description provided for @performanceTitle.
   ///
@@ -31508,6 +31874,60 @@ abstract class L10n {
   /// **'引擎或遗留进程尚未确认停止，更新未开始。请先停止本机引擎，等待清理完成后重试；不要重置环境。'**
   String get phoneRuntimeUpgradeRunning;
 
+  /// No description provided for @sceneTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'一键设置'**
+  String get sceneTitle;
+
+  /// No description provided for @sceneFooter.
+  ///
+  /// In zh, this message translates to:
+  /// **'这三档会同时改光感、动画、玻璃模糊与刷新率；下面每一项仍可单独微调。'**
+  String get sceneFooter;
+
+  /// No description provided for @sceneCustomFooter.
+  ///
+  /// In zh, this message translates to:
+  /// **'你调过下面的细项，现在不在任何一档上；选一档可以一键回到该档的默认。'**
+  String get sceneCustomFooter;
+
+  /// No description provided for @sceneFull.
+  ///
+  /// In zh, this message translates to:
+  /// **'完整光效'**
+  String get sceneFull;
+
+  /// No description provided for @sceneFullHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'玻璃、光刃、颗粒、棱镜全开，动画最丰富，刷新率跟满'**
+  String get sceneFullHint;
+
+  /// No description provided for @sceneFocus.
+  ///
+  /// In zh, this message translates to:
+  /// **'专注'**
+  String get sceneFocus;
+
+  /// No description provided for @sceneFocusHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'玻璃与光刃保留、去掉颗粒，动画只保留必要的反馈'**
+  String get sceneFocusHint;
+
+  /// No description provided for @sceneQuiet.
+  ///
+  /// In zh, this message translates to:
+  /// **'静默省电'**
+  String get sceneQuiet;
+
+  /// No description provided for @sceneQuietHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'不做模糊、不画光刃、关动画，刷新率交给系统'**
+  String get sceneQuietHint;
+
   /// No description provided for @schemaDocumentationTitle.
   ///
   /// In zh, this message translates to:
@@ -35558,30 +35978,6 @@ abstract class L10n {
   /// **'准备中'**
   String get statePreparing;
 
-  /// No description provided for @stateIconMist.
-  ///
-  /// In zh, this message translates to:
-  /// **'雾蓝'**
-  String get stateIconMist;
-
-  /// No description provided for @stateIconNight.
-  ///
-  /// In zh, this message translates to:
-  /// **'夜幕'**
-  String get stateIconNight;
-
-  /// No description provided for @stateIconFrost.
-  ///
-  /// In zh, this message translates to:
-  /// **'霜白'**
-  String get stateIconFrost;
-
-  /// No description provided for @stateIconInk.
-  ///
-  /// In zh, this message translates to:
-  /// **'墨'**
-  String get stateIconInk;
-
   /// No description provided for @stateAppDisclaimer.
   ///
   /// In zh, this message translates to:
@@ -37405,6 +37801,54 @@ abstract class L10n {
   /// In zh, this message translates to:
   /// **'无法读取剪贴板，请重试或手动输入。'**
   String get statePasteFailed;
+
+  /// No description provided for @stateIconInk.
+  ///
+  /// In zh, this message translates to:
+  /// **'玄墨'**
+  String get stateIconInk;
+
+  /// No description provided for @stateIconGold.
+  ///
+  /// In zh, this message translates to:
+  /// **'鎏金'**
+  String get stateIconGold;
+
+  /// No description provided for @surfacePaletteTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'表面配色'**
+  String get surfacePaletteTitle;
+
+  /// No description provided for @surfacePaletteFooter.
+  ///
+  /// In zh, this message translates to:
+  /// **'只换底色冷暖，与强调色分开；深浅仍由上面的「深色模式」决定。'**
+  String get surfacePaletteFooter;
+
+  /// No description provided for @surfaceObsidian.
+  ///
+  /// In zh, this message translates to:
+  /// **'黑曜'**
+  String get surfaceObsidian;
+
+  /// No description provided for @surfaceObsidianHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'真中性近黑，冷调雾蓝浅底，四段表面阶梯'**
+  String get surfaceObsidianHint;
+
+  /// No description provided for @surfaceWarm.
+  ///
+  /// In zh, this message translates to:
+  /// **'暖炭'**
+  String get surfaceWarm;
+
+  /// No description provided for @surfaceWarmHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'暖炭褐底，暖白画册浅底，低蓝光夜间更舒服'**
+  String get surfaceWarmHint;
 
   /// No description provided for @systemActionsTitle.
   ///
@@ -44720,6 +45164,42 @@ abstract class L10n {
   /// **'{count} 个脚本没有运行'**
   String tavernChatScriptsSkipped(int count);
 
+  /// No description provided for @uiKitTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'页签与分段'**
+  String get uiKitTitle;
+
+  /// No description provided for @uiKitFooter.
+  ///
+  /// In zh, this message translates to:
+  /// **'两枚控件取自 obsidian-prism。关掉就回到我们原来的写法，功能不变。'**
+  String get uiKitFooter;
+
+  /// No description provided for @uiKitSegmented.
+  ///
+  /// In zh, this message translates to:
+  /// **'页签胶囊'**
+  String get uiKitSegmented;
+
+  /// No description provided for @uiKitSegmentedHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'一排小胶囊，选中靠底色点亮（工坊的三个视图先接它）'**
+  String get uiKitSegmentedHint;
+
+  /// No description provided for @uiKitDual.
+  ///
+  /// In zh, this message translates to:
+  /// **'双极滑块'**
+  String get uiKitDual;
+
+  /// No description provided for @uiKitDualHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'两格之间有一个会滑过去的滑块（上游默认关闭，属 Beta）'**
+  String get uiKitDualHint;
+
   /// No description provided for @updateCheck.
   ///
   /// In zh, this message translates to:
@@ -48536,534 +49016,6 @@ abstract class L10n {
   /// **'还没连上「{name}」，连上后再打开网页版'**
   String webConnectHostFirst(String name);
 
-  /// No description provided for @builtinPluginsTitle.
-  ///
-  /// In zh, this message translates to:
-  /// **'内置插件'**
-  String get builtinPluginsTitle;
-
-  /// No description provided for @builtinPluginsIntro.
-  ///
-  /// In zh, this message translates to:
-  /// **'关掉的插件会从界面里隐藏：模式、入口和深链都会停用。'**
-  String get builtinPluginsIntro;
-
-  /// No description provided for @builtinPluginsKeywords.
-  ///
-  /// In zh, this message translates to:
-  /// **'插件, 开关, 启用, 停用, 酒馆, 创意工坊, 伙伴小屋, 精简'**
-  String get builtinPluginsKeywords;
-
-  /// No description provided for @builtinPluginsAllOn.
-  ///
-  /// In zh, this message translates to:
-  /// **'全部开启'**
-  String get builtinPluginsAllOn;
-
-  /// No description provided for @builtinPluginsSomeOff.
-  ///
-  /// In zh, this message translates to:
-  /// **'有已关闭'**
-  String get builtinPluginsSomeOff;
-
-  /// No description provided for @builtinPluginsReset.
-  ///
-  /// In zh, this message translates to:
-  /// **'全部重新开启'**
-  String get builtinPluginsReset;
-
-  /// No description provided for @builtinPluginKeepData.
-  ///
-  /// In zh, this message translates to:
-  /// **'关闭不会删除已有数据；重新开启后角色卡、对话、伙伴包都还在。'**
-  String get builtinPluginKeepData;
-
-  /// No description provided for @builtinPluginOffAction.
-  ///
-  /// In zh, this message translates to:
-  /// **'去设置里开启'**
-  String get builtinPluginOffAction;
-
-  /// No description provided for @builtinPluginOffMessage.
-  ///
-  /// In zh, this message translates to:
-  /// **'这个功能已经关闭。'**
-  String get builtinPluginOffMessage;
-
-  /// No description provided for @builtinPluginTavernHint.
-  ///
-  /// In zh, this message translates to:
-  /// **'角色扮演：SillyTavern 兼容的角色卡、世界书与预设'**
-  String get builtinPluginTavernHint;
-
-  /// No description provided for @builtinPluginWorkshopHint.
-  ///
-  /// In zh, this message translates to:
-  /// **'下载与投稿桌宠包、伙伴包（需要一个工坊服务端）'**
-  String get builtinPluginWorkshopHint;
-
-  /// No description provided for @builtinPluginCompanionHint.
-  ///
-  /// In zh, this message translates to:
-  /// **'伙伴小屋：Live2D 舞台与长期角色'**
-  String get builtinPluginCompanionHint;
-
-  /// No description provided for @launchEngine.
-  String get launchEngine;
-
-  /// No description provided for @launchEngineZeroTrap.
-  String get launchEngineZeroTrap;
-
-  /// No description provided for @launchEngineZeroTrapHint.
-  String get launchEngineZeroTrapHint;
-
-  /// No description provided for @launchEngineTawc.
-  String get launchEngineTawc;
-
-  /// No description provided for @yinglongEngine.
-  ///
-  /// In zh, this message translates to:
-  /// **'应龙引擎'**
-  String get yinglongEngine;
-
-  /// No description provided for @yinglongEngineHint.
-  ///
-  /// In zh, this message translates to:
-  /// **'在打过补丁的 glibc 上直接运行，不再经过 PRoot，系统调用快得多'**
-  String get yinglongEngineHint;
-
-  /// No description provided for @yinglongEngineUnavailable.
-  ///
-  /// In zh, this message translates to:
-  /// **'这个运行时没有对应架构的应龙，仍用 PRoot'**
-  String get yinglongEngineUnavailable;
-
-  /// No description provided for @yinglongEngineFailedHint.
-  ///
-  /// In zh, this message translates to:
-  /// **'上次用应龙没能起来，已自动退回 PRoot；打开再试一次'**
-  String get yinglongEngineFailedHint;
-
-  /// No description provided for @opticsTitle.
-  ///
-  /// In zh, this message translates to:
-  /// **'光感与动效'**
-  String get opticsTitle;
-
-  /// No description provided for @opticsFooter.
-  ///
-  /// In zh, this message translates to:
-  /// **'系统开启「移除动画」或关闭玻璃模糊时，这里的效果会自动减弱，不用手动关。'**
-  String get opticsFooter;
-
-  /// No description provided for @opticsPreset.
-  ///
-  /// In zh, this message translates to:
-  /// **'光感强度'**
-  String get opticsPreset;
-
-  /// No description provided for @opticsFull.
-  ///
-  /// In zh, this message translates to:
-  /// **'完整光感'**
-  String get opticsFull;
-
-  /// No description provided for @opticsFocus.
-  ///
-  /// In zh, this message translates to:
-  /// **'专注'**
-  String get opticsFocus;
-
-  /// No description provided for @opticsSilent.
-  ///
-  /// In zh, this message translates to:
-  /// **'静默省电'**
-  String get opticsSilent;
-
-  /// No description provided for @opticsFullHint.
-  ///
-  /// In zh, this message translates to:
-  /// **'玻璃、光刃、颗粒与棱镜边缘全开，动画最丰富'**
-  String get opticsFullHint;
-
-  /// No description provided for @opticsFocusHint.
-  ///
-  /// In zh, this message translates to:
-  /// **'玻璃与光刃保留，去掉颗粒，光刃只反映引擎状态'**
-  String get opticsFocusHint;
-
-  /// No description provided for @opticsSilentHint.
-  ///
-  /// In zh, this message translates to:
-  /// **'不做模糊、不画光刃，只留必要的描边与淡入'**
-  String get opticsSilentHint;
-
-  /// No description provided for @opticsBlade.
-  ///
-  /// In zh, this message translates to:
-  /// **'光刃'**
-  String get opticsBlade;
-
-  /// No description provided for @opticsBladeHint.
-  ///
-  /// In zh, this message translates to:
-  /// **'顶栏上沿的一道高光，反映引擎在空闲、生成、跑工具还是等你决定'**
-  String get opticsBladeHint;
-
-  /// No description provided for @opticsPrism.
-  ///
-  /// In zh, this message translates to:
-  /// **'棱镜边缘'**
-  String get opticsPrism;
-
-  /// No description provided for @opticsPrismHint.
-  ///
-  /// In zh, this message translates to:
-  /// **'玻璃边缘极淡的冷青/品红/暖金色散，只在深色背景上明显'**
-  String get opticsPrismHint;
-
-  /// No description provided for @opticsAnticipation.
-  ///
-  /// In zh, this message translates to:
-  /// **'预见性动画'**
-  String get opticsAnticipation;
-
-  /// No description provided for @opticsAnticipationHint.
-  ///
-  /// In zh, this message translates to:
-  /// **'目标页面的骨架与描边先就位，内容到达后再填入，避免空白跳变'**
-  String get opticsAnticipationHint;
-
-  /// No description provided for @opticsAfterglow.
-  ///
-  /// In zh, this message translates to:
-  /// **'边缘余晖'**
-  String get opticsAfterglow;
-
-  /// No description provided for @opticsAfterglowHint.
-  ///
-  /// In zh, this message translates to:
-  /// **'等待你决定、异常中止、后台任务完成时，屏幕边缘给一层极淡的光，不弹窗'**
-  String get opticsAfterglowHint;
-
-  /// No description provided for @opticsInkFade.
-  ///
-  /// In zh, this message translates to:
-  /// **'流光文字'**
-  String get opticsInkFade;
-
-  /// No description provided for @opticsInkFadeHint.
-  ///
-  /// In zh, this message translates to:
-  /// **'流式输出的新字由淡到实，五级过渡，旧字不动'**
-  String get opticsInkFadeHint;
-
-  /// No description provided for @opticsFollowPreset.
-  ///
-  /// In zh, this message translates to:
-  /// **'跟随所选档位'**
-  String get opticsFollowPreset;
-
-  /// No description provided for @surfacePaletteTitle.
-  ///
-  /// In zh, this message translates to:
-  /// **'表面配色'**
-  String get surfacePaletteTitle;
-
-  /// No description provided for @surfacePaletteFooter.
-  ///
-  /// In zh, this message translates to:
-  /// **'只换底色冷暖，与强调色分开；深浅仍由上面的「深色模式」决定。'**
-  String get surfacePaletteFooter;
-
-  /// No description provided for @surfaceObsidian.
-  ///
-  /// In zh, this message translates to:
-  /// **'黑曜'**
-  String get surfaceObsidian;
-
-  /// No description provided for @surfaceObsidianHint.
-  ///
-  /// In zh, this message translates to:
-  /// **'真中性近黑，冷调雾蓝浅底，四段表面阶梯'**
-  String get surfaceObsidianHint;
-
-  /// No description provided for @surfaceWarm.
-  ///
-  /// In zh, this message translates to:
-  /// **'暖炭'**
-  String get surfaceWarm;
-
-  /// No description provided for @surfaceWarmHint.
-  ///
-  /// In zh, this message translates to:
-  /// **'暖炭褐底，暖白画册浅底，低蓝光夜间更舒服'**
-  String get surfaceWarmHint;
-
-  /// No description provided for @sceneTitle.
-  ///
-  /// In zh, this message translates to:
-  /// **'一键设置'**
-  String get sceneTitle;
-
-  /// No description provided for @sceneFooter.
-  ///
-  /// In zh, this message translates to:
-  /// **'这三档会同时改光感、动画、玻璃模糊与刷新率；下面每一项仍可单独微调。'**
-  String get sceneFooter;
-
-  /// No description provided for @sceneCustomFooter.
-  ///
-  /// In zh, this message translates to:
-  /// **'你调过下面的细项，现在不在任何一档上；选一档可以一键回到该档的默认。'**
-  String get sceneCustomFooter;
-
-  /// No description provided for @sceneFull.
-  ///
-  /// In zh, this message translates to:
-  /// **'完整光效'**
-  String get sceneFull;
-
-  /// No description provided for @sceneFullHint.
-  ///
-  /// In zh, this message translates to:
-  /// **'玻璃、光刃、颗粒、棱镜全开，动画最丰富，刷新率跟满'**
-  String get sceneFullHint;
-
-  /// No description provided for @sceneFocus.
-  ///
-  /// In zh, this message translates to:
-  /// **'专注'**
-  String get sceneFocus;
-
-  /// No description provided for @sceneFocusHint.
-  ///
-  /// In zh, this message translates to:
-  /// **'玻璃与光刃保留、去掉颗粒，动画只保留必要的反馈'**
-  String get sceneFocusHint;
-
-  /// No description provided for @sceneQuiet.
-  ///
-  /// In zh, this message translates to:
-  /// **'静默省电'**
-  String get sceneQuiet;
-
-  /// No description provided for @sceneQuietHint.
-  ///
-  /// In zh, this message translates to:
-  /// **'不做模糊、不画光刃、关动画，刷新率交给系统'**
-  String get sceneQuietHint;
-
-  /// No description provided for @phoneAccentCobalt.
-  ///
-  /// In zh, this message translates to:
-  /// **'钴蓝'**
-  String get phoneAccentCobalt;
-
-  /// No description provided for @phoneAccentIris.
-  ///
-  /// In zh, this message translates to:
-  /// **'鸢尾'**
-  String get phoneAccentIris;
-
-  /// No description provided for @opticsEffective.
-  ///
-  /// In zh, this message translates to:
-  /// **'当前生效'**
-  String get opticsEffective;
-
-  /// No description provided for @opticsOn.
-  ///
-  /// In zh, this message translates to:
-  /// **'开'**
-  String get opticsOn;
-
-  /// No description provided for @opticsOff.
-  ///
-  /// In zh, this message translates to:
-  /// **'关'**
-  String get opticsOff;
-
-  /// No description provided for @performanceMeasured.
-  ///
-  /// In zh, this message translates to:
-  /// **'实测'**
-  String get performanceMeasured;
-
-  /// No description provided for @performanceMeasuredHint.
-  ///
-  /// In zh, this message translates to:
-  /// **'打开这一页才开始采样（最近 240 帧）。16.7 ms 是一帧的预算，掉帧比例超过 10% 说明这一档对当前设备偏重。'**
-  String get performanceMeasuredHint;
-
-  /// No description provided for @performanceMeasuredWaiting.
-  ///
-  /// In zh, this message translates to:
-  /// **'采样中，等一秒'**
-  String get performanceMeasuredWaiting;
-
-  /// No description provided for @performanceAvgFrame.
-  ///
-  /// In zh, this message translates to:
-  /// **'平均帧耗时'**
-  String get performanceAvgFrame;
-
-  /// No description provided for @performanceP95Frame.
-  ///
-  /// In zh, this message translates to:
-  /// **'95 分位'**
-  String get performanceP95Frame;
-
-  /// No description provided for @performanceWorstFrame.
-  ///
-  /// In zh, this message translates to:
-  /// **'最差一帧'**
-  String get performanceWorstFrame;
-
-  /// No description provided for @performanceJankRatio.
-  ///
-  /// In zh, this message translates to:
-  /// **'掉帧比例'**
-  String get performanceJankRatio;
-
-  /// No description provided for @opticsBlockedNote.
-  ///
-  /// In zh, this message translates to:
-  /// **'有项目被系统偏好关闭（移除动画 / 降低透明度）'**
-  String get opticsBlockedNote;
-
-  /// No description provided for @drawerTabSessions.
-  ///
-  /// In zh, this message translates to:
-  /// **'会话'**
-  String get drawerTabSessions;
-
-  /// No description provided for @drawerTabFiles.
-  ///
-  /// In zh, this message translates to:
-  /// **'文件'**
-  String get drawerTabFiles;
-
-  /// No description provided for @drawerFilesEmptyTitle.
-  ///
-  /// In zh, this message translates to:
-  /// **'还没有打开的会话'**
-  String get drawerFilesEmptyTitle;
-
-  /// No description provided for @drawerFilesEmptyNote.
-  ///
-  /// In zh, this message translates to:
-  /// **'选一个会话后，这里会列出它的工作区文件。'**
-  String get drawerFilesEmptyNote;
-
-  /// No description provided for @drawerPagerTitle.
-  ///
-  /// In zh, this message translates to:
-  /// **'侧边栏翻页器'**
-  String get drawerPagerTitle;
-
-  /// No description provided for @drawerPagerHint.
-  ///
-  /// In zh, this message translates to:
-  /// **'顶上一排页签，左右滑动即可翻页'**
-  String get drawerPagerHint;
-
-  /// No description provided for @drawerPagerFooter.
-  ///
-  /// In zh, this message translates to:
-  /// **'关掉后侧边栏回到一屏到底的长列表；数据与操作完全不变。'**
-  String get drawerPagerFooter;
-
-  /// No description provided for @contextTideTitle.
-  ///
-  /// In zh, this message translates to:
-  /// **'上下文用量'**
-  String get contextTideTitle;
-
-  /// No description provided for @contextTideUsed.
-  ///
-  /// In zh, this message translates to:
-  /// **'上次请求占用'**
-  String get contextTideUsed;
-
-  /// No description provided for @contextTideCached.
-  ///
-  /// In zh, this message translates to:
-  /// **'其中命中缓存'**
-  String get contextTideCached;
-
-  /// No description provided for @contextTideOutput.
-  ///
-  /// In zh, this message translates to:
-  /// **'上次输出'**
-  String get contextTideOutput;
-
-  /// No description provided for @contextTideWindow.
-  ///
-  /// In zh, this message translates to:
-  /// **'上下文窗口'**
-  String get contextTideWindow;
-
-  /// No description provided for @contextTideUnknown.
-  ///
-  /// In zh, this message translates to:
-  /// **'这个模型未声明'**
-  String get contextTideUnknown;
-
-  /// 收起长代码。
-  ///
-  /// In zh, this message translates to:
-  /// **'收起长代码'**
-  String get chatFoldCode;
-
-  /// 展开全部 N 行。
-  ///
-  /// In zh, this message translates to:
-  /// **'展开全部 {count} 行'**
-  String chatShowAllLines(int count);
-
-  /// No description provided for @stateDrawerFilterTitle.
-  ///
-  /// In zh, this message translates to:
-  /// **'筛选对话'**
-  String get stateDrawerFilterTitle;
-
-  /// No description provided for @uiKitTitle.
-  ///
-  /// In zh, this message translates to:
-  /// **'页签与分段'**
-  String get uiKitTitle;
-
-  /// No description provided for @uiKitFooter.
-  ///
-  /// In zh, this message translates to:
-  /// **'两枚控件取自 obsidian-prism。关掉就回到我们原来的写法，功能不变。'**
-  String get uiKitFooter;
-
-  /// No description provided for @uiKitSegmented.
-  ///
-  /// In zh, this message translates to:
-  /// **'页签胶囊'**
-  String get uiKitSegmented;
-
-  /// No description provided for @uiKitSegmentedHint.
-  ///
-  /// In zh, this message translates to:
-  /// **'一排小胶囊，选中靠底色点亮（工坊的三个视图先接它）'**
-  String get uiKitSegmentedHint;
-
-  /// No description provided for @uiKitDual.
-  ///
-  /// In zh, this message translates to:
-  /// **'双极滑块'**
-  String get uiKitDual;
-
-  /// No description provided for @uiKitDualHint.
-  ///
-  /// In zh, this message translates to:
-  /// **'两格之间有一个会滑过去的滑块（上游默认关闭，属 Beta）'**
-  String get uiKitDualHint;
-
   /// No description provided for @workshopTitle.
   ///
   /// In zh, this message translates to:
@@ -51085,6 +51037,54 @@ abstract class L10n {
   /// In zh, this message translates to:
   /// **'操作未完成，请查看本机引擎状态和日志。已切换的模式可在本页确认。'**
   String get workspaceRecoveryFailed;
+
+  /// No description provided for @yinglongEngine.
+  ///
+  /// In zh, this message translates to:
+  /// **'Zero Trap 引擎'**
+  String get yinglongEngine;
+
+  /// No description provided for @yinglongEngineHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'在打过补丁的 glibc 上直接运行，不再经过 PRoot，系统调用快得多'**
+  String get yinglongEngineHint;
+
+  /// No description provided for @yinglongEngineUnavailable.
+  ///
+  /// In zh, this message translates to:
+  /// **'这个运行时没有对应架构的 Zero Trap，仍用 PRoot'**
+  String get yinglongEngineUnavailable;
+
+  /// No description provided for @yinglongEngineFailedHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'上次用 Zero Trap 没能起来，本次已退回兼容启动；重开 App 会再试一次'**
+  String get yinglongEngineFailedHint;
+
+  /// No description provided for @launchEngine.
+  ///
+  /// In zh, this message translates to:
+  /// **'兼容启动'**
+  String get launchEngine;
+
+  /// No description provided for @launchEngineZeroTrap.
+  ///
+  /// In zh, this message translates to:
+  /// **'Zero Trap'**
+  String get launchEngineZeroTrap;
+
+  /// No description provided for @launchEngineZeroTrapHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'默认。打过补丁的 glibc，路径翻译在进程内完成，启动最快'**
+  String get launchEngineZeroTrapHint;
+
+  /// No description provided for @launchEngineTawc.
+  ///
+  /// In zh, this message translates to:
+  /// **'TawcRoot'**
+  String get launchEngineTawc;
 }
 
 class _L10nDelegate extends LocalizationsDelegate<L10n> {

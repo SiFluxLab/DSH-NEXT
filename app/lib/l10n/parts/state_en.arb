@@ -72,10 +72,6 @@
   "stateSubagent": "Subagent",
   "stateParentChat": "Parent chat",
   "statePreparing": "Provisioning",
-  "stateIconMist": "Mist blue",
-  "stateIconNight": "Nightfall",
-  "stateIconFrost": "Frost white",
-  "stateIconInk": "Ink",
   "stateAppDisclaimer": "Built on DeepSeek Harness · Unofficial DeepSeek app",
   "stateWallpaper": "Wallpaper",
   "stateFileMissing": "File not found. It may have been deleted or moved.",
@@ -379,5 +375,7 @@
   "statePasteEmpty": "The clipboard has no text to paste.",
   "statePasteDenied": "Paste was not authorized. Tap the Paste button again.",
   "statePasteBusy": "The paste window is still active or closing. Finish or cancel it, then try again.",
-  "statePasteFailed": "Could not read the clipboard. Try again or enter the text manually."
+  "statePasteFailed": "Could not read the clipboard. Try again or enter the text manually.",
+  "stateIconInk": "Ink",
+  "stateIconGold": "Gold"
 }
