@@ -15,6 +15,7 @@ import '../../../l10n/l10n.dart';
 import '../../../state/android_features.dart';
 import '../../../state/appearance_state.dart';
 import '../../../state/settings_state.dart';
+import '../../../state/surface_palette_state.dart';
 import '../../../ui_config/ui_config.dart';
 import '../../common/expand_reveal.dart';
 import '../../common/pressable.dart';
@@ -42,6 +43,7 @@ class AppearanceEntryTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final accent = ref.watch(accentProvider);
+    final surface = ref.watch(surfacePaletteProvider);
     final seed = accent.seedFor(Theme.of(context).brightness);
     final mode = switch (ref.watch(uiThemeModeProvider.select((s) => s.value))) {
       ThemeMode.light => l10n.commonLight,
@@ -57,7 +59,7 @@ class AppearanceEntryTile extends ConsumerWidget {
         children: [
           AccentDot(color: seed, size: 10),
           const SizedBox(width: 6),
-          Text('${accent.label} · $mode'),
+          Flexible(child: Text('${accent.label} · ${surfacePaletteLabel(l10n, surface)} · $mode', overflow: TextOverflow.ellipsis)),
         ],
       ),
       onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const AppearancePage())),

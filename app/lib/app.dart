@@ -18,6 +18,7 @@ import 'state/star_prompt.dart' show starPromptGateProvider, starPromptProvider;
 import 'state/tile_style_state.dart';
 import 'ui/chat/dsh_ui/dsh_ui_model.dart' show DshUiAppAccent;
 import 'ui/common/app_blade.dart';
+import 'ui/common/ui_trace.dart';
 import 'ui/common/keyboard_motion.dart';
 import 'ui/common/side_insets.dart';
 import 'ui/launch/launch_overlay.dart';
@@ -187,6 +188,14 @@ class _DshAppState extends ConsumerState<DshApp> with WidgetsBindingObserver {
           lowPower: performance.lightweight,
         );
     FrameClock.instance.enabled = fluid;
+    // 诊断里能看到当前光感档位：用户报"卡"时，这一行决定了我们从哪儿查。
+    uiTrace('optics', 'resolve', {
+      'preset': optics.preset.name,
+      'blade': optics.blade,
+      'blur': optics.blurSigma,
+      'anticipation': optics.anticipation,
+      'lowPower': performance.lightweight,
+    });
     _themesFor(
       ref.watch(accentProvider),
       ref.watch(surfacePaletteProvider),
