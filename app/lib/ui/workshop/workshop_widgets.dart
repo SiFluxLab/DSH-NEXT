@@ -395,7 +395,7 @@ class WorkshopGroupHeader extends StatelessWidget {
           Expanded(
             child: Semantics(header: true, child: Text(title, style: KitSectionHeader.titleStyle(context))),
           ),
-          if (trailing != null) trailing,
+          ?trailing,
           RollingCount(count, format: l10n.commonItemCount),
         ],
       ),

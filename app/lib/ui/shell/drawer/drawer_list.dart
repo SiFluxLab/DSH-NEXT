@@ -111,7 +111,9 @@ class _DrawerConversationListState extends ConsumerState<DrawerConversationList>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       // 关着的时候不播（看不见的不该有动画），减少动画时也不播。
-      if (!TickerMode.of(context) || !KitMotion.choreography(context)) return;
+      // TickerMode.of 在 3.35 起被弃用：新 API 同时给出 enabled 与 forceFrames，
+      // 我们只需要前者（"关着就不播"）。
+      if (!TickerMode.valuesOf(context).enabled || !KitMotion.choreography(context)) return;
       setState(() => _landed = id);
       _landedTimer?.cancel();
       _landedTimer = Timer(landing, () {
